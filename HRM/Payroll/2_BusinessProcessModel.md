@@ -86,7 +86,7 @@ graph TB
     B --> C[HR review<br/>và điều chỉnh]
     C --> D[Hệ thống<br/>tính toán tự động]
     D --> E[Manager<br/>phê duyệt online]
-    E --> F[Tự động gửi<br/>bảng lương cho NV]
+    E --> F[Tự động gửi<br/>phiếu lương cho NV]
     F --> G[Xuất báo cáo<br/>cho kế toán]
     G --> H[Thanh toán]
     H --> End([Kết thúc])
