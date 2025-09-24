@@ -76,7 +76,7 @@ Hiện tại, nhiều doanh nghiệp đang gặp khó khăn trong việc:
 **Mô tả:** Hệ thống phải cho phép thiết kế nhiều loại bảng lương khác nhau cho từng phòng ban/vị trí
 
 **Chi tiết:**
-- Mỗi phòng ban có thể có cấu trúc lương riêng
+- Mỗi phòng ban/nhân viên có thể có cấu trúc lương riêng
 - Cho phép thêm/bớt các thành phần lương động
 - Hỗ trợ công thức tính toán phức tạp
 
