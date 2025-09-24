@@ -204,9 +204,11 @@ graph TB
     D4 -->|Insurance rates| P34
     P34 -->|Deductions| P36
     
-    P32 -->|Taxable income| P35
-    P33 -->|Tax exempt| P35
-    D4 -->|Tax rules| P35
+    P32 -->|Gross salary| P35
+    P33 -->|Tax exempt allowances| P35
+    P34 -->|BHXH deductions| P35
+    D1 -->|Dependents info| P35
+    D4 -->|Tax rules & rates| P35
     P35 -->|Tax amount| P36
     
     P36 -->|Complete payroll| D3
@@ -373,26 +375,40 @@ END
 ### 6.2 Process 3.5: Calculate Tax
 
 **Process ID:** 3.5  
-**Process Name:** Calculate Tax  
-**Purpose:** Tính thuế TNCN theo biểu lũy tiến
+**Process Name:** Calculate Tax
+**Purpose:** Tính thuế TNCN theo biểu lũy tiến từ thu nhập GROSS (trước BHXH)
 
 **Input:**
-- Taxable income từ process 3.2, 3.3
-- Tax rules từ D4
-- Dependents từ D1
+- Gross salary từ process 3.2 (Lương cơ bản)
+- Tax exempt allowances từ process 3.3 (Phụ cấp không chịu thuế)
+- BHXH deductions từ process 3.4 (Bảo hiểm đã trừ)
+- Dependents info từ D1 (Thông tin người phụ thuộc)
+- Tax rules & rates từ D4 (Quy định thuế)
 
 **Processing Logic:**
 ```pseudocode
 BEGIN Calculate_Tax
-    GET total_income
-    GET tax_exempt_allowances
-    GET insurance_deductions
-    GET personal_deduction = 11,000,000
-    GET dependent_deduction = count(dependents) * 4,400,000
-    
-    taxable_income = total_income - tax_exempt_allowances 
-                    - insurance_deductions - personal_deduction 
-                    - dependent_deduction
+    // Thu thập thông tin đầu vào
+    GET gross_salary FROM process_3.2  // Lương cơ bản TRƯỚC trừ BHXH
+    GET taxable_allowances FROM process_3.3  // Phụ cấp chịu thuế
+    GET tax_exempt_allowances FROM process_3.3  // Phụ cấp không chịu thuế
+    GET bhxh_employee_contribution FROM process_3.4  // BHXH nhân viên đóng (8%)
+    GET dependents_count FROM employee_record
+
+    // ===== LOGIC TÍNH THUẾ TNCN THEO QUY ĐỊNH VIỆT NAM =====
+    // Bước 1: Tính tổng thu nhập chịu thuế GROSS (chưa trừ BHXH)
+    total_gross_income = gross_salary + taxable_allowances
+
+    // Bước 2: Các khoản giảm trừ
+    personal_deduction = 11,000,000  // Giảm trừ cá nhân 2024
+    dependent_deduction = dependents_count * 4,400,000  // Giảm trừ người phụ thuộc
+
+    // Bước 3: Thu nhập chịu thuế = GROSS - BHXH cá nhân đóng - Giảm trừ
+    // (Theo Luật thuế TNCN: BHXH được trừ trước khi tính thuế)
+    taxable_income = total_gross_income
+                    - bhxh_employee_contribution  // Trừ BHXH cá nhân (8%)
+                    - personal_deduction         // Trừ giảm trừ cá nhân
+                    - dependent_deduction        // Trừ giảm trừ người phụ thuộc
     
     IF taxable_income <= 0 THEN
         RETURN 0
