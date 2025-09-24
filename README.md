@@ -1,70 +1,129 @@
-# Bflow-Doc - Tài liệu Dự án Hệ thống Quản lý Lương
+# Bflow-Doc - Tài liệu Dự án Phát triển Phần mềm
 
-## Tổng quan Dự án
-**Dự án:** Hệ thống Quản lý Lương (Payroll Management System)
-**Giai đoạn hiện tại:** Chuyển tiếp từ Phân tích Yêu cầu sang Thiết kế
-**Mục tiêu:** Tự động hóa quy trình tính lương và quản lý nhân sự
+## Tổng quan
+Repository chứa tài liệu cho các dự án phát triển phần mềm theo chuẩn mực quốc tế, bao gồm tất cả các giai đoạn từ phân tích yêu cầu đến triển khai và bảo trì.
 
-## Trạng thái Dự án
-- ✅ **Giai đoạn 1: Phân tích Yêu cầu** - Hoàn thành 100%
-- 🎯 **Giai đoạn 2: Thiết kế** - Sẵn sàng bắt đầu
-- ⏳ **Timeline:** 6 tháng đến production
-- 👥 **Team size:** 5-7 người
-- 💰 **Budget:** 500 triệu VNĐ
+## Cấu trúc Repository
 
-## Cấu trúc Tài liệu
+### Bộ Chuẩn Phát triển
+- `bo-tai-lieu-chuan-phat-trien-phan-mem.md` - Bộ tiêu chuẩn tài liệu cho tất cả dự án
 
-### Giai đoạn Phân tích Yêu cầu (Hoàn thành)
+### Các Module Dự án
+
+#### HRM (Human Resource Management)
 ```
-HRM/Payroll/
-├── 0_README_BoTaiLieuPhanTichYeuCau.md    # Hướng dẫn bộ tài liệu
-├── 1_SRS_HeThongQuanLyLuong.md            # Software Requirements Specification
-├── 2_BusinessProcessModel.md              # Mô hình quy trình nghiệp vụ
-├── 3_UserStories.md                       # Câu chuyện người dùng (Agile)
-├── 4_RequirementsTraceabilityMatrix.md    # Ma trận truy xuất yêu cầu
-├── 5_RequirementsPrioritizationMatrix.md  # Ma trận ưu tiên yêu cầu
-├── 6_PrototypeMockup.md                   # Thiết kế giao diện và UX
-└── 7_DataFlowDiagram.md                   # Sơ đồ luồng dữ liệu
+HRM/
+└── Payroll/          # Hệ thống Quản lý Lương
+    ├── README.md     # Hướng dẫn module Payroll
+    └── [documents]   # Tài liệu giai đoạn phân tích yêu cầu
 ```
 
-### Giai đoạn Thiết kế (Chuẩn bị)
-Theo bộ chuẩn `bo-tai-lieu-chuan-phat-trien-phan-mem.md`, giai đoạn thiết kế sẽ bao gồm:
-- Architecture Design Document
-- Detailed Design Document
-- Database Design Document
-- API Design Specification
-- UI/UX Design Document
-- Security Design & Threat Model
+### Các Module Khác (Dự kiến)
+- **HRM/Recruitment** - Hệ thống Tuyển dụng
+- **HRM/Performance** - Đánh giá Hiệu suất
+- **Finance/Accounting** - Hệ thống Kế toán
+- **CRM/Customer** - Quản lý Khách hàng
+- **Inventory/Warehouse** - Quản lý Kho
+- **[Các module khác]**
 
-## Nguyên tắc Làm việc
+## Nguyên tắc Tổ chức Tài liệu
 
-### Đối với Agent/AI Assistant:
-1. **KHÔNG** tạo thêm tài liệu ngoài danh mục chuẩn
-2. **KHÔNG** phát sinh nội dung ngoài cấu trúc hiện tại
-3. **CHỈ** thực hiện khi có yêu cầu cụ thể
-4. **TUÂN THỦ** nghiêm ngặt bộ tiêu chuẩn phát triển phần mềm
-5. **TẬP TRUNG** vào việc chuẩn bị transition sang giai đoạn thiết kế
+### Cấu trúc Chuẩn cho Mỗi Module:
+```
+[Domain]/[Module]/
+├── README.md                    # Hướng dẫn cụ thể cho module
+├── 0_README_BoTaiLieu*.md      # Danh mục tài liệu giai đoạn
+├── 1_SRS_*.md                  # Requirements Specification
+├── 2_BusinessProcessModel.md   # Quy trình nghiệp vụ
+├── 3_UserStories.md           # User Stories
+├── 4_RequirementsTraceability* # Ma trận truy xuất
+├── 5_RequirementsPrioritization* # Ma trận ưu tiên
+├── 6_PrototypeMockup.md       # Thiết kế giao diện
+└── [additional documents]      # Tài liệu bổ sung theo nhu cầu
+```
 
-### Scope Hiện tại:
-- ✅ Hoàn thiện bộ tài liệu phân tích yêu cầu
-- 🎯 Chuẩn bị cho giai đoạn thiết kế
-- 📋 Hỗ trợ review và sign-off requirements
-- 🔄 Maintain documentation quality
+### Giai đoạn Phát triển:
+1. **Phân tích Yêu cầu** - Requirements Analysis
+2. **Thiết kế** - Design Phase
+3. **Phát triển** - Development Phase
+4. **Kiểm thử** - Testing Phase
+5. **Triển khai** - Deployment Phase
+6. **Vận hành & Bảo trì** - Operations & Maintenance
 
-## Stakeholders
-- **Business Owner:** Phê duyệt quy trình nghiệp vụ
-- **Product Owner:** Quản lý requirements và priorities
-- **Tech Lead:** Technical architecture và feasibility
-- **QA Lead:** Test planning và acceptance criteria
-- **Dev Team:** Implementation planning và estimation
+## Chuẩn mức Áp dụng
 
-## Next Steps
-1. Complete requirements review cycle (1 tuần)
-2. Incorporate feedback (3 ngày)
-3. Obtain sign-offs (2 ngày)
-4. Kick-off Design Phase
+### Tuân thủ các Tiêu chuẩn:
+- ✅ **IEEE 29148-2018** - Requirements Engineering
+- ✅ **CMMI** - Capability Maturity Model Integration
+- ✅ **ISO 12207** - Software Lifecycle Processes
+- ✅ **BABOK** - Business Analysis Body of Knowledge
+
+### Methodology Hỗ trợ:
+- 🔄 **Agile/Scrum** - Linh hoạt, iterative
+- 📋 **Waterfall** - Tuần tự, chi tiết từ đầu
+- 🚀 **DevOps** - Tự động hóa, continuous delivery
+
+## Trạng thái Các Module
+
+| Module | Domain | Giai đoạn | Trạng thái | Timeline |
+|--------|---------|-----------|------------|----------|
+| **Payroll** | HRM | Requirements → Design | ✅ 100% | 6 tháng |
+| [Future modules] | | | | |
+
+## Hướng dẫn Sử dụng
+
+### Cho Project Manager:
+1. Chọn module phù hợp với dự án
+2. Copy template từ bộ chuẩn
+3. Customize theo context cụ thể
+4. Follow timeline và milestones
+
+### Cho Development Team:
+1. Đọc README của module cụ thể
+2. Tham khảo bộ tài liệu Requirements
+3. Follow coding standards và guidelines
+4. Maintain documentation quality
+
+### Cho Stakeholders:
+1. Review business requirements documents
+2. Provide feedback trong review cycles
+3. Sign-off cho từng giai đoạn
+4. Participate trong UAT và training
+
+## Quy trình Làm việc
+
+### Development Workflow:
+1. **Khởi tạo Module** - Setup folder structure
+2. **Requirements Phase** - Complete analysis documents
+3. **Review & Sign-off** - Stakeholder approval
+4. **Design Phase** - Technical design documents
+5. **Implementation** - Code development
+6. **Testing & Deployment** - Quality assurance
+7. **Maintenance** - Ongoing support
+
+### Documentation Standards:
+- 📝 Markdown format cho tất cả documents
+- 🔢 Version control với Git
+- 📋 Template compliance mandatory
+- ✅ Peer review required
+- 📊 Progress tracking với milestones
+
+## Liên hệ & Hỗ trợ
+
+### Vai trò Chính:
+- **Solution Architect** - Thiết kế tổng thể
+- **Business Analyst** - Phân tích nghiệp vụ
+- **Project Manager** - Quản lý dự án
+- **Technical Writer** - Documentation quality
+
+### Escalation Path:
+1. Module Lead
+2. Domain Architect
+3. Program Manager
+4. Executive Sponsor
 
 ---
-**Document Version:** 1.0
+**Repository Version:** 1.0
 **Last Updated:** 2024-09-24
-**Project Phase:** Requirements → Design Transition
+**Documentation Standard:** v1.0
+**Maintained by:** Software Development Team
