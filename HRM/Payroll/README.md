@@ -1,40 +1,110 @@
-# Bflow-Doc - Tài liệu Dự án Hệ thống Quản lý Lương
+# HỆ THỐNG QUẢN LÝ LƯƠNG (PAYROLL MANAGEMENT SYSTEM)
+## Tài liệu Dự án - Tổ chức theo Giai đoạn Phát triển
 
-## Tổng quan Dự án
-**Dự án:** Hệ thống Quản lý Lương (Payroll Management System)
-**Giai đoạn hiện tại:** Chuyển tiếp từ Phân tích Yêu cầu sang Thiết kế
-**Mục tiêu:** Tự động hóa quy trình tính lương và quản lý nhân sự
+**Dự án:** Payroll Management System
+**Module:** HRM/Payroll
+**Timeline:** 6 tháng
+**Budget:** 500 triệu VNĐ
+**Team:** 5-7 người
 
-## Trạng thái Dự án
-- ✅ **Giai đoạn 1: Phân tích Yêu cầu** - Hoàn thành 100%
-- 🎯 **Giai đoạn 2: Thiết kế** - Sẵn sàng bắt đầu
-- ⏳ **Timeline:** 6 tháng đến production
-- 👥 **Team size:** 5-7 người
-- 💰 **Budget:** 500 triệu VNĐ
+---
 
-## Cấu trúc Tài liệu
+## 📁 CẤU TRÚC THƯ MỤC THEO GIAI ĐOẠN
 
-### Giai đoạn Phân tích Yêu cầu (Hoàn thành)
 ```
 HRM/Payroll/
-├── 0_README_BoTaiLieuPhanTichYeuCau.md    # Hướng dẫn bộ tài liệu
-├── 1_SRS_HeThongQuanLyLuong.md            # Software Requirements Specification
-├── 2_BusinessProcessModel.md              # Mô hình quy trình nghiệp vụ
-├── 3_UserStories.md                       # Câu chuyện người dùng (Agile)
-├── 4_RequirementsTraceabilityMatrix.md    # Ma trận truy xuất yêu cầu
-├── 5_RequirementsPrioritizationMatrix.md  # Ma trận ưu tiên yêu cầu
-├── 6_PrototypeMockup.md                   # Thiết kế giao diện và UX
-└── 7_DataFlowDiagram.md                   # Sơ đồ luồng dữ liệu
+│
+├── 📂 1_PhanTichYeuCau/         ✅ Hoàn thành 100%
+│   ├── README.md                 # Tổng quan giai đoạn
+│   ├── 0_README_BoTaiLieuPhanTichYeuCau.md
+│   ├── 1_SRS_HeThongQuanLyLuong.md
+│   ├── 2_BusinessProcessModel.md
+│   ├── 3_UserStories.md
+│   ├── 4_RequirementsTraceabilityMatrix.md
+│   ├── 5_RequirementsPrioritizationMatrix.md
+│   ├── 6_PrototypeMockup.md
+│   └── 7_DataFlowDiagram.md
+│
+├── 📂 2_ThietKe/                🎯 Sẵn sàng bắt đầu
+│   ├── README.md                 # Template & checklist
+│   └── [8 documents to be created]
+│
+├── 📂 3_PhatTrien/              ⏳ Chờ thiết kế
+│   ├── README.md                 # Development guidelines
+│   └── [8 documents to be created]
+│
+├── 📂 4_KiemThu/                ⏳ Chờ phát triển
+│   ├── README.md                 # Testing strategy
+│   └── [8 documents to be created]
+│
+├── 📂 5_TrienKhai/              ⏳ Chờ kiểm thử
+│   ├── README.md                 # Deployment plan
+│   └── [8 documents to be created]
+│
+└── 📂 6_VanHanh/                ⏳ Post-deployment
+    ├── README.md                 # Operations guide
+    └── [8 documents to be created]
 ```
 
-### Giai đoạn Thiết kế (Chuẩn bị)
-Theo bộ chuẩn `bo-tai-lieu-chuan-phat-trien-phan-mem.md`, giai đoạn thiết kế sẽ bao gồm:
-- Architecture Design Document
-- Detailed Design Document
-- Database Design Document
-- API Design Specification
-- UI/UX Design Document
-- Security Design & Threat Model
+---
+
+## 🎯 TRẠNG THÁI TỪNG GIAI ĐOẠN
+
+| Giai đoạn | Status | Progress | Thời gian | Next Action |
+|-----------|--------|----------|-----------|-------------|
+| **1. Phân tích Yêu cầu** | ✅ Hoàn thành | 100% | 4 tuần | Sign-off required |
+| **2. Thiết kế** | 🎯 Ready | 0% | 4-5 tuần | Kick-off meeting |
+| **3. Phát triển** | ⏳ Waiting | 0% | 3-4 tháng | Await design |
+| **4. Kiểm thử** | ⏳ Waiting | 0% | 4-6 tuần | Await development |
+| **5. Triển khai** | ⏳ Waiting | 0% | 1-2 tuần | Await testing |
+| **6. Vận hành** | ⏳ Waiting | 0% | Ongoing | Post go-live |
+
+---
+
+## 📊 PROJECT METRICS
+
+### Completed:
+- ✅ Requirements documents: 8/8
+- ✅ Business processes mapped: 100%
+- ✅ User stories defined: 25 stories
+- ✅ Mockups created: All screens
+
+### In Progress:
+- 🔄 Stakeholder sign-off
+- 🔄 Design team allocation
+- 🔄 Technology stack selection
+
+### Pending:
+- ⏳ Architecture design
+- ⏳ Database design
+- ⏳ API specification
+- ⏳ Development
+- ⏳ Testing
+- ⏳ Deployment
+
+---
+
+## 🔄 QUYTRÌNH LÀM VIỆC VỚI TÀI LIỆU
+
+### Nguyên tắc:
+1. **Mỗi giai đoạn = 1 thư mục riêng** với số thứ tự
+2. **Mỗi thư mục có README.md** mô tả chi tiết giai đoạn
+3. **Tài liệu được đánh số** theo thứ tự trong giai đoạn
+4. **Không tạo tài liệu ngoài danh mục** đã định nghĩa
+5. **Chỉ tạo tài liệu khi được yêu cầu** cụ thể
+
+### Workflow:
+```
+1. Hoàn thành giai đoạn trước
+   ↓
+2. Review & Sign-off
+   ↓
+3. Chuyển sang giai đoạn tiếp theo
+   ↓
+4. Tạo tài liệu trong thư mục tương ứng
+   ↓
+5. Update README của giai đoạn
+```
 
 ## Nguyên tắc Làm việc
 
