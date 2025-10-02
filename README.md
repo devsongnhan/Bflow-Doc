@@ -13,9 +13,14 @@ Repository chứa tài liệu cho các dự án phát triển phần mềm theo 
 #### HRM (Human Resource Management)
 ```
 HRM/
-└── Payroll/          # Hệ thống Quản lý Lương
-    ├── README.md     # Hướng dẫn module Payroll
-    └── [documents]   # Tài liệu giai đoạn phân tích yêu cầu
+└── Payroll/                    # Hệ thống Quản lý Lương
+    ├── README.md               # Master guide của module
+    ├── 1_PhanTichYeuCau/      # ✅ Requirements (100% complete)
+    ├── 2_ThietKe/             # 🎯 Design (ready to start)
+    ├── 3_PhatTrien/           # ⏳ Development
+    ├── 4_KiemThu/             # ⏳ Testing
+    ├── 5_TrienKhai/           # ⏳ Deployment
+    └── 6_VanHanh/             # ⏳ Operations
 ```
 
 ### Các Module Khác (Dự kiến)
@@ -28,19 +33,39 @@ HRM/
 
 ## Nguyên tắc Tổ chức Tài liệu
 
-### Cấu trúc Chuẩn cho Mỗi Module:
+### CẤU TRÚC MỚI - THEO GIAI ĐOẠN PHÁT TRIỂN:
 ```
 [Domain]/[Module]/
-├── README.md                    # Hướng dẫn cụ thể cho module
-├── 0_README_BoTaiLieu*.md      # Danh mục tài liệu giai đoạn
-├── 1_SRS_*.md                  # Requirements Specification
-├── 2_BusinessProcessModel.md   # Quy trình nghiệp vụ
-├── 3_UserStories.md           # User Stories
-├── 4_RequirementsTraceability* # Ma trận truy xuất
-├── 5_RequirementsPrioritization* # Ma trận ưu tiên
-├── 6_PrototypeMockup.md       # Thiết kế giao diện
-└── [additional documents]      # Tài liệu bổ sung theo nhu cầu
+├── README.md                    # Master guide của module
+├── 1_PhanTichYeuCau/           # Giai đoạn 1: Requirements Analysis
+│   ├── README.md               # Tổng quan giai đoạn
+│   ├── 1_SRS_*.md             # Requirements Specification
+│   ├── 2_BusinessProcess*.md  # Business Process Model
+│   ├── 3_UserStories.md      # User Stories
+│   └── [4-7 documents]        # Các tài liệu khác
+├── 2_ThietKe/                  # Giai đoạn 2: Design
+│   ├── README.md              # Design checklist
+│   └── [design documents]    # Architecture, DB, API, UI/UX
+├── 3_PhatTrien/                # Giai đoạn 3: Development
+│   ├── README.md              # Dev guidelines
+│   └── [dev documents]       # Code standards, build guides
+├── 4_KiemThu/                  # Giai đoạn 4: Testing
+│   ├── README.md              # Test strategy
+│   └── [test documents]      # Test plans, cases, reports
+├── 5_TrienKhai/                # Giai đoạn 5: Deployment
+│   ├── README.md              # Deployment plan
+│   └── [deploy documents]    # Installation, migration
+└── 6_VanHanh/                  # Giai đoạn 6: Operations
+    ├── README.md              # Ops guide
+    └── [ops documents]        # Manuals, SOP, maintenance
 ```
+
+### NGUYÊN TẮC BẮT BUỘC:
+1. **Mỗi giai đoạn = 1 thư mục riêng** với số thứ tự (1-6)
+2. **Tài liệu phải nằm trong thư mục giai đoạn** tương ứng
+3. **Mỗi thư mục có README.md riêng** với checklist và status
+4. **Tài liệu được đánh số** trong từng giai đoạn
+5. **KHÔNG tạo tài liệu ngoài cấu trúc** đã định nghĩa
 
 ### Giai đoạn Phát triển:
 1. **Phân tích Yêu cầu** - Requirements Analysis

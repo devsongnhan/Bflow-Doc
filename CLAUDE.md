@@ -53,17 +53,36 @@ According to `bo-tai-lieu-chuan-phat-trien-phan-mem.md`, design phase will inclu
 
 ## Document Structure Reference
 
-### Completed Requirements Documents:
+### NEW PHASE-BASED STRUCTURE (MANDATORY):
 ```
 HRM/Payroll/
-├── 0_README_BoTaiLieuPhanTichYeuCau.md    # Master guide
-├── 1_SRS_HeThongQuanLyLuong.md            # Requirements spec
-├── 2_BusinessProcessModel.md              # Business processes
-├── 3_UserStories.md                       # User stories (Agile)
-├── 4_RequirementsTraceabilityMatrix.md    # Traceability matrix
-├── 5_RequirementsPrioritizationMatrix.md  # Priority matrix
-├── 6_PrototypeMockup.md                   # UI/UX design
-└── 7_DataFlowDiagram.md                   # Data flows
+├── 1_PhanTichYeuCau/        ✅ COMPLETED (8 documents)
+├── 2_ThietKe/               🎯 READY TO START
+├── 3_PhatTrien/             ⏳ WAITING
+├── 4_KiemThu/               ⏳ WAITING
+├── 5_TrienKhai/             ⏳ WAITING
+└── 6_VanHanh/               ⏳ WAITING
+```
+
+### IMPORTANT RULES:
+1. **Documents MUST be created in phase folders** (1_PhanTichYeuCau, 2_ThietKe, etc.)
+2. **Each phase has its own README.md** with checklist and status
+3. **Documents are numbered within each phase** (1_ArchitectureDesign.md, 2_DetailedDesign.md, etc.)
+4. **NEVER create documents outside defined structure**
+5. **ONLY create documents when explicitly requested**
+
+### Current Phase Documents:
+```
+1_PhanTichYeuCau/             ✅ 100% Complete
+├── README.md                 # Phase overview
+├── 0_README_BoTaiLieuPhanTichYeuCau.md
+├── 1_SRS_HeThongQuanLyLuong.md
+├── 2_BusinessProcessModel.md
+├── 3_UserStories.md
+├── 4_RequirementsTraceabilityMatrix.md
+├── 5_RequirementsPrioritizationMatrix.md
+├── 6_PrototypeMockup.md
+└── 7_DataFlowDiagram.md
 ```
 
 ### Standards Reference:
@@ -137,7 +156,45 @@ HRM/Payroll/
 - Design readiness: Target achieved
 - Quality compliance: Standards followed ✅
 
+## CRITICAL BUSINESS RULES - VIETNAM PAYROLL
+
+### Quy định tính Thuế TNCN (MANDATORY COMPLIANCE)
+
+**ĐÚNG - Logic tính thuế theo Luật Việt Nam:**
+```
+Thu nhập chịu thuế = Thu nhập GROSS - BHXH cá nhân - Giảm trừ
+```
+
+**Trong đó:**
+- **Thu nhập GROSS** = Lương cơ bản + Phụ cấp chịu thuế (TRƯỚC khi trừ BHXH)
+- **BHXH cá nhân** = 8% lương đóng BHXH (được trừ TRƯỚC khi tính thuế)
+- **Giảm trừ cá nhân** = 11,000,000 VNĐ/tháng (2024)
+- **Giảm trừ người phụ thuộc** = 4,400,000 VNĐ/người/tháng
+
+**SAI - Lỗi phổ biến cần tránh:**
+- ❌ Tính thuế từ lương NET (sau khi trừ BHXH)
+- ❌ Quên trừ BHXH trước khi tính thuế
+- ❌ Nhầm lẫn giữa GROSS và NET income
+
+### Data Flow cho Process 3.5 (Calculate Tax):
+```
+Inputs:
+- P32 → Gross salary (KHÔNG PHẢI NET)
+- P33 → Tax exempt allowances
+- P34 → BHXH deductions (để trừ trước khi tính thuế)
+- D1 → Dependents info
+- D4 → Tax rules & rates
+```
+
+### Compliance References:
+- Luật Thuế TNCN số 04/2007/QH12
+- Thông tư 111/2013/TT-BTC
+- Cập nhật mức giảm trừ 2024
+
+**IMPORTANT:** Tất cả tài liệu liên quan đến tính lương PHẢI tuân thủ logic này.
+
 ---
-**Agent Version:** 1.0
+**Agent Version:** 1.1
 **Context Updated:** 2024-09-24
 **Scope:** Requirements → Design Transition Support Only
+**Compliance:** Vietnam Tax Law Mandatory
