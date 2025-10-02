@@ -23,6 +23,194 @@ Tài liệu thiết kế chi tiết mô tả cấu trúc và hoạt động chi 
 
 ## 2. MODULE DESIGN DETAILS
 
+### 2.0 Overall System Class Diagram
+
+```mermaid
+classDiagram
+    class NhanVien {
+        +String maNhanVien
+        +String hoTen
+        +String phongBan
+        +Date ngayVaoLam
+        +String loaiBangLuongId
+        +String email
+        +String sdt
+        +Boolean trangThai
+        +getLoaiBangLuong()
+        +getHopDongHienTai()
+        +tinhTongThuNhap()
+        +getDanhSachPhuThuoc()
+    }
+
+    class LoaiBangLuong {
+        +String maLoai
+        +String tenLoai
+        +String phongBanApDung
+        +String moTa
+        +Boolean trangThai
+        +Date ngayTao
+        +List~ThuocTinhBangLuong~ thuocTinhList
+        +addThuocTinh()
+        +removeThuocTinh()
+        +validateData()
+        +generateTemplate()
+    }
+
+    class ThuocTinhBangLuong {
+        +String maThuocTinh
+        +String tenCot
+        +String kieuDuLieu
+        +String nguonDuLieu
+        +String congThuc
+        +Boolean batBuoc
+        +Integer thuTuHienThi
+        +validate()
+        +calculate()
+        +formatDisplay()
+    }
+
+    class BangLuong {
+        +String maBangLuong
+        +String nhanVienId
+        +String loaiBangLuongId
+        +Integer thang
+        +Integer nam
+        +Date ngayTao
+        +Map~String-Object~ duLieuLuong
+        +Decimal tongThuNhap
+        +Decimal luongThucNhan
+        +String trangThai
+        +tinhToan()
+        +getLuongThucNhan()
+        +tinhBaoHiem()
+        +tinhThue()
+        +xuatBangLuong()
+    }
+
+    class HopDongLaoDong {
+        +String maHopDong
+        +String nhanVienId
+        +String loaiHopDong
+        +Date ngayKy
+        +Date ngayHetHan
+        +Decimal luongCoBan
+        +Boolean tinhBaoHiem
+        +String quyDinhBaoHiemId
+        +String quyDinhThueId
+        +String quyDinhGiamTruId
+        +Boolean trangThai
+        +isActive()
+        +renew()
+        +terminate()
+    }
+
+    class LoaiThuNhap {
+        +String maLoai
+        +String tenLoai
+        +Decimal giaTriMacDinh
+        +Boolean mienThue
+        +String moTa
+        +Boolean trangThai
+        +calculate()
+        +applyTax()
+    }
+
+    class QuyDinhBaoHiem {
+        +String maQuyDinh
+        +String tenQuyDinh
+        +Float tyLeBHXH_NLD
+        +Float tyLeBHXH_DN
+        +Float tyLeBHYT_NLD
+        +Float tyLeBHYT_DN
+        +Float tyLeBHTN_NLD
+        +Float tyLeBHTN_DN
+        +Decimal mucTranBHXH
+        +Decimal mucTranBHYT
+        +Decimal mucTranBHTN
+        +Date ngayApDung
+        +Boolean trangThai
+        +tinhBHXH(luong)
+        +tinhBHYT(luong)
+        +tinhBHTN(luong)
+        +getTongBaoHiem()
+    }
+
+    class QuyDinhThueTNCN {
+        +String maQuyDinh
+        +String tenQuyDinh
+        +Date ngayApDung
+        +Boolean trangThai
+        +List~BacThue~ bacThueList
+        +tinhThue(thuNhapChiuThue)
+        +getThueSuat(thuNhap)
+        +applyGiamTru()
+    }
+
+    class BacThue {
+        +String maBac
+        +Decimal mucTu
+        +Decimal mucDen
+        +Float tyLe
+        +Integer thuTu
+        +calculateTax(amount)
+        +isInRange(amount)
+    }
+
+    class QuyDinhGiamTru {
+        +String maQuyDinh
+        +Decimal giamTruBanThan
+        +Decimal giamTruPhuThuoc
+        +Date ngayApDung
+        +Boolean trangThai
+        +tinhTongGiamTru(soPhuThuoc)
+        +applyGiamTru(thuNhap)
+    }
+
+    class PayrollService {
+        +calculatePayroll(employee, period)
+        +processBatch(employees)
+        +generateReports()
+        +exportPayslips()
+    }
+
+    class TaxCalculator {
+        +calculateIncomeTax(income)
+        +applyDeductions(income, deductions)
+        +getTaxBracket(income)
+    }
+
+    class InsuranceCalculator {
+        +calculateSocialInsurance(salary)
+        +calculateHealthInsurance(salary)
+        +calculateUnemploymentInsurance(salary)
+        +getTotalInsurance()
+    }
+
+    NhanVien "1" --> "1" LoaiBangLuong : áp dụng
+    NhanVien "1" --> "*" BangLuong : có
+    NhanVien "1" --> "*" HopDongLaoDong : ký kết
+
+    BangLuong "*" --> "1" LoaiBangLuong : theo mẫu
+    BangLuong --> PayrollService : uses
+
+    LoaiBangLuong "1" *-- "*" ThuocTinhBangLuong : chứa
+    LoaiBangLuong "1" --> "*" LoaiThuNhap : sử dụng
+
+    HopDongLaoDong "*" --> "1" QuyDinhBaoHiem : áp dụng
+    HopDongLaoDong "*" --> "1" QuyDinhThueTNCN : áp dụng
+    HopDongLaoDong "*" --> "1" QuyDinhGiamTru : áp dụng
+
+    QuyDinhThueTNCN "1" *-- "*" BacThue : chứa
+
+    PayrollService --> TaxCalculator : uses
+    PayrollService --> InsuranceCalculator : uses
+
+    TaxCalculator --> QuyDinhThueTNCN : applies
+    TaxCalculator --> QuyDinhGiamTru : applies
+
+    InsuranceCalculator --> QuyDinhBaoHiem : applies
+```
+
 ### 2.1 Employee Management Module
 
 #### 2.1.1 Component Structure
