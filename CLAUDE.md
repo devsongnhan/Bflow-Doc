@@ -29,12 +29,19 @@ According to `bo-tai-lieu-chuan-phat-trien-phan-mem.md`, design phase will inclu
 
 ## Working Principles for AI Agent
 
+### MANDATORY COMPLIANCE:
+📋 **MUST FOLLOW:** `bo-tai-lieu-chuan-phat-trien-phan-mem.md` document structure
+- All documents MUST align with the standard template structure
+- Document sequence MUST follow the defined phase order
+- Document naming MUST follow the numbering convention
+
 ### STRICT CONSTRAINTS:
 1. **DO NOT** create new documents outside the standard template
 2. **DO NOT** generate content beyond existing structure
 3. **DO NOT** add documents not in the official catalog
 4. **ONLY** act on specific user requests
 5. **FOLLOW** the software development standards strictly
+6. **COMPLY** with document ordering in `bo-tai-lieu-chuan-phat-trien-phan-mem.md`
 
 ### APPROVED ACTIONS:
 - ✅ Review and improve existing documents
@@ -43,21 +50,38 @@ According to `bo-tai-lieu-chuan-phat-trien-phan-mem.md`, design phase will inclu
 - ✅ Maintain documentation quality
 - ✅ Answer questions about current documents
 - ✅ Provide analysis of existing requirements
+- ✅ Create documents ONLY when they match the standard template
 
 ### FORBIDDEN ACTIONS:
-- ❌ Create additional .md files
+- ❌ Create additional .md files outside standard structure
 - ❌ Add new sections not in templates
 - ❌ Generate documentation outside scope
-- ❌ Modify document structure/format
+- ❌ Modify document structure/format from standard
 - ❌ Add features not requested
+- ❌ Deviate from the approved document sequence
 
 ## Document Structure Reference
+
+### STANDARD DOCUMENT SEQUENCE (FROM bo-tai-lieu-chuan-phat-trien-phan-mem.md):
+
+#### 📁 REQUIREMENTS PHASE (Phân tích Yêu cầu):
+1. **Business Process Model** - Quy trình nghiệp vụ AS-IS/TO-BE
+2. **Use Cases/User Stories** - Yêu cầu chức năng chi tiết
+3. **ERD Conceptual** - Mô hình dữ liệu khái niệm
+4. **Prototype/Mockup** - UI/UX ban đầu
+
+#### 📁 DESIGN PHASE (Thiết kế):
+5. **Architecture Design** - Kiến trúc tổng thể
+6. **Class Diagram** - Thiết kế OOP
+7. **Sequence Diagram** - Luồng xử lý
+8. **ERD Detailed/Logical Data Model** - Database design chi tiết
+9. **API Design** - Interface specifications
 
 ### NEW PHASE-BASED STRUCTURE (MANDATORY):
 ```
 HRM/Payroll/
 ├── 1_PhanTichYeuCau/        ✅ COMPLETED (8 documents)
-├── 2_ThietKe/               🎯 READY TO START
+├── 2_ThietKe/               🎯 IN PROGRESS (8 documents)
 ├── 3_PhatTrien/             ⏳ WAITING
 ├── 4_KiemThu/               ⏳ WAITING
 ├── 5_TrienKhai/             ⏳ WAITING
@@ -70,19 +94,20 @@ HRM/Payroll/
 3. **Documents are numbered within each phase** (1_ArchitectureDesign.md, 2_DetailedDesign.md, etc.)
 4. **NEVER create documents outside defined structure**
 5. **ONLY create documents when explicitly requested**
+6. **FOLLOW the exact sequence** defined in `bo-tai-lieu-chuan-phat-trien-phan-mem.md`
 
 ### Current Phase Documents:
 ```
-1_PhanTichYeuCau/             ✅ 100% Complete
+2_ThietKe/                    🎯 Design Phase
 ├── README.md                 # Phase overview
-├── 0_README_BoTaiLieuPhanTichYeuCau.md
-├── 1_SRS_HeThongQuanLyLuong.md
-├── 2_BusinessProcessModel.md
-├── 3_UserStories.md
-├── 4_RequirementsTraceabilityMatrix.md
-├── 5_RequirementsPrioritizationMatrix.md
-├── 6_PrototypeMockup.md
-└── 7_DataFlowDiagram.md
+├── 1_ArchitectureDesign.md  # Kiến trúc tổng thể
+├── 2_DetailedDesign.md      # Class Diagram & detailed design
+├── 3_DatabaseDesign.md      # ERD Detailed & Database schema
+├── 4_APIDesign.md           # API specifications
+├── 5_UIUXDesign.md          # UI/UX detailed design
+├── 6_SecurityDesign.md      # Security architecture
+├── 7_IntegrationDesign.md   # Integration patterns
+└── 8_PrivacyAssessment.md   # Privacy compliance
 ```
 
 ### Standards Reference:

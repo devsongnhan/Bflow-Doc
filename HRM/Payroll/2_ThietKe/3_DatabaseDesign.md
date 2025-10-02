@@ -121,146 +121,387 @@ erDiagram
 
 ```mermaid
 erDiagram
-    NHAN_VIEN {
-        varchar ma_nhan_vien PK
-        varchar ho_ten
-        varchar phong_ban
-        date ngay_vao_lam
-        varchar loai_bang_luong_id FK
+    EMPLOYEE {
+        varchar employee_id PK
+        varchar full_name
+        varchar department
+        date hire_date
+        varchar payroll_template_id FK
         varchar email
-        varchar sdt
-        boolean trang_thai
+        varchar phone
+        boolean status
     }
 
-    LOAI_BANG_LUONG {
-        varchar ma_loai PK
-        varchar ten_loai
-        varchar phong_ban_ap_dung
-        text mo_ta
-        boolean trang_thai
-        datetime ngay_tao
+    PAYROLL_TEMPLATE {
+        varchar template_id PK
+        varchar template_name
+        varchar department_applied
+        text description
+        boolean status
+        datetime created_date
     }
 
-    THUOC_TINH_BANG_LUONG {
-        varchar ma_thuoc_tinh PK
-        varchar loai_bang_luong_id FK
-        varchar ten_cot
-        varchar kieu_du_lieu
-        varchar nguon_du_lieu
-        text cong_thuc
-        boolean bat_buoc
-        int thu_tu_hien_thi
+    PAYROLL_ATTRIBUTE {
+        varchar attribute_id PK
+        varchar payroll_template_id FK
+        varchar column_name
+        varchar data_type
+        varchar data_source
+        text formula
+        boolean mandatory
+        int display_order
     }
 
-    BANG_LUONG {
-        varchar ma_bang_luong PK
-        varchar nhan_vien_id FK
-        varchar loai_bang_luong_id FK
-        int thang
-        int nam
-        date ngay_tao
-        json du_lieu_luong
-        decimal tong_thu_nhap
-        decimal luong_thuc_nhan
-        varchar trang_thai
+    PAYROLL {
+        varchar payroll_id PK
+        varchar employee_id FK
+        varchar payroll_template_id FK
+        int month
+        int year
+        date created_date
+        json payroll_data
+        decimal total_income
+        decimal net_salary
+        varchar status
     }
 
-    HOP_DONG_LAO_DONG {
-        varchar ma_hop_dong PK
-        varchar nhan_vien_id FK
-        varchar loai_hop_dong
-        date ngay_ky
-        date ngay_het_han
-        decimal luong_co_ban
-        boolean tinh_bao_hiem
-        varchar quy_dinh_bao_hiem_id FK
-        varchar quy_dinh_thue_id FK
-        varchar quy_dinh_giam_tru_id FK
-        boolean trang_thai
+    EMPLOYMENT_CONTRACT {
+        varchar contract_id PK
+        varchar employee_id FK
+        varchar contract_type
+        date signed_date
+        date expiry_date
+        decimal basic_salary
+        boolean insurance_applicable
+        varchar insurance_rule_id FK
+        varchar tax_rule_id FK
+        varchar deduction_rule_id FK
+        boolean status
     }
 
-    LOAI_THU_NHAP {
-        varchar ma_loai PK
-        varchar ten_loai
-        decimal gia_tri_mac_dinh
-        boolean mien_thue
-        text mo_ta
-        boolean trang_thai
+    INCOME_TYPE {
+        varchar type_id PK
+        varchar type_name
+        decimal default_value
+        boolean tax_exempt
+        text description
+        boolean status
     }
 
-    LOAI_BANG_LUONG_THU_NHAP {
-        varchar loai_bang_luong_id FK
-        varchar loai_thu_nhap_id FK
-        boolean bat_buoc
+    TEMPLATE_INCOME_TYPE {
+        varchar payroll_template_id FK
+        varchar income_type_id FK
+        boolean mandatory
     }
 
-    QUY_DINH_BAO_HIEM {
-        varchar ma_quy_dinh PK
-        varchar ten_quy_dinh
-        float ty_le_bhxh_nld
-        float ty_le_bhxh_dn
-        float ty_le_bhyt_nld
-        float ty_le_bhyt_dn
-        float ty_le_bhtn_nld
-        float ty_le_bhtn_dn
-        decimal muc_tran_bhxh
-        decimal muc_tran_bhyt
-        decimal muc_tran_bhtn
-        date ngay_ap_dung
-        boolean trang_thai
+    INSURANCE_RULE {
+        varchar rule_id PK
+        varchar rule_name
+        float social_insurance_employee
+        float social_insurance_employer
+        float health_insurance_employee
+        float health_insurance_employer
+        float unemployment_insurance_employee
+        float unemployment_insurance_employer
+        decimal social_insurance_ceiling
+        decimal health_insurance_ceiling
+        decimal unemployment_insurance_ceiling
+        date effective_date
+        boolean status
     }
 
-    QUY_DINH_THUE_TNCN {
-        varchar ma_quy_dinh PK
-        varchar ten_quy_dinh
-        date ngay_ap_dung
-        boolean trang_thai
+    INCOME_TAX_RULE {
+        varchar rule_id PK
+        varchar rule_name
+        date effective_date
+        boolean status
     }
 
-    BAC_THUE {
-        varchar ma_bac PK
-        varchar quy_dinh_thue_id FK
-        decimal muc_tu
-        decimal muc_den
-        float ty_le
-        int thu_tu
+    TAX_BRACKET {
+        varchar bracket_id PK
+        varchar tax_rule_id FK
+        decimal min_amount
+        decimal max_amount
+        float rate
+        int sequence
     }
 
-    QUY_DINH_GIAM_TRU {
-        varchar ma_quy_dinh PK
-        decimal giam_tru_ban_than
-        decimal giam_tru_phu_thuoc
-        date ngay_ap_dung
-        boolean trang_thai
+    DEDUCTION_RULE {
+        varchar rule_id PK
+        decimal personal_deduction
+        decimal dependent_deduction
+        date effective_date
+        boolean status
     }
 
-    NHAN_VIEN ||--o{ BANG_LUONG : "có nhiều"
-    NHAN_VIEN ||--o{ HOP_DONG_LAO_DONG : "ký kết"
-    NHAN_VIEN }|--|| LOAI_BANG_LUONG : "áp dụng"
+    EMPLOYEE ||--o{ PAYROLL : "has many"
+    EMPLOYEE ||--o{ EMPLOYMENT_CONTRACT : "signs"
+    EMPLOYEE }|--|| PAYROLL_TEMPLATE : "applies"
 
-    LOAI_BANG_LUONG ||--o{ THUOC_TINH_BANG_LUONG : "chứa"
-    LOAI_BANG_LUONG ||--o{ BANG_LUONG : "làm mẫu cho"
-    LOAI_BANG_LUONG ||--o{ LOAI_BANG_LUONG_THU_NHAP : "sử dụng"
+    PAYROLL_TEMPLATE ||--o{ PAYROLL_ATTRIBUTE : "contains"
+    PAYROLL_TEMPLATE ||--o{ PAYROLL : "templates for"
+    PAYROLL_TEMPLATE ||--o{ TEMPLATE_INCOME_TYPE : "uses"
 
-    LOAI_THU_NHAP ||--o{ LOAI_BANG_LUONG_THU_NHAP : "được dùng trong"
+    INCOME_TYPE ||--o{ TEMPLATE_INCOME_TYPE : "used in"
 
-    HOP_DONG_LAO_DONG }o--|| QUY_DINH_BAO_HIEM : "áp dụng"
-    HOP_DONG_LAO_DONG }o--|| QUY_DINH_THUE_TNCN : "áp dụng"
-    HOP_DONG_LAO_DONG }o--|| QUY_DINH_GIAM_TRU : "áp dụng"
+    EMPLOYMENT_CONTRACT }o--|| INSURANCE_RULE : "applies"
+    EMPLOYMENT_CONTRACT }o--|| INCOME_TAX_RULE : "applies"
+    EMPLOYMENT_CONTRACT }o--|| DEDUCTION_RULE : "applies"
 
-    QUY_DINH_THUE_TNCN ||--o{ BAC_THUE : "chứa"
+    INCOME_TAX_RULE ||--o{ TAX_BRACKET : "contains"
 ```
 
-### 3.3 Core Entities
+### 3.3 Mô tả chi tiết các thành phần
+
+#### 3.3.1 Payroll Template (PAYROLL_TEMPLATE)
+
+**Mục đích:**
+- Định nghĩa cấu trúc bảng lương áp dụng cho nhân viên/phòng ban
+- Cho phép tạo nhiều mẫu bảng lương khác nhau cho từng bộ phận
+
+**Key attributes:**
+- **Template ID**: Unique identifier (e.g., "SALES_TEMPLATE", "OFFICE_TEMPLATE")
+- **Template Name**: Display name (e.g., "Sales Staff Payroll Template")
+- **Department Applied**: Default department using this template
+- **Attribute List**: Dynamically defined columns in the payroll
+
+**Example JSON configuration:**
+```json
+{
+  "template_id": "SALES_TEMPLATE",
+  "template_name": "Sales Staff Payroll Template",
+  "department_applied": "SALES_DEPARTMENT",
+  "attributes": [
+    {
+      "column_code": "BASIC_SALARY",
+      "column_name": "Basic Salary",
+      "data_type": "number",
+      "data_source": "system",
+      "mandatory": true
+    },
+    {
+      "column_code": "STANDARD_DAYS",
+      "column_name": "Standard Working Days",
+      "data_type": "number",
+      "default_value": 22,
+      "mandatory": true
+    },
+    {
+      "column_code": "ACTUAL_DAYS",
+      "column_name": "Actual Working Days",
+      "data_type": "number",
+      "data_source": "manual",
+      "mandatory": true
+    },
+    {
+      "column_code": "PRORATED_SALARY",
+      "column_name": "Prorated Salary",
+      "data_type": "formula",
+      "formula": "ACTUAL_DAYS / STANDARD_DAYS * BASIC_SALARY",
+      "mandatory": true
+    },
+    {
+      "column_code": "COMMISSION",
+      "column_name": "Sales Commission",
+      "data_type": "number",
+      "data_source": "manual",
+      "mandatory": false
+    }
+  ]
+}
+```
+
+#### 3.3.2 Payroll Attributes (PAYROLL_ATTRIBUTE - Dynamic Columns)
+
+**Mục đích:**
+- Định nghĩa từng cột/trường dữ liệu trong bảng lương
+- Cho phép cấu hình linh hoạt theo nhu cầu từng doanh nghiệp
+
+**Các thuộc tính quan trọng:**
+
+| Attribute | Description | Example |
+|-----------|-------------|----------|
+| **Column Name** | Display name on interface | "Basic Salary" |
+| **Column Code** | Reference code in formulas | "BASIC_SALARY" |
+| **Data Type** | number, text, date, boolean, formula | "number" |
+| **Data Source** | system, manual, formula, import | "system" |
+| **Formula** | Calculation expression (if type = formula) | "A * B / C" |
+| **Mandatory** | Whether input is required | true/false |
+| **Display Order** | Column position in payroll | 1, 2, 3... |
+
+**Phân loại nguồn dữ liệu:**
+- **system**: Lấy tự động từ hệ thống (từ hợp đồng, chấm công)
+- **manual**: Nhập thủ công mỗi tháng
+- **formula**: Tính toán theo công thức từ các cột khác
+- **import**: Nhập từ file Excel/CSV
+
+#### 3.3.3 Payroll (PAYROLL - Actual Instance)
+
+**Mục đích:**
+- Lưu trữ bảng lương thực tế của từng nhân viên theo tháng
+- Chứa giá trị cụ thể sau khi tính toán
+
+**Đặc điểm:**
+- Được tạo tự động dựa trên template (loại bảng lương)
+- Lưu trữ dạng JSON để linh hoạt với cấu trúc động
+- Tính toán tự động theo công thức đã định nghĩa
+- Lưu trữ snapshot để đảm bảo tính toàn vẹn dữ liệu
+
+**Payroll creation process:**
+1. Determine employee's payroll template
+2. Create payroll based on template
+3. Fill data from system (basic salary from contract)
+4. Allow manual data entry
+5. Calculate formulas
+6. Calculate social insurance
+7. Calculate income tax
+8. Calculate net salary
+
+**Example stored data:**
+```json
+{
+  "payroll_id": "PAY202409001",
+  "employee_id": "EMP001",
+  "month": 9,
+  "year": 2024,
+  "payroll_data": {
+    "BASIC_SALARY": 15000000,
+    "STANDARD_DAYS": 22,
+    "ACTUAL_DAYS": 20,
+    "PRORATED_SALARY": 13636364,
+    "COMMISSION": 5000000,
+    "LUNCH_ALLOWANCE": 800000,
+    "TRANSPORT_ALLOWANCE": 500000
+  },
+  "total_income": 19936364,
+  "social_insurance": 1595091,
+  "income_tax": 987273,
+  "net_salary": 17354000
+}
+```
+
+#### 3.3.4 Employee (EMPLOYEE)
+
+**Management information:**
+- **Personal information**: Full name, birth date, ID number, phone, email
+- **Work information**: Employee code, department, position, hire date
+- **Payroll template**: Determines applicable payroll template
+- **Status**: Active, on leave, terminated
+
+**Relationships:**
+- Links to multiple employment contracts (1-n)
+- Links to multiple monthly payrolls (1-n)
+- Belongs to one department (n-1)
+- Applies one payroll template (n-1)
+
+#### 3.3.5 Employment Contract (EMPLOYMENT_CONTRACT)
+
+**Contract information:**
+- **Contract type**: Permanent, fixed-term, probationary
+- **Duration**: Signed date, expiry date
+- **Basic salary**: Salary amount specified in contract
+- **Applied regulations**: Insurance, tax, deductions
+
+**Characteristics:**
+- An employee can have multiple contracts (renewals, amendments)
+- Only one active contract at a time
+- Inherits information from previous contract when creating new one
+
+#### 3.3.6 Income Type (INCOME_TYPE)
+
+**Income classification:**
+
+| Type | Description | Tax Exempt | Insurable |
+|------|-------------|------------|-----------|
+| **Basic salary** | Contractual salary | No | Yes |
+| **Lunch allowance** | Lunch support | Yes (730k) | No |
+| **Phone allowance** | Phone expenses | Partial | No |
+| **Transport allowance** | Travel expenses | Partial | No |
+| **Housing allowance** | Housing support | No | Yes |
+| **Performance bonus** | KPI bonus | No | Yes |
+| **Holiday bonus** | Holiday bonuses | No | No |
+| **Commission** | Sales commission | No | Yes |
+| **Overtime** | Overtime pay | No | Yes |
+
+**Important attributes:**
+- **Tax exempt**: Whether exempt from personal income tax
+- **Insurance applicable**: Whether included in insurance salary
+- **Default value**: Standard value if applicable
+
+#### 3.3.7 Insurance Rules (INSURANCE_RULE)
+
+**Thông tin quy định năm 2024:**
+
+| Loại bảo hiểm | Người lao động | Doanh nghiệp | Mức trần |
+|---------------|----------------|--------------|----------|
+| **BHXH** | 8% | 17.5% | 20 lần lương cơ sở (29,800,000 VNĐ) |
+| **BHYT** | 1.5% | 3% | 20 lần lương cơ sở (29,800,000 VNĐ) |
+| **BHTN** | 1% | 1% | 20 lần lương tối thiểu vùng |
+| **BHTNLĐ-BNN** | 0% | 0.5% | Theo lương thực tế |
+
+**Cách tính:**
+```
+Lương đóng BH = MIN(Lương thực tế, Mức trần)
+BH người lao động = Lương đóng BH × Tỷ lệ NLĐ
+BH doanh nghiệp = Lương đóng BH × Tỷ lệ DN
+```
+
+#### 3.3.8 Income Tax Rules (INCOME_TAX_RULE & TAX_BRACKET)
+
+**Bảng thuế lũy tiến từng phần 2024:**
+
+| Bậc | Thu nhập tính thuế/tháng | Thuế suất |
+|-----|--------------------------|-----------|
+| 1 | Đến 5 triệu | 5% |
+| 2 | Trên 5 - 10 triệu | 10% |
+| 3 | Trên 10 - 18 triệu | 15% |
+| 4 | Trên 18 - 32 triệu | 20% |
+| 5 | Trên 32 - 52 triệu | 25% |
+| 6 | Trên 52 - 80 triệu | 30% |
+| 7 | Trên 80 triệu | 35% |
+
+**Công thức tính:**
+```
+Thu nhập tính thuế = Tổng thu nhập - Các khoản miễn thuế - BHXH/BHYT/BHTN - Giảm trừ gia cảnh
+Thuế TNCN = Σ(Thu nhập trong bậc × Thuế suất bậc)
+```
+
+**Ví dụ tính thuế:**
+- Thu nhập: 25,000,000 VNĐ
+- BHXH/BHYT/BHTN: 2,500,000 VNĐ
+- Giảm trừ bản thân: 11,000,000 VNĐ
+- Thu nhập tính thuế: 11,500,000 VNĐ
+- Thuế TNCN = 5,000,000 × 5% + 5,000,000 × 10% + 1,500,000 × 15% = 975,000 VNĐ
+
+#### 3.3.9 Deduction Rules (DEDUCTION_RULE)
+
+**Mức giảm trừ hiện hành (2024):**
+- **Bản thân**: 11,000,000 VNĐ/tháng
+- **Người phụ thuộc**: 4,400,000 VNĐ/tháng/người
+
+**Điều kiện người phụ thuộc:**
+- Con dưới 18 tuổi
+- Con trên 18 tuổi đang đi học
+- Vợ/chồng không có thu nhập hoặc thu nhập < 1 triệu/tháng
+- Bố mẹ già yếu, không có thu nhập
+
+**Ví dụ:**
+- Nhân viên có 2 con nhỏ, vợ không đi làm
+- Tổng giảm trừ = 11,000,000 + (3 × 4,400,000) = 24,200,000 VNĐ/tháng
+
+### 3.4 Core Entities Summary
 
 | Entity | Description | Volume |
 |--------|------------|--------|
-| **Employee** | Employee master data | 10,000+ |
-| **Payroll** | Monthly payroll records | 120,000/year |
-| **Contract** | Employment contracts | 15,000 |
-| **Department** | Organization structure | 100 |
-| **Salary_Template** | Salary structures | 50 |
-| **Tax_Calculation** | Tax computation records | 120,000/year |
+| **EMPLOYEE** | Employee information | 10,000+ |
+| **PAYROLL_TEMPLATE** | Payroll templates | 10-20 |
+| **PAYROLL_ATTRIBUTE** | Dynamic column configuration | 200-500 |
+| **PAYROLL** | Monthly payroll records | 120,000/year |
+| **EMPLOYMENT_CONTRACT** | Employment contracts | 15,000 |
+| **INSURANCE_RULE** | Social/Health/Unemployment insurance rules | 10-20 |
+| **INCOME_TAX_RULE** | Income tax regulations | 5-10 |
+| **TAX_BRACKET** | Progressive tax brackets | 7 brackets |
+| **DEDUCTION_RULE** | Personal deduction rules | 5-10 |
 
 ---
 

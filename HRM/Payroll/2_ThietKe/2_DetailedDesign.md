@@ -27,143 +27,143 @@ Tài liệu thiết kế chi tiết mô tả cấu trúc và hoạt động chi 
 
 ```mermaid
 classDiagram
-    class NhanVien {
-        +String maNhanVien
-        +String hoTen
-        +String phongBan
-        +Date ngayVaoLam
-        +String loaiBangLuongId
+    class Employee {
+        +String employeeId
+        +String fullName
+        +String department
+        +Date joinDate
+        +String payrollTemplateId
         +String email
-        +String sdt
-        +Boolean trangThai
-        +getLoaiBangLuong()
-        +getHopDongHienTai()
-        +tinhTongThuNhap()
-        +getDanhSachPhuThuoc()
+        +String phone
+        +Boolean status
+        +getPayrollTemplate()
+        +getCurrentContract()
+        +calculateTotalIncome()
+        +getDependentsList()
     }
 
-    class LoaiBangLuong {
-        +String maLoai
-        +String tenLoai
-        +String phongBanApDung
-        +String moTa
-        +Boolean trangThai
-        +Date ngayTao
-        +List~ThuocTinhBangLuong~ thuocTinhList
-        +addThuocTinh()
-        +removeThuocTinh()
+    class PayrollTemplate {
+        +String templateId
+        +String templateName
+        +String departmentScope
+        +String description
+        +Boolean status
+        +Date createdDate
+        +List~PayrollAttribute~ attributeList
+        +addAttribute()
+        +removeAttribute()
         +validateData()
         +generateTemplate()
     }
 
-    class ThuocTinhBangLuong {
-        +String maThuocTinh
-        +String tenCot
-        +String kieuDuLieu
-        +String nguonDuLieu
-        +String congThuc
-        +Boolean batBuoc
-        +Integer thuTuHienThi
+    class PayrollAttribute {
+        +String attributeId
+        +String columnName
+        +String dataType
+        +String dataSource
+        +String formula
+        +Boolean required
+        +Integer displayOrder
         +validate()
         +calculate()
         +formatDisplay()
     }
 
-    class BangLuong {
-        +String maBangLuong
-        +String nhanVienId
-        +String loaiBangLuongId
-        +Integer thang
-        +Integer nam
-        +Date ngayTao
-        +Map~String-Object~ duLieuLuong
-        +Decimal tongThuNhap
-        +Decimal luongThucNhan
-        +String trangThai
-        +tinhToan()
-        +getLuongThucNhan()
-        +tinhBaoHiem()
-        +tinhThue()
-        +xuatBangLuong()
+    class Payroll {
+        +String payrollId
+        +String employeeId
+        +String payrollTemplateId
+        +Integer month
+        +Integer year
+        +Date createdDate
+        +Map~String-Object~ payrollData
+        +Decimal totalIncome
+        +Decimal netSalary
+        +String status
+        +calculate()
+        +getNetSalary()
+        +calculateInsurance()
+        +calculateTax()
+        +exportPayslip()
     }
 
-    class HopDongLaoDong {
-        +String maHopDong
-        +String nhanVienId
-        +String loaiHopDong
-        +Date ngayKy
-        +Date ngayHetHan
-        +Decimal luongCoBan
-        +Boolean tinhBaoHiem
-        +String quyDinhBaoHiemId
-        +String quyDinhThueId
-        +String quyDinhGiamTruId
-        +Boolean trangThai
+    class EmploymentContract {
+        +String contractId
+        +String employeeId
+        +String contractType
+        +Date signDate
+        +Date expireDate
+        +Decimal baseSalary
+        +Boolean insuranceApplied
+        +String insuranceRuleId
+        +String taxRuleId
+        +String deductionRuleId
+        +Boolean status
         +isActive()
         +renew()
         +terminate()
     }
 
-    class LoaiThuNhap {
-        +String maLoai
-        +String tenLoai
-        +Decimal giaTriMacDinh
-        +Boolean mienThue
-        +String moTa
-        +Boolean trangThai
+    class IncomeType {
+        +String typeId
+        +String typeName
+        +Decimal defaultValue
+        +Boolean taxExempt
+        +String description
+        +Boolean status
         +calculate()
         +applyTax()
     }
 
-    class QuyDinhBaoHiem {
-        +String maQuyDinh
-        +String tenQuyDinh
-        +Float tyLeBHXH_NLD
-        +Float tyLeBHXH_DN
-        +Float tyLeBHYT_NLD
-        +Float tyLeBHYT_DN
-        +Float tyLeBHTN_NLD
-        +Float tyLeBHTN_DN
-        +Decimal mucTranBHXH
-        +Decimal mucTranBHYT
-        +Decimal mucTranBHTN
-        +Date ngayApDung
-        +Boolean trangThai
-        +tinhBHXH(luong)
-        +tinhBHYT(luong)
-        +tinhBHTN(luong)
-        +getTongBaoHiem()
+    class InsuranceRule {
+        +String ruleId
+        +String ruleName
+        +Float socialInsuranceRateEmployee
+        +Float socialInsuranceRateEmployer
+        +Float healthInsuranceRateEmployee
+        +Float healthInsuranceRateEmployer
+        +Float unemploymentInsuranceRateEmployee
+        +Float unemploymentInsuranceRateEmployer
+        +Decimal socialInsuranceCap
+        +Decimal healthInsuranceCap
+        +Decimal unemploymentInsuranceCap
+        +Date effectiveDate
+        +Boolean status
+        +calculateSocialInsurance(salary)
+        +calculateHealthInsurance(salary)
+        +calculateUnemploymentInsurance(salary)
+        +getTotalInsurance()
     }
 
-    class QuyDinhThueTNCN {
-        +String maQuyDinh
-        +String tenQuyDinh
-        +Date ngayApDung
-        +Boolean trangThai
-        +List~BacThue~ bacThueList
-        +tinhThue(thuNhapChiuThue)
-        +getThueSuat(thuNhap)
-        +applyGiamTru()
+    class IncomeTaxRule {
+        +String ruleId
+        +String ruleName
+        +Date effectiveDate
+        +Boolean status
+        +List~TaxBracket~ taxBracketList
+        +calculateTax(taxableIncome)
+        +getTaxRate(income)
+        +applyDeduction()
     }
 
-    class BacThue {
-        +String maBac
-        +Decimal mucTu
-        +Decimal mucDen
-        +Float tyLe
-        +Integer thuTu
+    class TaxBracket {
+        +String bracketId
+        +Decimal minAmount
+        +Decimal maxAmount
+        +Float rate
+        +Integer order
         +calculateTax(amount)
         +isInRange(amount)
     }
 
-    class QuyDinhGiamTru {
-        +String maQuyDinh
-        +Decimal giamTruBanThan
-        +Decimal giamTruPhuThuoc
-        +Date ngayApDung
-        +Boolean trangThai
-        +tinhTongGiamTru(soPhuThuoc)
-        +applyGiamTru(thuNhap)
+    class DeductionRule {
+        +String ruleId
+        +Decimal personalDeduction
+        +Decimal dependentDeduction
+        +Date effectiveDate
+        +Boolean status
+        +calculateTotalDeduction(dependentCount)
+        +applyDeduction(income)
     }
 
     class PayrollService {
@@ -186,29 +186,29 @@ classDiagram
         +getTotalInsurance()
     }
 
-    NhanVien "1" --> "1" LoaiBangLuong : áp dụng
-    NhanVien "1" --> "*" BangLuong : có
-    NhanVien "1" --> "*" HopDongLaoDong : ký kết
+    Employee "1" --> "1" PayrollTemplate : applies
+    Employee "1" --> "*" Payroll : has
+    Employee "1" --> "*" EmploymentContract : signs
 
-    BangLuong "*" --> "1" LoaiBangLuong : theo mẫu
-    BangLuong --> PayrollService : uses
+    Payroll "*" --> "1" PayrollTemplate : based on
+    Payroll --> PayrollService : uses
 
-    LoaiBangLuong "1" *-- "*" ThuocTinhBangLuong : chứa
-    LoaiBangLuong "1" --> "*" LoaiThuNhap : sử dụng
+    PayrollTemplate "1" *-- "*" PayrollAttribute : contains
+    PayrollTemplate "1" --> "*" IncomeType : uses
 
-    HopDongLaoDong "*" --> "1" QuyDinhBaoHiem : áp dụng
-    HopDongLaoDong "*" --> "1" QuyDinhThueTNCN : áp dụng
-    HopDongLaoDong "*" --> "1" QuyDinhGiamTru : áp dụng
+    EmploymentContract "*" --> "1" InsuranceRule : applies
+    EmploymentContract "*" --> "1" IncomeTaxRule : applies
+    EmploymentContract "*" --> "1" DeductionRule : applies
 
-    QuyDinhThueTNCN "1" *-- "*" BacThue : chứa
+    IncomeTaxRule "1" *-- "*" TaxBracket : contains
 
     PayrollService --> TaxCalculator : uses
     PayrollService --> InsuranceCalculator : uses
 
-    TaxCalculator --> QuyDinhThueTNCN : applies
-    TaxCalculator --> QuyDinhGiamTru : applies
+    TaxCalculator --> IncomeTaxRule : applies
+    TaxCalculator --> DeductionRule : applies
 
-    InsuranceCalculator --> QuyDinhBaoHiem : applies
+    InsuranceCalculator --> InsuranceRule : applies
 ```
 
 ### 2.1 Employee Management Module
