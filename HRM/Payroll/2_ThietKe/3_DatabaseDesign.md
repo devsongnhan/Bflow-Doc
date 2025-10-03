@@ -35,7 +35,7 @@ Tài liệu này định nghĩa thiết kế database cho Hệ thống Quản l�
 - Security measures
 
 ### 1.3 Database Management System
-- **Primary DBMS:** PostgreSQL 15
+- **Primary DBMS:** MySQL 8.0
 - **Caching:** Redis 7.x
 - **Document Store:** MinIO (for files)
 - **Search Engine:** Elasticsearch 8.x
@@ -49,9 +49,9 @@ Tài liệu này định nghĩa thiết kế database cho Hệ thống Quản l�
 ```mermaid
 graph TB
     subgraph "Primary Databases"
-        DB1[(Employee DB<br/>PostgreSQL)]
-        DB2[(Payroll DB<br/>PostgreSQL)]
-        DB3[(Configuration DB<br/>PostgreSQL)]
+        DB1[(Employee DB<br/>MySQL)]
+        DB2[(Payroll DB<br/>MySQL)]
+        DB3[(Configuration DB<br/>MySQL)]
     end
 
     subgraph "Read Replicas"
@@ -512,38 +512,41 @@ Thuế TNCN = Σ(Thu nhập trong bậc × Thuế suất bậc)
 ```sql
 -- Departments Table
 CREATE TABLE departments (
-    department_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    department_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     department_code VARCHAR(20) UNIQUE NOT NULL,
     department_name VARCHAR(100) NOT NULL,
-    parent_department_id UUID REFERENCES departments(department_id),
-    manager_id UUID,
+    parent_department_id CHAR(36),
+    manager_id CHAR(36),
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_department_id) REFERENCES departments(department_id)
 );
 
 -- Positions Table
 CREATE TABLE positions (
-    position_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    position_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     position_code VARCHAR(20) UNIQUE NOT NULL,
     position_name VARCHAR(100) NOT NULL,
-    department_id UUID REFERENCES departments(department_id),
-    level INT CHECK (level BETWEEN 1 AND 10),
+    department_id CHAR(36),
+    level INT,
     min_salary DECIMAL(15,2),
     max_salary DECIMAL(15,2),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (department_id) REFERENCES departments(department_id),
+    CONSTRAINT chk_level CHECK (level BETWEEN 1 AND 10)
 );
 
 -- Employees Table (Master)
 CREATE TABLE employees (
-    employee_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    employee_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     employee_code VARCHAR(20) UNIQUE NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50),
     date_of_birth DATE NOT NULL,
-    gender CHAR(1) CHECK (gender IN ('M', 'F', 'O')),
+    gender CHAR(1),
     national_id VARCHAR(20) UNIQUE NOT NULL,
     tax_code VARCHAR(20),
 
@@ -556,9 +559,9 @@ CREATE TABLE employees (
     ward VARCHAR(50),
 
     -- Employment Information
-    department_id UUID REFERENCES departments(department_id),
-    position_id UUID REFERENCES positions(position_id),
-    manager_id UUID REFERENCES employees(employee_id),
+    department_id CHAR(36),
+    position_id CHAR(36),
+    manager_id CHAR(36),
     hire_date DATE NOT NULL,
     probation_end_date DATE,
 
@@ -567,10 +570,14 @@ CREATE TABLE employees (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID,
-    updated_by UUID,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by CHAR(36),
+    updated_by CHAR(36),
 
+    FOREIGN KEY (department_id) REFERENCES departments(department_id),
+    FOREIGN KEY (position_id) REFERENCES positions(position_id),
+    FOREIGN KEY (manager_id) REFERENCES employees(employee_id),
+    CONSTRAINT chk_gender CHECK (gender IN ('M', 'F', 'O')),
     CONSTRAINT chk_employment_status CHECK (
         employment_status IN ('ACTIVE', 'INACTIVE', 'TERMINATED', 'ON_LEAVE')
     )
@@ -578,8 +585,8 @@ CREATE TABLE employees (
 
 -- Dependents Table
 CREATE TABLE dependents (
-    dependent_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_id UUID REFERENCES employees(employee_id) ON DELETE CASCADE,
+    dependent_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    employee_id CHAR(36),
     full_name VARCHAR(100) NOT NULL,
     relationship VARCHAR(20) NOT NULL,
     date_of_birth DATE,
@@ -590,6 +597,7 @@ CREATE TABLE dependents (
     effective_to DATE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE,
     CONSTRAINT chk_relationship CHECK (
         relationship IN ('SPOUSE', 'CHILD', 'PARENT', 'OTHER')
     )
@@ -597,16 +605,16 @@ CREATE TABLE dependents (
 
 -- Contracts Table
 CREATE TABLE contracts (
-    contract_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_id UUID REFERENCES employees(employee_id),
+    contract_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    employee_id CHAR(36),
     contract_number VARCHAR(50) UNIQUE NOT NULL,
     contract_type VARCHAR(20) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
 
     -- Salary Information
-    base_salary DECIMAL(15,2) NOT NULL CHECK (base_salary > 0),
-    salary_template_id UUID,
+    base_salary DECIMAL(15,2) NOT NULL,
+    salary_template_id CHAR(36),
     insurance_salary DECIMAL(15,2),
 
     -- Status
@@ -615,8 +623,10 @@ CREATE TABLE contracts (
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
+    CONSTRAINT chk_base_salary CHECK (base_salary > 0),
     CONSTRAINT chk_contract_type CHECK (
         contract_type IN ('PERMANENT', 'FIXED_TERM', 'PART_TIME', 'PROBATION')
     ),
@@ -627,15 +637,16 @@ CREATE TABLE contracts (
 
 -- Bank Accounts
 CREATE TABLE employee_bank_accounts (
-    account_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_id UUID REFERENCES employees(employee_id),
+    account_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    employee_id CHAR(36),
     bank_name VARCHAR(100) NOT NULL,
     bank_branch VARCHAR(100),
     account_number VARCHAR(50) NOT NULL,
     account_name VARCHAR(100) NOT NULL,
     is_primary BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
 );
 ```
 
@@ -644,18 +655,18 @@ CREATE TABLE employee_bank_accounts (
 ```sql
 -- Salary Templates
 CREATE TABLE salary_templates (
-    template_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     template_code VARCHAR(20) UNIQUE NOT NULL,
     template_name VARCHAR(100) NOT NULL,
     description TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Salary Components
 CREATE TABLE salary_components (
-    component_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    component_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     component_code VARCHAR(20) UNIQUE NOT NULL,
     component_name VARCHAR(100) NOT NULL,
     component_type VARCHAR(20) NOT NULL,
@@ -686,19 +697,21 @@ CREATE TABLE salary_components (
 
 -- Template Components Mapping
 CREATE TABLE template_components (
-    template_id UUID REFERENCES salary_templates(template_id),
-    component_id UUID REFERENCES salary_components(component_id),
+    template_id CHAR(36),
+    component_id CHAR(36),
     is_mandatory BOOLEAN DEFAULT true,
     default_value DECIMAL(15,2),
     min_value DECIMAL(15,2),
     max_value DECIMAL(15,2),
     display_order INT,
-    PRIMARY KEY (template_id, component_id)
+    PRIMARY KEY (template_id, component_id),
+    FOREIGN KEY (template_id) REFERENCES salary_templates(template_id),
+    FOREIGN KEY (component_id) REFERENCES salary_components(component_id)
 );
 
 -- Tax Configuration
 CREATE TABLE tax_brackets (
-    bracket_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bracket_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     year INT NOT NULL,
     bracket_order INT NOT NULL,
     min_income DECIMAL(15,2) NOT NULL,
@@ -711,7 +724,7 @@ CREATE TABLE tax_brackets (
 
 -- Insurance Configuration
 CREATE TABLE insurance_rates (
-    rate_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rate_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     insurance_type VARCHAR(20) NOT NULL,
     effective_date DATE NOT NULL,
     employee_rate DECIMAL(5,2) NOT NULL,
@@ -727,7 +740,7 @@ CREATE TABLE insurance_rates (
 
 -- Tax Deductions Configuration
 CREATE TABLE tax_deductions (
-    deduction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    deduction_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     deduction_type VARCHAR(30) NOT NULL,
     year INT NOT NULL,
     amount DECIMAL(15,2) NOT NULL,
@@ -745,18 +758,20 @@ CREATE TABLE tax_deductions (
 ```sql
 -- Payroll Periods
 CREATE TABLE payroll_periods (
-    period_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    period_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     period_code VARCHAR(20) UNIQUE NOT NULL,
-    month INT NOT NULL CHECK (month BETWEEN 1 AND 12),
-    year INT NOT NULL CHECK (year > 2020),
+    month INT NOT NULL,
+    year INT NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
     payment_date DATE,
     status VARCHAR(20) DEFAULT 'OPEN',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    closed_at TIMESTAMP,
-    closed_by UUID,
+    closed_at TIMESTAMP NULL,
+    closed_by CHAR(36),
 
+    CONSTRAINT chk_month CHECK (month BETWEEN 1 AND 12),
+    CONSTRAINT chk_year CHECK (year > 2020),
     CONSTRAINT chk_period_status CHECK (
         status IN ('OPEN', 'PROCESSING', 'CLOSED', 'PAID')
     ),
@@ -765,10 +780,10 @@ CREATE TABLE payroll_periods (
 
 -- Payroll Master
 CREATE TABLE payrolls (
-    payroll_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    payroll_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     payroll_number VARCHAR(30) UNIQUE NOT NULL,
-    employee_id UUID REFERENCES employees(employee_id),
-    period_id UUID REFERENCES payroll_periods(period_id),
+    employee_id CHAR(36),
+    period_id CHAR(36),
 
     -- Working Days
     working_days DECIMAL(5,2) DEFAULT 0,
@@ -782,18 +797,20 @@ CREATE TABLE payrolls (
 
     -- Status & Workflow
     status VARCHAR(20) DEFAULT 'DRAFT',
-    calculation_date TIMESTAMP,
-    approval_date TIMESTAMP,
-    approved_by UUID,
+    calculation_date TIMESTAMP NULL,
+    approval_date TIMESTAMP NULL,
+    approved_by CHAR(36),
     payment_date DATE,
     payment_method VARCHAR(20),
 
     -- Audit
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID,
-    updated_by UUID,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    created_by CHAR(36),
+    updated_by CHAR(36),
 
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
+    FOREIGN KEY (period_id) REFERENCES payroll_periods(period_id),
     CONSTRAINT chk_payroll_status CHECK (
         status IN ('DRAFT', 'CALCULATED', 'APPROVED', 'REJECTED', 'PAID', 'CANCELLED')
     ),
@@ -805,9 +822,9 @@ CREATE TABLE payrolls (
 
 -- Payroll Details
 CREATE TABLE payroll_details (
-    detail_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payroll_id UUID REFERENCES payrolls(payroll_id) ON DELETE CASCADE,
-    component_id UUID REFERENCES salary_components(component_id),
+    detail_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    payroll_id CHAR(36),
+    component_id CHAR(36),
     component_name VARCHAR(100) NOT NULL,
     component_type VARCHAR(20) NOT NULL,
     amount DECIMAL(15,2) NOT NULL,
@@ -815,13 +832,15 @@ CREATE TABLE payroll_details (
     is_insurance_applicable BOOLEAN DEFAULT true,
     calculation_note TEXT,
     display_order INT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (payroll_id) REFERENCES payrolls(payroll_id) ON DELETE CASCADE,
+    FOREIGN KEY (component_id) REFERENCES salary_components(component_id)
 );
 
 -- Tax Calculations
 CREATE TABLE tax_calculations (
-    tax_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payroll_id UUID REFERENCES payrolls(payroll_id) ON DELETE CASCADE,
+    tax_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    payroll_id CHAR(36),
 
     -- Income
     gross_income DECIMAL(15,2) NOT NULL,
@@ -838,9 +857,10 @@ CREATE TABLE tax_calculations (
     tax_amount DECIMAL(15,2) NOT NULL,
 
     -- Details
-    calculation_details JSONB,
+    calculation_details JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (payroll_id) REFERENCES payrolls(payroll_id) ON DELETE CASCADE,
     CONSTRAINT chk_taxable_income CHECK (
         taxable_income = gross_income - insurance_deduction - personal_deduction - dependent_deduction
     )
@@ -848,8 +868,8 @@ CREATE TABLE tax_calculations (
 
 -- Insurance Calculations
 CREATE TABLE insurance_calculations (
-    insurance_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payroll_id UUID REFERENCES payrolls(payroll_id) ON DELETE CASCADE,
+    insurance_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    payroll_id CHAR(36),
     insurance_salary DECIMAL(15,2) NOT NULL,
 
     -- Employee Contributions (Vietnam 2024)
@@ -866,14 +886,15 @@ CREATE TABLE insurance_calculations (
     total_employee DECIMAL(15,2) NOT NULL,
     total_employer DECIMAL(15,2) NOT NULL,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (payroll_id) REFERENCES payrolls(payroll_id) ON DELETE CASCADE
 );
 
 -- Attendance Summary (for payroll)
 CREATE TABLE payroll_attendance (
-    attendance_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_id UUID REFERENCES employees(employee_id),
-    period_id UUID REFERENCES payroll_periods(period_id),
+    attendance_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    employee_id CHAR(36),
+    period_id CHAR(36),
 
     -- Working Days
     regular_days DECIMAL(5,2) DEFAULT 0,
@@ -889,8 +910,10 @@ CREATE TABLE payroll_attendance (
     total_working_days DECIMAL(5,2) NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
+    FOREIGN KEY (period_id) REFERENCES payroll_periods(period_id),
     UNIQUE(employee_id, period_id)
 );
 ```
@@ -900,14 +923,14 @@ CREATE TABLE payroll_attendance (
 ```sql
 -- Payroll History (for tracking changes)
 CREATE TABLE payroll_history (
-    history_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    payroll_id UUID NOT NULL,
+    history_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    payroll_id CHAR(36) NOT NULL,
     action VARCHAR(20) NOT NULL,
     old_status VARCHAR(20),
     new_status VARCHAR(20),
-    changes JSONB,
+    changes JSON,
     reason TEXT,
-    performed_by UUID NOT NULL,
+    performed_by CHAR(36) NOT NULL,
     performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT chk_action CHECK (
@@ -917,14 +940,14 @@ CREATE TABLE payroll_history (
 
 -- Audit Log (generic)
 CREATE TABLE audit_logs (
-    log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    log_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     table_name VARCHAR(50) NOT NULL,
-    record_id UUID NOT NULL,
+    record_id CHAR(36) NOT NULL,
     action VARCHAR(20) NOT NULL,
-    old_values JSONB,
-    new_values JSONB,
-    user_id UUID NOT NULL,
-    ip_address INET,
+    old_values JSON,
+    new_values JSON,
+    user_id CHAR(36) NOT NULL,
+    ip_address VARCHAR(45),
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -935,14 +958,14 @@ CREATE TABLE audit_logs (
 
 -- System Configuration
 CREATE TABLE system_configs (
-    config_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    config_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     config_key VARCHAR(100) UNIQUE NOT NULL,
     config_value TEXT NOT NULL,
     config_type VARCHAR(20) NOT NULL,
     description TEXT,
     is_encrypted BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT chk_config_type CHECK (
         config_type IN ('STRING', 'NUMBER', 'BOOLEAN', 'JSON')
@@ -957,30 +980,50 @@ CREATE TABLE system_configs (
 ### 5.1 Tablespace Organization
 
 ```sql
--- Create tablespaces for better performance
-CREATE TABLESPACE payroll_data LOCATION '/data/payroll';
-CREATE TABLESPACE payroll_index LOCATION '/data/payroll_idx';
-CREATE TABLESPACE payroll_archive LOCATION '/data/archive';
+-- MySQL uses InnoDB tablespaces differently than PostgreSQL
+-- Configure innodb_file_per_table for better management
+SET GLOBAL innodb_file_per_table = ON;
 
--- Assign tables to tablespaces
-ALTER TABLE payrolls SET TABLESPACE payroll_data;
-ALTER TABLE payroll_details SET TABLESPACE payroll_data;
-ALTER TABLE employees SET TABLESPACE payroll_data;
+-- Create separate database schemas for logical separation
+CREATE DATABASE payroll_data;
+CREATE DATABASE payroll_archive;
+
+-- Use table partitioning for large tables
+ALTER TABLE payrolls PARTITION BY RANGE (YEAR(created_at)) (
+    PARTITION p2024 VALUES LESS THAN (2025),
+    PARTITION p2025 VALUES LESS THAN (2026),
+    PARTITION p2026 VALUES LESS THAN (2027)
+);
 ```
 
 ### 5.2 Partitioning Strategy
 
 ```sql
--- Partition payrolls table by year
-CREATE TABLE payrolls_2024 PARTITION OF payrolls
-    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
-
-CREATE TABLE payrolls_2025 PARTITION OF payrolls
-    FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+-- MySQL partitioning for payrolls table by year-month
+ALTER TABLE payrolls
+PARTITION BY RANGE (YEAR(created_at) * 100 + MONTH(created_at)) (
+    PARTITION p202401 VALUES LESS THAN (202402),
+    PARTITION p202402 VALUES LESS THAN (202403),
+    PARTITION p202403 VALUES LESS THAN (202404),
+    PARTITION p202404 VALUES LESS THAN (202405),
+    PARTITION p202405 VALUES LESS THAN (202406),
+    PARTITION p202406 VALUES LESS THAN (202407),
+    PARTITION p202407 VALUES LESS THAN (202408),
+    PARTITION p202408 VALUES LESS THAN (202409),
+    PARTITION p202409 VALUES LESS THAN (202410),
+    PARTITION p202410 VALUES LESS THAN (202411),
+    PARTITION p202411 VALUES LESS THAN (202412),
+    PARTITION p202412 VALUES LESS THAN (202501)
+);
 
 -- Partition audit_logs by month
-CREATE TABLE audit_logs_2024_09 PARTITION OF audit_logs
-    FOR VALUES FROM ('2024-09-01') TO ('2024-10-01');
+ALTER TABLE audit_logs
+PARTITION BY RANGE (TO_DAYS(created_at)) (
+    PARTITION p202409 VALUES LESS THAN (TO_DAYS('2024-10-01')),
+    PARTITION p202410 VALUES LESS THAN (TO_DAYS('2024-11-01')),
+    PARTITION p202411 VALUES LESS THAN (TO_DAYS('2024-12-01')),
+    PARTITION p202412 VALUES LESS THAN (TO_DAYS('2025-01-01'))
+);
 ```
 
 ### 5.3 Storage Estimates
@@ -1001,7 +1044,7 @@ CREATE TABLE audit_logs_2024_09 PARTITION OF audit_logs
 
 | Column | Data Type | Constraints | Description |
 |--------|-----------|-------------|-------------|
-| employee_id | UUID | PK, NOT NULL | Unique identifier |
+| employee_id | CHAR(36) | PK, NOT NULL | Unique identifier |
 | employee_code | VARCHAR(20) | UNIQUE, NOT NULL | Employee code |
 | first_name | VARCHAR(50) | NOT NULL | First name |
 | last_name | VARCHAR(50) | NOT NULL | Last name |
@@ -1024,10 +1067,10 @@ CREATE TABLE audit_logs_2024_09 PARTITION OF audit_logs
 
 | Type | Usage | Example |
 |------|-------|---------|
-| UUID | Primary keys | 550e8400-e29b-41d4-a716-446655440000 |
+| CHAR(36) | Primary keys (UUID) | 550e8400-e29b-41d4-a716-446655440000 |
 | DECIMAL(15,2) | Money amounts | 25000000.50 |
-| TIMESTAMP | Date/time with timezone | 2024-09-24 10:30:00+07 |
-| JSONB | Flexible data | {"key": "value"} |
+| TIMESTAMP | Date/time | 2024-09-24 10:30:00 |
+| JSON | Flexible data | {"key": "value"} |
 
 ---
 
@@ -1071,25 +1114,29 @@ CREATE INDEX idx_employees_fullname ON employees(
     lower(first_name || ' ' || last_name)
 );
 
--- GiST index for JSONB
-CREATE INDEX idx_audit_logs_values ON audit_logs USING gin(new_values);
+-- MySQL JSON index
+CREATE INDEX idx_audit_logs_values ON audit_logs((CAST(new_values AS CHAR(255))));
 ```
 
 ### 7.3 Index Maintenance
 
 ```sql
 -- Analyze tables regularly
-ANALYZE employees;
-ANALYZE payrolls;
+ANALYZE TABLE employees;
+ANALYZE TABLE payrolls;
 
--- Reindex periodically
-REINDEX TABLE payrolls;
-REINDEX TABLE payroll_details;
+-- Optimize tables periodically
+OPTIMIZE TABLE payrolls;
+OPTIMIZE TABLE payroll_details;
 
 -- Monitor index usage
-SELECT * FROM pg_stat_user_indexes
-WHERE schemaname = 'public'
-ORDER BY idx_scan;
+SELECT
+    table_name,
+    index_name,
+    cardinality
+FROM information_schema.statistics
+WHERE table_schema = 'payroll_db'
+ORDER BY cardinality DESC;
 ```
 
 ---
@@ -1099,44 +1146,44 @@ ORDER BY idx_scan;
 ### 8.1 Encryption
 
 ```sql
--- Enable encryption at rest
-ALTER DATABASE payroll_db SET encryption_key = 'vault:v1:key';
+-- Enable transparent encryption (MySQL Enterprise)
+-- Or use table-level encryption
+CREATE TABLE employees_encrypted (
+    employee_id CHAR(36),
+    tax_code VARBINARY(255),
+    -- other columns
+) ENCRYPTION='Y';
 
--- Encrypt sensitive columns
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Encrypt tax_code
+-- Encrypt sensitive data with AES
 UPDATE employees
-SET tax_code = pgp_sym_encrypt(tax_code, 'encryption_key');
+SET tax_code = AES_ENCRYPT(tax_code, 'encryption_key');
 
 -- Decrypt when reading
-SELECT pgp_sym_decrypt(tax_code::bytea, 'encryption_key') as tax_code
+SELECT AES_DECRYPT(tax_code, 'encryption_key') as tax_code
 FROM employees;
 ```
 
 ### 8.2 Access Control
 
 ```sql
--- Create roles
-CREATE ROLE payroll_admin;
-CREATE ROLE payroll_user;
-CREATE ROLE payroll_viewer;
+-- Create users with roles
+CREATE USER 'payroll_admin'@'%' IDENTIFIED BY 'password';
+CREATE USER 'payroll_user'@'%' IDENTIFIED BY 'password';
+CREATE USER 'payroll_viewer'@'%' IDENTIFIED BY 'password';
 
 -- Grant permissions
-GRANT ALL ON ALL TABLES IN SCHEMA public TO payroll_admin;
-GRANT SELECT, INSERT, UPDATE ON payrolls TO payroll_user;
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO payroll_viewer;
+GRANT ALL PRIVILEGES ON payroll_db.* TO 'payroll_admin'@'%';
+GRANT SELECT, INSERT, UPDATE ON payroll_db.payrolls TO 'payroll_user'@'%';
+GRANT SELECT ON payroll_db.* TO 'payroll_viewer'@'%';
 
--- Row-level security
-ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
+-- Use views for row-level security
+CREATE VIEW employee_dept_view AS
+SELECT e.*
+FROM employees e
+INNER JOIN user_departments ud ON e.department_id = ud.department_id
+WHERE ud.user_id = USER();
 
-CREATE POLICY employee_isolation ON employees
-    FOR ALL
-    TO payroll_user
-    USING (department_id IN (
-        SELECT department_id FROM user_departments
-        WHERE user_id = current_user_id()
-    ));
+GRANT SELECT ON employee_dept_view TO 'payroll_user'@'%';
 ```
 
 ### 8.3 Data Masking
@@ -1150,11 +1197,11 @@ SELECT
     first_name,
     last_name,
     CASE
-        WHEN current_user_role() = 'HR_ADMIN' THEN national_id
-        ELSE CONCAT(SUBSTR(national_id, 1, 3), '****', SUBSTR(national_id, -2))
+        WHEN USER() LIKE 'hr_admin%' THEN national_id
+        ELSE CONCAT(SUBSTRING(national_id, 1, 3), '****', SUBSTRING(national_id, -2))
     END as national_id,
     CASE
-        WHEN current_user_role() IN ('HR_ADMIN', 'PAYROLL_ADMIN') THEN base_salary
+        WHEN USER() IN ('hr_admin@%', 'payroll_admin@%') THEN base_salary
         ELSE NULL
     END as base_salary
 FROM employees;
@@ -1176,7 +1223,7 @@ CREATE TABLE schema_migrations (
 
 -- Sample migration script
 -- V1.0.0__initial_schema.sql
-BEGIN;
+START TRANSACTION;
     -- Create tables
     -- Create indexes
     -- Insert initial data
@@ -1184,7 +1231,7 @@ BEGIN;
 COMMIT;
 
 -- V1.0.1__add_employee_fields.sql
-BEGIN;
+START TRANSACTION;
     ALTER TABLE employees ADD COLUMN middle_name VARCHAR(50);
     ALTER TABLE employees ADD COLUMN photo_url TEXT;
     INSERT INTO schema_migrations VALUES ('1.0.1', NOW(), 'Add employee fields');
@@ -1195,23 +1242,33 @@ COMMIT;
 
 ```sql
 -- ETL Process
--- 1. Extract from legacy
-COPY (SELECT * FROM legacy.employees) TO '/tmp/employees.csv' CSV HEADER;
+-- 1. Export from legacy (using MySQL tools)
+SELECT * FROM legacy.employees
+INTO OUTFILE '/tmp/employees.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
 
 -- 2. Transform
-CREATE TEMP TABLE employees_staging (LIKE employees);
-COPY employees_staging FROM '/tmp/employees.csv' CSV HEADER;
+CREATE TEMPORARY TABLE employees_staging LIKE employees;
+
+-- Load data
+LOAD DATA INFILE '/tmp/employees.csv'
+INTO TABLE employees_staging
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
 
 -- Data cleaning
 UPDATE employees_staging
 SET email = LOWER(TRIM(email)),
-    phone = REGEXP_REPLACE(phone, '[^0-9]', '', 'g');
+    phone = REGEXP_REPLACE(phone, '[^0-9]', '');
 
--- 3. Load
+-- 3. Load with duplicate handling
 INSERT INTO employees
 SELECT * FROM employees_staging
-ON CONFLICT (employee_code) DO UPDATE
-SET updated_at = CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE
+    updated_at = CURRENT_TIMESTAMP;
 ```
 
 ---
@@ -1222,37 +1279,42 @@ SET updated_at = CURRENT_TIMESTAMP;
 
 ```bash
 # Daily full backup
-pg_dump -h localhost -U postgres -d payroll_db -Fc -f /backup/payroll_$(date +%Y%m%d).dump
+mysqldump -h localhost -u root -p payroll_db > /backup/payroll_$(date +%Y%m%d).sql
 
-# Hourly WAL archiving
-archive_command = 'cp %p /archive/%f'
+# Hourly incremental backup using binary logs
+mysqlbinlog --start-datetime="2024-09-24 00:00:00" /var/log/mysql/binlog.* > /backup/incremental_$(date +%Y%m%d_%H).sql
 
-# Weekly logical backup
-pg_dumpall -h localhost -U postgres > /backup/weekly_$(date +%Y%m%d).sql
+# Weekly logical backup with compression
+mysqldump -h localhost -u root -p --all-databases | gzip > /backup/weekly_$(date +%Y%m%d).sql.gz
 ```
 
 ### 10.2 Recovery Procedures
 
 ```bash
-# Point-in-time recovery
-pg_basebackup -h localhost -D /recovery -X stream
+# Restore from full backup
+mysql -h localhost -u root -p payroll_db < /backup/payroll_20240924.sql
 
-# Restore from dump
-pg_restore -h localhost -U postgres -d payroll_db /backup/payroll_20240924.dump
+# Point-in-time recovery using binary logs
+mysql -h localhost -u root -p payroll_db < /backup/payroll_20240924.sql
+mysqlbinlog --stop-datetime="2024-09-24 10:00:00" /var/log/mysql/binlog.* | mysql -u root -p
 
 # Restore specific table
-pg_restore -h localhost -U postgres -d payroll_db -t employees /backup/payroll_20240924.dump
+mysql -h localhost -u root -p payroll_db -e "DROP TABLE employees;"
+mysql -h localhost -u root -p payroll_db < /backup/employees_20240924.sql
 ```
 
 ### 10.3 Backup Testing
 
-```sql
--- Verify backup integrity
-SELECT pg_verifybackup('/backup/payroll_20240924.dump');
+```bash
+# Verify backup integrity
+mysqlcheck -h localhost -u root -p --all-databases
 
--- Test recovery procedures monthly
--- Document recovery time
--- Validate data integrity after recovery
+# Test restore to separate database
+mysql -u root -p -e "CREATE DATABASE payroll_test;"
+mysql -u root -p payroll_test < /backup/payroll_20240924.sql
+
+# Validate data integrity
+mysql -u root -p payroll_test -e "SELECT COUNT(*) FROM employees;"
 ```
 
 ---
@@ -1263,18 +1325,18 @@ SELECT pg_verifybackup('/backup/payroll_20240924.dump');
 
 ```sql
 -- Use EXPLAIN ANALYZE
-EXPLAIN (ANALYZE, BUFFERS)
+EXPLAIN ANALYZE
 SELECT e.*, p.*
 FROM employees e
 JOIN payrolls p ON e.employee_id = p.employee_id
 WHERE p.period_id = '...' AND p.status = 'APPROVED';
 
--- Common Table Expressions (CTE)
+-- Common Table Expressions (CTE) - MySQL 8.0+
 WITH active_employees AS (
     SELECT * FROM employees WHERE employment_status = 'ACTIVE'
 ),
 current_payroll AS (
-    SELECT * FROM payrolls WHERE period_id = current_period()
+    SELECT * FROM payrolls WHERE period_id = @current_period
 )
 SELECT * FROM active_employees e
 JOIN current_payroll p ON e.employee_id = p.employee_id;
@@ -1282,40 +1344,64 @@ JOIN current_payroll p ON e.employee_id = p.employee_id;
 
 ### 11.2 Connection Pooling
 
-```yaml
-# PgBouncer configuration
-[databases]
-payroll_db = host=localhost dbname=payroll_db
+```ini
+# MySQL connection pooling (in application config)
+# Example for HikariCP or ProxySQL
 
-[pgbouncer]
-pool_mode = transaction
-max_client_conn = 1000
-default_pool_size = 25
-reserve_pool_size = 5
-reserve_pool_timeout = 3
+[mysql]
+max_connections = 200
+max_user_connections = 50
+
+# ProxySQL configuration
+mysql_servers =
+(
+    {
+        address="localhost"
+        port=3306
+        hostgroup=0
+        max_connections=100
+    }
+)
+
+mysql_query_rules =
+(
+    {
+        rule_id=1
+        match_pattern="^SELECT"
+        destination_hostgroup=0
+        apply=1
+    }
+)
 ```
 
 ### 11.3 Monitoring Queries
 
 ```sql
--- Slow queries
-SELECT query, mean_exec_time, calls
-FROM pg_stat_statements
-ORDER BY mean_exec_time DESC
+-- Slow queries (from slow query log)
+SELECT *
+FROM mysql.slow_log
+ORDER BY query_time DESC
 LIMIT 10;
 
--- Table bloat
-SELECT schemaname, tablename,
-       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
-FROM pg_tables
-WHERE schemaname = 'public'
-ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+-- Table sizes
+SELECT
+    table_name,
+    ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
+FROM information_schema.tables
+WHERE table_schema = 'payroll_db'
+ORDER BY (data_length + index_length) DESC;
 
--- Index usage
-SELECT indexrelname, idx_scan, idx_tup_read, idx_tup_fetch
-FROM pg_stat_user_indexes
-WHERE idx_scan = 0
-ORDER BY indexrelname;
+-- Unused indexes
+SELECT
+    s.table_name,
+    s.index_name
+FROM information_schema.statistics s
+LEFT JOIN sys.schema_unused_indexes u
+    ON s.table_schema = u.object_schema
+    AND s.table_name = u.object_name
+    AND s.index_name = u.index_name
+WHERE s.table_schema = 'payroll_db'
+    AND u.index_name IS NOT NULL;
 ```
 
 ---
@@ -1326,34 +1412,44 @@ ORDER BY indexrelname;
 
 ```sql
 -- Daily
-VACUUM ANALYZE;
+ANALYZE TABLE employees, payrolls, payroll_details;
 
 -- Weekly
-REINDEX DATABASE payroll_db;
+OPTIMIZE TABLE employees, payrolls, payroll_details;
 
 -- Monthly
-VACUUM FULL;
+ALTER TABLE payrolls ENGINE=InnoDB; -- Rebuild table
 
 -- Check for corruption
-SELECT * FROM pg_check_database('payroll_db');
+CHECK TABLE employees, payrolls, payroll_details;
+REPAIR TABLE employees QUICK;
 ```
 
 ### 12.2 Monitoring Scripts
 
 ```sql
 -- Database size
-SELECT pg_database_size('payroll_db');
+SELECT
+    table_schema AS 'Database',
+    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'Size (MB)'
+FROM information_schema.tables
+WHERE table_schema = 'payroll_db'
+GROUP BY table_schema;
 
 -- Table sizes
-SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
-FROM pg_stat_user_tables
-ORDER BY pg_total_relation_size(relid) DESC;
+SELECT
+    table_name,
+    ROUND(((data_length + index_length) / 1024 / 1024), 2) AS 'Size (MB)'
+FROM information_schema.tables
+WHERE table_schema = 'payroll_db'
+ORDER BY (data_length + index_length) DESC;
 
 -- Connection count
-SELECT count(*) FROM pg_stat_activity;
+SELECT COUNT(*) FROM information_schema.processlist;
 
 -- Lock monitoring
-SELECT * FROM pg_locks WHERE granted = false;
+SELECT * FROM information_schema.innodb_locks;
+SELECT * FROM information_schema.innodb_lock_waits;
 ```
 
 ---
@@ -1366,14 +1462,14 @@ SELECT * FROM pg_locks WHERE granted = false;
 -- Archive old payroll data
 INSERT INTO payroll_archive
 SELECT * FROM payrolls
-WHERE created_at < NOW() - INTERVAL '7 years';
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 YEAR);
 
 DELETE FROM payrolls
-WHERE created_at < NOW() - INTERVAL '7 years';
+WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 YEAR);
 
 -- Compliance tracking
 CREATE TABLE data_retention_log (
-    log_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    log_id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     table_name VARCHAR(50),
     records_archived INT,
     records_deleted INT,
@@ -1406,17 +1502,20 @@ CREATE TABLE data_retention_log (
 
 ### B. Database Parameters
 
-```sql
--- PostgreSQL configuration
+```ini
+# MySQL configuration (my.cnf)
+[mysqld]
 max_connections = 200
-shared_buffers = 4GB
-effective_cache_size = 12GB
-maintenance_work_mem = 1GB
-work_mem = 32MB
-wal_level = replica
-max_wal_size = 2GB
-min_wal_size = 1GB
-checkpoint_completion_target = 0.9
+innodb_buffer_pool_size = 4G
+innodb_log_file_size = 256M
+innodb_flush_method = O_DIRECT
+innodb_file_per_table = 1
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+query_cache_size = 128M
+query_cache_type = 1
+tmp_table_size = 64M
+max_heap_table_size = 64M
 ```
 
 ### C. Useful Queries
@@ -1429,14 +1528,26 @@ GROUP BY employee_code
 HAVING COUNT(*) > 1;
 
 -- Unused indexes
-SELECT schemaname, tablename, indexname
-FROM pg_indexes
-WHERE indexname NOT IN (
-    SELECT indexrelname FROM pg_stat_user_indexes
-);
+SELECT
+    s.table_schema,
+    s.table_name,
+    s.index_name
+FROM information_schema.statistics s
+LEFT JOIN sys.schema_unused_indexes u
+    ON s.table_schema = u.object_schema
+    AND s.table_name = u.object_name
+    AND s.index_name = u.index_name
+WHERE s.table_schema = 'payroll_db';
 
 -- Table statistics
-SELECT * FROM pg_stat_user_tables;
+SELECT
+    table_name,
+    table_rows,
+    data_length,
+    index_length,
+    auto_increment
+FROM information_schema.tables
+WHERE table_schema = 'payroll_db';
 ```
 
 ---

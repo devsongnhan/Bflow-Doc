@@ -91,8 +91,8 @@ graph TB
 
     %% Data Layer
     subgraph "Data Stores"
-        DB1[(Employee DB<br/>PostgreSQL)]
-        DB2[(Payroll DB<br/>PostgreSQL)]
+        DB1[(Employee DB<br/>MySQL)]
+        DB2[(Payroll DB<br/>MySQL)]
         CACHE[(Redis Cache)]
         DOC[(Document Store<br/>MinIO)]
     end
@@ -277,7 +277,7 @@ payroll-system/
 | **Language** | Java | 17 LTS | Enterprise-ready, strong ecosystem |
 | **Framework** | Spring Boot | 3.x | Microservices support, mature |
 | **API** | REST + GraphQL | - | Flexibility for different clients |
-| **Database** | PostgreSQL | 15 | ACID compliance, JSON support |
+| **Database** | MySQL | 8.0 | ACID compliance, JSON support |
 | **Cache** | Redis | 7.x | High performance, pub/sub |
 | **Message Queue** | RabbitMQ | 3.x | Reliable, easy to use |
 | **Search** | Elasticsearch | 8.x | Full-text search for reports |
@@ -325,7 +325,7 @@ payroll-system/
 
 #### 5.1.2 Employee Service
 - **Purpose:** Employee master data management
-- **Database:** PostgreSQL
+- **Database:** MySQL
 - **Features:**
   - CRUD operations
   - Contract management
@@ -427,8 +427,8 @@ graph TB
     end
 
     subgraph "Data Tier"
-        DB_MASTER[(PostgreSQL<br/>Master)]
-        DB_SLAVE[(PostgreSQL<br/>Replica)]
+        DB_MASTER[(MySQL<br/>Master)]
+        DB_SLAVE[(MySQL<br/>Replica)]
         REDIS[(Redis Cluster)]
         STORAGE[Object Storage<br/>MinIO]
     end
@@ -613,7 +613,7 @@ External System --> SFTP/API --> ETL Process --> Database
 | ADR# | Decision | Rationale | Consequences |
 |------|----------|-----------|--------------|
 | ADR-001 | Microservices over Monolith | Scalability, team autonomy | Complexity, network latency |
-| ADR-002 | PostgreSQL for transactional data | ACID, JSON support | Single vendor lock-in |
+| ADR-002 | MySQL for transactional data | ACID, JSON support, widespread adoption | Oracle dependency |
 | ADR-003 | React for frontend | Component reuse, ecosystem | Learning curve for team |
 | ADR-004 | Kubernetes for orchestration | Auto-scaling, self-healing | Infrastructure complexity |
 | ADR-005 | JWT for authentication | Stateless, scalable | Token management overhead |
@@ -738,7 +738,7 @@ graph TB
 - [Spring Boot Documentation](https://spring.io/projects/spring-boot)
 - [React Documentation](https://react.dev)
 - [Kubernetes Documentation](https://kubernetes.io/docs)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs)
+- [MySQL Documentation](https://dev.mysql.com/doc/)
 
 ### C. Version History
 | Version | Date | Changes | Author |

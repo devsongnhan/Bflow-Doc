@@ -107,7 +107,7 @@
 ### Backend:
 - Language: [Java/C#/Python/Node.js]
 - Framework: [Spring Boot/NET Core/Django/Express]
-- Database: [PostgreSQL/MySQL/SQL Server]
+- Database: MySQL 8.0
 - Cache: [Redis/Memcached]
 
 ### Frontend:
