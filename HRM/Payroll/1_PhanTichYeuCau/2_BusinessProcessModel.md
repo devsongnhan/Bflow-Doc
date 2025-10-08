@@ -117,17 +117,15 @@ graph TB
 #### 4.1.1 BPMN Diagram
 
 ```mermaid
-graph LR
-    Start([Bắt đầu]) --> A[Phân tích<br/>nhu cầu]
+graph TB
+    Start([Bắt đầu]) --> A[Phân tích nhu cầu <br/>theo mẫu bảng lương thực tế]
     A --> B[Thiết kế<br/>loại bảng lương]
     B --> C[Định nghĩa<br/>thuộc tính]
     C --> D[Cấu hình<br/>công thức]
     D --> E[Test<br/>tính toán]
     E --> F{Đúng?}
     F -->|Không| C
-    F -->|Có| G[Phê duyệt]
-    G --> H[Áp dụng]
-    H --> End([Kết thúc])
+    F -->|Có| End([Kết thúc])
 ```
 
 #### 4.1.2 Mô tả chi tiết
@@ -143,10 +141,9 @@ graph LR
 | 7 | Áp dụng | System Admin | Approved template | Active template | 30 phút |
 
 #### 4.1.3 Business Rules
-- BR01: Mỗi loại bảng lương phải có tối thiểu 5 thuộc tính
-- BR02: Công thức phải được validate trước khi lưu
-- BR03: Phải có approval từ HR Manager
-- BR04: Backup template cũ trước khi áp dụng mới
+- BR01: Công thức phải được validate trước khi lưu
+- BR02: Phải có approval từ HR Manager
+- BR03: Backup template cũ trước khi áp dụng mới
 
 ### 4.2 BP02: Quy trình tính lương hàng tháng
 
@@ -197,10 +194,10 @@ graph TB
 | Ngày | Hoạt động | Responsible | Duration |
 |------|-----------|-------------|----------|
 | 25 | System tự động khởi tạo bảng lương | System | 30 phút |
-| 26-27 | HR nhập dữ liệu bổ sung | HR Team | 2 ngày |
+| 26-27 | HR nhập dữ liệu bổ sung (vd: nhập thưởng KPI bằng tay) | HR Team | 2 ngày |
 | 28 | System tính toán và validate | System | 2 giờ |
 | 29 | Manager review và approve | Managers | 1 ngày |
-| 30 | Gửi bảng lương cho nhân viên | System | 1 giờ |
+| 30 | Gửi phiếu lương cho nhân viên qua email | System | 1 giờ |
 | 01 | Kế toán xử lý thanh toán | Accounting | 1 ngày |
 
 ### 4.3 BP03: Quy trình quản lý hợp đồng lao động
@@ -224,7 +221,7 @@ stateDiagram-v2
 #### 4.3.2 Process Flow
 
 ```mermaid
-graph LR
+graph TB
     Start([Nhu cầu<br/>hợp đồng]) --> A{Loại?}
     A -->|Mới| B[Tạo HĐ mới]
     A -->|Gia hạn| C[Tạo phụ lục]

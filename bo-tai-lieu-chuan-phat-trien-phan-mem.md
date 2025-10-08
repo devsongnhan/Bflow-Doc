@@ -5,7 +5,7 @@
 2. [Giai đoạn Thiết kế](#2-giai-đoạn-thiết-kế)
 3. [Giai đoạn Phát triển](#3-giai-đoạn-phát-triển)
 4. [Giai đoạn Kiểm thử](#4-giai-đoạn-kiểm-thử)
-5. [Giai đoạn Triển khai](#5-giai-đoạn-triển-khai)
+5. [Giai đoạn Triển khsau đai](#5-giai-đoạn-triển-khai)
 6. [Giai đoạn Vận hành & Bảo trì](#6-giai-đoạn-vận-hành--bảo-trì)
 7. [Quản lý Dự án](#7-quản-lý-dự-án-xuyên-suốt)
 8. [Đào tạo & Chuyển giao](#8-đào-tạo--chuyển-giao)

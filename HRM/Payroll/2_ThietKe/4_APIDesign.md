@@ -47,12 +47,13 @@ Tài liệu này định nghĩa các RESTful API cho Hệ thống Quản lý Lư
 ## 2. API ARCHITECTURE
 
 ### 2.1 Architecture Style
-**RESTful API** với các nguyên tắc:
+**RESTful API with Django REST Framework** với các nguyên tắc:
 - Stateless communication
 - Resource-based URLs
-- HTTP methods semantic
+- HTTP methods semantic (GET, POST, PUT, PATCH, DELETE)
 - JSON data format
-- HATEOS principles
+- ViewSets and Routers for automatic URL routing
+- Serializers for data validation and transformation
 
 ### 2.2 Base URL Structure
 ```
@@ -61,13 +62,22 @@ Staging: https://api-staging.payroll.company.com/v1
 Development: https://api-dev.payroll.company.com/v1
 ```
 
-### 2.3 API Gateway Pattern
+### 2.3 Django API Pattern
 ```
-Client → API Gateway → Load Balancer → Microservices
-                    ↓
-             Authentication Service
-             Rate Limiting
-             Logging & Monitoring
+Client → nginx/Gunicorn → Django Application
+                        ↓
+                   Django Middleware
+                   - Authentication
+                   - Rate Limiting
+                   - CORS
+                   - Logging
+                        ↓
+                   Django REST Framework
+                   - ViewSets
+                   - Serializers
+                   - Permissions
+                        ↓
+                   Django ORM → MySQL Database
 ```
 
 ---
@@ -76,30 +86,62 @@ Client → API Gateway → Load Balancer → Microservices
 
 ### 3.1 Authentication Methods
 
-#### JWT Token Authentication
+#### JWT Token Authentication (Django REST Framework SimpleJWT)
 ```http
-POST /auth/login
+POST /api/auth/token/
 Content-Type: application/json
 
 {
   "username": "user@company.com",
-  "password": "securePassword123",
-  "mfa_code": "123456"
+  "password": "securePassword123"
 }
 
-Response:
+Response 200:
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refresh_token": "rt_abc123def456",
-  "expires_in": 3600,
-  "token_type": "Bearer"
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "access_token_expiry": "2024-10-02T11:30:00Z",
+  "refresh_token_expiry": "2024-10-09T10:30:00Z"
 }
 ```
 
-#### API Key Authentication (for system integrations)
+#### Refresh Token
 ```http
-GET /api/v1/employees
-Authorization: ApiKey sk_live_abc123def456
+POST /api/auth/token/refresh/
+Content-Type: application/json
+
+{
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+Response 200:
+{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "access_token_expiry": "2024-10-02T12:30:00Z"
+}
+```
+
+#### Session Authentication (for web interface)
+```http
+POST /api/auth/login/
+Content-Type: application/json
+
+{
+  "username": "user@company.com",
+  "password": "securePassword123"
+}
+
+Response 200:
+{
+  "user": {
+    "id": 1,
+    "username": "user@company.com",
+    "groups": ["HR_MANAGER"]
+  },
+  "session_id": "abc123def456"
+}
+
+Set-Cookie: sessionid=abc123def456; HttpOnly; Secure; SameSite=Strict
 ```
 
 ### 3.2 Authorization Levels
@@ -492,43 +534,115 @@ EXTERNAL_SERVICE_ERROR - External service error
 
 ## 7. RATE LIMITING & THROTTLING
 
-### 7.1 Rate Limiting Rules
-```yaml
-rate_limits:
-  by_api_key:
-    default: 1000/hour
-    premium: 10000/hour
-  by_user:
-    authenticated: 500/hour
-    unauthenticated: 100/hour
-  by_endpoint:
-    /auth/login: 10/minute
-    /payroll/calculate: 50/hour
-    /reports/*: 20/hour
+### 7.1 Rate Limiting with Django (django-ratelimit)
+
+**Installation:**
+```python
+# settings.py
+INSTALLED_APPS = [
+    ...
+    'django_ratelimit',
+]
+
+# Rate limit configuration
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
 ```
 
-### 7.2 Rate Limit Headers
+**Implementation:**
+```python
+from django_ratelimit.decorators import ratelimit
+from rest_framework.decorators import api_view
+
+# View-level rate limiting
+@ratelimit(key='user', rate='500/h', method='ALL')
+@api_view(['GET'])
+def employee_list(request):
+    # Implementation
+    pass
+
+# Login endpoint with stricter limits
+@ratelimit(key='ip', rate='10/m', method='POST')
+@api_view(['POST'])
+def login(request):
+    # Implementation
+    pass
+
+# Class-based view rate limiting
+from rest_framework import viewsets
+from django.utils.decorators import method_decorator
+
+@method_decorator(ratelimit(key='user', rate='100/h'), name='list')
+@method_decorator(ratelimit(key='user', rate='50/h'), name='create')
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+```
+
+### 7.2 Rate Limit Response
 ```http
-X-RateLimit-Limit: 1000
-X-RateLimit-Remaining: 999
-X-RateLimit-Reset: 1696248000
-X-RateLimit-Retry-After: 3600
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+Retry-After: 3600
+
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded. Please try again later.",
+    "retry_after": 3600
+  }
+}
 ```
 
 ---
 
 ## 8. API VERSIONING
 
-### 8.1 Versioning Strategy
-- **URI Versioning**: `/api/v1/`, `/api/v2/`
-- **Header Versioning**: `Accept: application/vnd.payroll.v1+json`
-- **Backward Compatibility**: Support 2 previous versions
+### 8.1 Versioning Strategy with Django
+
+**URI Versioning (Recommended):**
+```python
+# urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+# Version 1
+router_v1 = DefaultRouter()
+router_v1.register(r'employees', EmployeeViewSetV1)
+router_v1.register(r'payroll', PayrollViewSetV1)
+
+# Version 2
+router_v2 = DefaultRouter()
+router_v2.register(r'employees', EmployeeViewSetV2)
+router_v2.register(r'payroll', PayrollViewSetV2)
+
+urlpatterns = [
+    path('api/v1/', include(router_v1.urls)),
+    path('api/v2/', include(router_v2.urls)),
+]
+```
+
+**Header Versioning (Alternative):**
+```python
+# settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.AcceptHeaderVersioning',
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1', 'v2'],
+}
+
+# Usage in views
+class EmployeeViewSet(viewsets.ModelViewSet):
+    def get_serializer_class(self):
+        if self.request.version == 'v2':
+            return EmployeeSerializerV2
+        return EmployeeSerializerV1
+```
 
 ### 8.2 Version Lifecycle
 ```
-v1.0 (Current) - Full support
-v0.9 (Previous) - Maintenance mode
-v0.8 (Legacy) - Deprecated, 6 months notice
+v1 (Current) - Full support, active development
+v2 (Beta) - Testing phase, limited production use
 ```
 
 ---

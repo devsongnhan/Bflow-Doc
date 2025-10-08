@@ -274,23 +274,23 @@ payroll-system/
 
 | Component | Technology | Version | Justification |
 |-----------|-----------|---------|---------------|
-| **Language** | Java | 17 LTS | Enterprise-ready, strong ecosystem |
-| **Framework** | Spring Boot | 3.x | Microservices support, mature |
-| **API** | REST + GraphQL | - | Flexibility for different clients |
+| **Language** | Python | 3.11+ | Simple, readable, extensive libraries |
+| **Framework** | Django | 4.x | Full-stack, batteries-included, mature |
+| **API** | Django REST Framework | 3.x | Powerful REST API toolkit for Django |
 | **Database** | MySQL | 8.0 | ACID compliance, JSON support |
 | **Cache** | Redis | 7.x | High performance, pub/sub |
-| **Message Queue** | RabbitMQ | 3.x | Reliable, easy to use |
+| **Message Queue** | Celery + RabbitMQ | - | Async task processing for Python |
 | **Search** | Elasticsearch | 8.x | Full-text search for reports |
 
 ### 4.2 Frontend Technologies
 
 | Component | Technology | Version | Justification |
 |-----------|-----------|---------|---------------|
-| **Web Framework** | React | 18.x | Component-based, large ecosystem |
-| **State Management** | Redux Toolkit | 2.x | Predictable state management |
-| **UI Library** | Material-UI | 5.x | Enterprise look & feel |
-| **Mobile** | React Native | 0.72 | Code reuse, native performance |
-| **Build Tool** | Vite | 4.x | Fast builds, modern tooling |
+| **Template Engine** | Django Templates (DTL) | Built-in | Server-side rendering, tight Django integration |
+| **HTML/CSS/JS** | HTML5, CSS3, Vanilla JavaScript | - | Lightweight, no build process required |
+| **UI Framework** | Bootstrap 5 | 5.x | Responsive, widely supported |
+| **AJAX Library** | Fetch API / Axios | - | Modern async HTTP requests |
+| **Build Tool** | Django Compressor (optional) | - | Asset compression and bundling |
 
 ### 4.3 Infrastructure & DevOps
 
@@ -311,38 +311,41 @@ payroll-system/
 
 #### 5.1.1 Authentication Service
 - **Purpose:** User authentication & authorization
-- **Technology:** Spring Security + JWT
+- **Technology:** Django Authentication + django-rest-framework-simplejwt
 - **Features:**
-  - OAuth2/OIDC support
-  - Multi-factor authentication
-  - Role-based access control
-  - Session management
+  - JWT token authentication
+  - Session-based authentication (Django built-in)
+  - Multi-factor authentication (via django-otp)
+  - Role-based access control (Django permissions)
+  - OAuth2 support (via django-oauth-toolkit)
 - **API Endpoints:**
-  - POST /auth/login
-  - POST /auth/refresh
-  - POST /auth/logout
-  - GET /auth/validate
+  - POST /api/auth/login
+  - POST /api/auth/refresh
+  - POST /api/auth/logout
+  - GET /api/auth/validate
 
 #### 5.1.2 Employee Service
 - **Purpose:** Employee master data management
-- **Database:** MySQL
+- **Technology:** Django Models + Django REST Framework ViewSets
+- **Database:** MySQL (via Django ORM)
 - **Features:**
-  - CRUD operations
+  - CRUD operations (Django ModelViewSet)
   - Contract management
   - Department/position management
   - Dependent information
 - **API Endpoints:**
-  - GET/POST/PUT/DELETE /employees
-  - GET /employees/{id}/contracts
-  - GET /employees/{id}/dependents
+  - GET/POST/PUT/DELETE /api/employees/
+  - GET /api/employees/{id}/contracts/
+  - GET /api/employees/{id}/dependents/
 
 #### 5.1.3 Payroll Service
 - **Purpose:** Core payroll calculation
+- **Technology:** Django Models + Celery for batch processing
 - **Features:**
-  - Salary calculation engine
-  - Formula builder
-  - Batch processing
-  - Approval workflow
+  - Salary calculation engine (Python business logic)
+  - Formula builder (Python expression evaluator)
+  - Batch processing (Celery async tasks)
+  - Approval workflow (Django workflow states)
 - **Key Algorithms:**
   - Gross salary calculation
   - Tax calculation (Vietnam law)
@@ -612,12 +615,12 @@ External System --> SFTP/API --> ETL Process --> Database
 
 | ADR# | Decision | Rationale | Consequences |
 |------|----------|-----------|--------------|
-| ADR-001 | Microservices over Monolith | Scalability, team autonomy | Complexity, network latency |
-| ADR-002 | MySQL for transactional data | ACID, JSON support, widespread adoption | Oracle dependency |
-| ADR-003 | React for frontend | Component reuse, ecosystem | Learning curve for team |
-| ADR-004 | Kubernetes for orchestration | Auto-scaling, self-healing | Infrastructure complexity |
-| ADR-005 | JWT for authentication | Stateless, scalable | Token management overhead |
-| ADR-006 | Event-driven for integration | Loose coupling, async | Eventual consistency |
+| ADR-001 | Django Monolith over Microservices | Faster development, simpler deployment, team expertise | Less flexible scaling, tighter coupling |
+| ADR-002 | MySQL for transactional data | ACID, JSON support, widespread adoption, Django ORM support | Database vendor lock-in |
+| ADR-003 | Django Templates for frontend | Server-side rendering, faster initial load, SEO-friendly | Less interactive than SPA |
+| ADR-004 | Docker + Docker Compose | Containerization, consistent environments | Less advanced than K8s |
+| ADR-005 | JWT + Session auth | Stateless API + Stateful web, flexible | Dual auth management |
+| ADR-006 | Celery for async tasks | Python-native, robust, well-integrated with Django | Additional infrastructure (Redis/RabbitMQ) |
 
 ### 10.2 Trade-offs
 

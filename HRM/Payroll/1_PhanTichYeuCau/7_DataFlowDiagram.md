@@ -59,14 +59,16 @@ Data Flow Diagram (DFD) mô tả luồng dữ liệu trong hệ thống quản l
 
 ```mermaid
 graph TB
-    subgraph External Entities
+    subgraph "Internal Entities"
         EMP[Nhân viên]
         HR[HR Staff]
         MGR[Quản lý]
         ACC[Kế toán]
         TAX[Cơ quan Thuế]
+
+    subgraph "External Entities"
+        TAX[Cơ quan Thuế]
         INS[Cơ quan BHXH]
-        ATT[Hệ thống Chấm công]
     end
     
     SYSTEM[Hệ thống<br/>Quản lý Lương]

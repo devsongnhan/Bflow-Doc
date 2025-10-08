@@ -123,7 +123,7 @@ Hiện tại, nhiều doanh nghiệp đang gặp khó khăn trong việc:
 
 **Input:**
 - Tên loại bảng lương
-- Phòng ban áp dụng
+- Phòng ban áp dụng (một phòng ban không thể có hai loại bảng lương áp dụng đến)
 - Danh sách thuộc tính (cột)
 - Công thức tính toán
 
@@ -144,9 +144,8 @@ Hiện tại, nhiều doanh nghiệp đang gặp khó khăn trong việc:
 **Mô tả:** Thêm/sửa/xóa các cột trong bảng lương
 
 **Các loại thuộc tính:**
-- Lấy từ hệ thống (lương cơ bản từ hợp đồng)
-- Nhập thủ công (số công, thưởng)
-- Tính theo công thức
+- Lấy từ hệ thống (tên nhân viên, mã nhân viên, phòng ban, lương cơ bản từ hợp đồng lao động...)
+- Tính theo công thức (formula : nhập công thức, nhập hằng số (giá trị cố đình), để trống-nghĩa là khi tạo bảng lương người tạo input dữ liệu vào)
 
 ### 4.2 Quản lý Nhân viên
 
@@ -156,7 +155,7 @@ Hiện tại, nhiều doanh nghiệp đang gặp khó khăn trong việc:
 **Thông tin quản lý:**
 - Thông tin cá nhân
 - Phòng ban, chức vụ
-- Loại bảng lương áp dụng
+- Loại bảng lương áp dụng (khi tạo mới nhân viên hệ thống kiểm tra xem có loại bảng lương nào đang áp dụng cho vị trí của mình không, nếu có thì tự động chọn loại này), có thể thay đổi lựa chọn
 - Người phụ thuộc (giảm trừ gia cảnh)
 
 #### FR04: Quản lý hợp đồng lao động
@@ -297,13 +296,6 @@ Trong đó:
 - Backup: Hàng ngày vào 2:00 AM
 - Recovery time objective (RTO): < 4 giờ
 
-### 5.3 Bảo mật (Security)
-
-#### NFR04: Xác thực và phân quyền
-- Xác thực 2 yếu tố cho HR và Admin
-- Mã hóa mật khẩu với bcrypt
-- Session timeout sau 30 phút không hoạt động
-
 #### NFR05: Mã hóa dữ liệu
 - Mã hóa dữ liệu lương với AES-256
 - HTTPS cho toàn bộ kết nối
@@ -314,31 +306,21 @@ Trong đó:
 - Lưu trữ log tối thiểu 3 năm
 - Không thể xóa/sửa log
 
-### 5.4 Khả năng sử dụng (Usability)
+### 5.3 Khả năng sử dụng (Usability)
 
 #### NFR07: Giao diện người dùng
 - Responsive design cho mobile/tablet
 - Thời gian training cho user mới: < 2 giờ
 - Hỗ trợ tiếng Việt và tiếng Anh
 
-#### NFR08: Trải nghiệm người dùng
-- Mọi thao tác không quá 3 click
-- Có gợi ý và validate real-time
-- Thông báo lỗi rõ ràng
-
-### 5.5 Khả năng bảo trì (Maintainability)
+### 5.4 Khả năng bảo trì (Maintainability)
 
 #### NFR09: Cấu trúc code
 - Tuân thủ clean code principles
 - Code coverage > 80%
 - Document API đầy đủ
 
-#### NFR10: Khả năng mở rộng
-- Microservices architecture
-- Database sharding ready
-- Horizontal scaling support
-
-### 5.6 Tương thích (Compatibility)
+### 5.5 Tương thích (Compatibility)
 
 #### NFR11: Trình duyệt
 - Chrome (phiên bản 2 năm gần nhất)
@@ -351,7 +333,7 @@ Trong đó:
 - macOS 10.14 trở lên
 - Ubuntu 18.04 LTS trở lên
 
-### 5.7 Tuân thủ (Compliance)
+### 5.6 Tuân thủ (Compliance)
 
 #### NFR13: Quy định pháp luật
 - Tuân thủ Luật Lao động Việt Nam
@@ -367,25 +349,22 @@ Trong đó:
 ## 6. RÀNG BUỘC VÀ GIỚI HẠN
 
 ### 6.1 Ràng buộc kỹ thuật
-- Backend: Java Spring Boot hoặc .NET Core
-- Frontend: React hoặc Angular
-- Database: PostgreSQL hoặc MySQL
-- Deploy trên cloud (AWS/Azure/GCP)
+- **Backend Framework**: Django 4.x (Python)
+- **API Layer**: Django REST Framework (nếu có API riêng)
+- **Frontend**: 
+  - HTML5, CSS3, Vanilla JavaScript
+  - Django Template Engine (DTL)
+  - Server-side rendering
+- **Database**: MySQL
 
 ### 6.2 Ràng buộc nghiệp vụ
 - Chỉ tính lương theo tháng
 - Không xử lý thanh toán trực tiếp
-- Giới hạn 50 loại bảng lương khác nhau
+- Giới hạn 20 loại bảng lương khác nhau
 
 ### 6.3 Ràng buộc thời gian
-- Phase 1 (MVP): 3 tháng
+- Phase 1 (MVP-đáp ứng 70% KH): 1 tháng
 - Phase 2 (Full features): 6 tháng
-- Go-live: Trước kỳ tính lương tháng 1/2025
-
-### 6.4 Ràng buộc ngân sách
-- Tổng ngân sách: 500 triệu VNĐ
-- Bao gồm: Development, Testing, Training
-- Không bao gồm: Infrastructure, License
 
 ---
 
@@ -394,7 +373,6 @@ Trong đó:
 ### 7.1 Giả định
 - Doanh nghiệp đã có hệ thống chấm công
 - Nhân viên có email công ty
-- Có đội IT hỗ trợ vận hành
 - Quy định pháp luật không thay đổi đột ngột
 
 ### 7.2 Phụ thuộc
@@ -424,7 +402,7 @@ Trong đó:
 ### 8.3 Change Log
 | Ngày | Phiên bản | Thay đổi | Người thực hiện |
 |------|-----------|----------|-----------------|
-| 01/01/2024 | 1.0 | Tạo mới | BA Team |
+| 01/10/2025 | 1.0 | Tạo mới | ltdung
 
 ---
 

@@ -235,91 +235,149 @@ EmployeeManagement/
     └── ContractDTO
 ```
 
-#### 2.1.2 Class Design
+#### 2.1.2 Model Design
 
-**Employee Class:**
-```java
-public class Employee {
-    private String employeeId;
-    private String fullName;
-    private Date dateOfBirth;
-    private String identityNumber;
-    private String taxCode;
-    private String socialInsuranceNo;
-    private Department department;
-    private Position position;
-    private Date joinDate;
-    private EmployeeStatus status;
-    private List<Contract> contracts;
-    private List<Dependent> dependents;
-    private BankAccount bankAccount;
+**Employee Model (Django):**
+```python
+from django.db import models
+from django.contrib.auth.models import User
 
-    // Methods
-    public Contract getActiveContract();
-    public BigDecimal getBaseSalary();
-    public int getDependentCount();
-    public boolean isActive();
-}
+class Employee(models.Model):
+    employee_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    employee_code = models.CharField(max_length=20, unique=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    full_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    identity_number = models.CharField(max_length=20, unique=True)
+    tax_code = models.CharField(max_length=20, blank=True, null=True)
+    social_insurance_no = models.CharField(max_length=20, blank=True, null=True)
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True)
+    position = models.ForeignKey('Position', on_delete=models.SET_NULL, null=True)
+    join_date = models.DateField()
+    status = models.CharField(max_length=20, choices=[
+        ('ACTIVE', 'Active'),
+        ('INACTIVE', 'Inactive'),
+        ('TERMINATED', 'Terminated'),
+    ], default='ACTIVE')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'employees'
+
+    def get_active_contract(self):
+        return self.contracts.filter(status='ACTIVE').first()
+
+    def get_base_salary(self):
+        contract = self.get_active_contract()
+        return contract.base_salary if contract else Decimal('0')
+
+    def get_dependent_count(self):
+        return self.dependents.filter(is_tax_dependent=True).count()
+
+    def is_active(self):
+        return self.status == 'ACTIVE'
 ```
 
-**Contract Class:**
-```java
-public class Contract {
-    private String contractId;
-    private String contractNumber;
-    private ContractType type;
-    private Date startDate;
-    private Date endDate;
-    private BigDecimal baseSalary;
-    private List<Allowance> allowances;
-    private WorkingTime workingTime;
-    private ContractStatus status;
+**Contract Model (Django):**
+```python
+class Contract(models.Model):
+    contract_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    employee = models.ForeignKey(Employee, related_name='contracts', on_delete=models.CASCADE)
+    contract_number = models.CharField(max_length=50, unique=True)
+    contract_type = models.CharField(max_length=20, choices=[
+        ('PERMANENT', 'Permanent'),
+        ('FIXED_TERM', 'Fixed Term'),
+        ('PART_TIME', 'Part Time'),
+        ('PROBATION', 'Probation'),
+    ])
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    base_salary = models.DecimalField(max_digits=15, decimal_places=2)
+    status = models.CharField(max_length=20, default='ACTIVE')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    // Methods
-    public boolean isActive();
-    public BigDecimal getTotalAllowances();
-    public boolean isExpired();
-}
+    class Meta:
+        db_table = 'contracts'
+
+    def is_active(self):
+        return self.status == 'ACTIVE'
+
+    def is_expired(self):
+        if self.end_date:
+            return timezone.now().date() > self.end_date
+        return False
 ```
 
-#### 2.1.3 Service Layer Design
+#### 2.1.3 Service Layer Design (Django Views & Serializers)
 
-**EmployeeService:**
-```java
-@Service
-public class EmployeeService {
-    @Autowired
-    private EmployeeRepository employeeRepo;
+**Employee Serializer:**
+```python
+from rest_framework import serializers
+from .models import Employee
 
-    @Autowired
-    private ValidationService validationService;
+class EmployeeSerializer(serializers.ModelSerializer):
+    department_name = serializers.CharField(source='department.name', read_only=True)
+    active_contract = serializers.SerializerMethodField()
 
-    @Autowired
-    private AuditService auditService;
+    class Meta:
+        model = Employee
+        fields = ['employee_id', 'employee_code', 'full_name', 'date_of_birth',
+                  'identity_number', 'tax_code', 'department', 'department_name',
+                  'position', 'join_date', 'status', 'active_contract']
+        read_only_fields = ['employee_id', 'created_at', 'updated_at']
 
-    public Employee createEmployee(EmployeeDTO dto) {
-        // Validation
-        validationService.validateEmployee(dto);
+    def get_active_contract(self, obj):
+        contract = obj.get_active_contract()
+        return ContractSerializer(contract).data if contract else None
 
-        // Business logic
-        Employee employee = mapToEntity(dto);
-        employee.setStatus(EmployeeStatus.ACTIVE);
+    def validate_identity_number(self, value):
+        if not value.isdigit() or len(value) not in [9, 12]:
+            raise serializers.ValidationError("Identity number must be 9 or 12 digits")
+        return value
+```
 
-        // Save and audit
-        Employee saved = employeeRepo.save(employee);
-        auditService.logCreation(saved);
+**Employee ViewSet:**
+```python
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import transaction
 
-        return saved;
-    }
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.select_related('department', 'position').all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
-    public Employee updateEmployee(String id, EmployeeDTO dto) {
-        // Implementation
-    }
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        """Create new employee with audit logging"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    public void terminateEmployee(String id, Date terminationDate) {
-        // Implementation
-    }
-}
+        employee = serializer.save(status='ACTIVE')
+
+        # Audit logging
+        AuditLog.objects.create(
+            user=request.user,
+            action='CREATE',
+            model='Employee',
+            object_id=employee.employee_id
+        )
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def terminate(self, request, pk=None):
+        """Terminate employee"""
+        employee = self.get_object()
+        termination_date = request.data.get('termination_date')
+
+        employee.status = 'TERMINATED'
+        employee.save()
+
+        return Response({'status': 'Employee terminated'})
 ```
 
 ---
@@ -386,104 +444,169 @@ public abstract class SalaryComponent {
 
 #### 2.3.1 Core Calculation Engine
 
-**PayrollCalculator Class:**
-```java
-@Component
-public class PayrollCalculator {
+**PayrollCalculator Service (Django):**
+```python
+from decimal import Decimal
+from django.db import transaction
+from .models import Payroll, Employee, PayrollPeriod
+from .tax_calculator import TaxCalculator
+from .insurance_calculator import InsuranceCalculator
 
-    @Autowired
-    private TaxCalculator taxCalculator;
+class PayrollCalculator:
+    """Core payroll calculation service"""
 
-    @Autowired
-    private InsuranceCalculator insuranceCalculator;
+    def __init__(self):
+        self.tax_calculator = TaxCalculator()
+        self.insurance_calculator = InsuranceCalculator()
 
-    public PayrollResult calculatePayroll(Employee employee, PayPeriod period) {
-        PayrollResult result = new PayrollResult();
+    @transaction.atomic
+    def calculate_payroll(self, employee: Employee, period: PayrollPeriod):
+        """Calculate complete payroll for an employee"""
+        result = {}
 
-        // Step 1: Calculate gross salary
-        BigDecimal grossSalary = calculateGrossSalary(employee, period);
-        result.setGrossSalary(grossSalary);
+        # Step 1: Calculate gross salary
+        gross_salary = self.calculate_gross_salary(employee, period)
+        result['gross_salary'] = gross_salary
 
-        // Step 2: Calculate insurance deductions
-        InsuranceDeduction insurance = insuranceCalculator.calculate(grossSalary);
-        result.setInsuranceDeduction(insurance);
+        # Step 2: Calculate insurance deductions
+        insurance = self.insurance_calculator.calculate(gross_salary)
+        result['insurance_deduction'] = insurance
 
-        // Step 3: Calculate taxable income
-        BigDecimal taxableIncome = grossSalary
-            .subtract(insurance.getEmployeeContribution())
-            .subtract(getTaxExemptions(employee));
+        # Step 3: Calculate taxable income
+        tax_exemptions = self.get_tax_exemptions(employee)
+        taxable_income = gross_salary - insurance['employee_total'] - tax_exemptions
 
-        // Step 4: Calculate tax
-        BigDecimal tax = taxCalculator.calculateTax(taxableIncome);
-        result.setIncomeTax(tax);
+        # Step 4: Calculate tax
+        tax = self.tax_calculator.calculate_tax(max(taxable_income, Decimal('0')))
+        result['income_tax'] = tax
 
-        // Step 5: Calculate net salary
-        BigDecimal netSalary = grossSalary
-            .subtract(insurance.getEmployeeContribution())
-            .subtract(tax)
-            .subtract(getOtherDeductions(employee));
-        result.setNetSalary(netSalary);
+        # Step 5: Calculate net salary
+        net_salary = (gross_salary
+                     - insurance['employee_total']
+                     - tax
+                     - self.get_other_deductions(employee))
+        result['net_salary'] = net_salary
 
-        return result;
-    }
+        # Save payroll record
+        payroll = Payroll.objects.create(
+            employee=employee,
+            period=period,
+            gross_salary=gross_salary,
+            net_salary=net_salary,
+            status='CALCULATED'
+        )
 
-    private BigDecimal calculateGrossSalary(Employee employee, PayPeriod period) {
-        // Implementation based on attendance, overtime, etc.
-    }
+        return payroll, result
 
-    private BigDecimal getTaxExemptions(Employee employee) {
-        BigDecimal personalExemption = new BigDecimal("11000000");
-        BigDecimal dependentExemption = new BigDecimal("4400000")
-            .multiply(new BigDecimal(employee.getDependentCount()));
-        return personalExemption.add(dependentExemption);
-    }
-}
+    def calculate_gross_salary(self, employee: Employee, period: PayrollPeriod):
+        """Calculate gross salary based on contract and attendance"""
+        contract = employee.get_active_contract()
+        if not contract:
+            return Decimal('0')
+
+        # Get attendance data
+        attendance = period.get_attendance(employee)
+        working_days_ratio = attendance.working_days / period.standard_days
+
+        # Prorated base salary
+        gross = contract.base_salary * Decimal(str(working_days_ratio))
+
+        # Add allowances, overtime, etc.
+        # ... additional logic
+
+        return gross
+
+    def get_tax_exemptions(self, employee: Employee):
+        """Calculate tax exemptions (Vietnam 2024)"""
+        personal_exemption = Decimal('11000000')  # 11M VND
+        dependent_exemption = Decimal('4400000') * employee.get_dependent_count()
+        return personal_exemption + dependent_exemption
+
+    def get_other_deductions(self, employee: Employee):
+        """Get other deductions (advance payments, etc.)"""
+        # Implementation
+        return Decimal('0')
 ```
 
 #### 2.3.2 Tax Calculation Logic
 
-**TaxCalculator Class:**
-```java
-@Component
-public class TaxCalculator {
+**TaxCalculator Class (Python):**
+```python
+from decimal import Decimal
+from typing import List, Dict
 
-    private static final List<TaxBracket> TAX_BRACKETS = Arrays.asList(
-        new TaxBracket(0, 5000000, 0.05),
-        new TaxBracket(5000000, 10000000, 0.10),
-        new TaxBracket(10000000, 18000000, 0.15),
-        new TaxBracket(18000000, 32000000, 0.20),
-        new TaxBracket(32000000, 52000000, 0.25),
-        new TaxBracket(52000000, 80000000, 0.30),
-        new TaxBracket(80000000, Long.MAX_VALUE, 0.35)
-    );
+class TaxCalculator:
+    """Vietnam Personal Income Tax Calculator (2024)"""
 
-    public BigDecimal calculateTax(BigDecimal taxableIncome) {
-        if (taxableIncome.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
+    TAX_BRACKETS = [
+        {'min': Decimal('0'), 'max': Decimal('5000000'), 'rate': Decimal('0.05')},
+        {'min': Decimal('5000000'), 'max': Decimal('10000000'), 'rate': Decimal('0.10')},
+        {'min': Decimal('10000000'), 'max': Decimal('18000000'), 'rate': Decimal('0.15')},
+        {'min': Decimal('18000000'), 'max': Decimal('32000000'), 'rate': Decimal('0.20')},
+        {'min': Decimal('32000000'), 'max': Decimal('52000000'), 'rate': Decimal('0.25')},
+        {'min': Decimal('52000000'), 'max': Decimal('80000000'), 'rate': Decimal('0.30')},
+        {'min': Decimal('80000000'), 'max': Decimal('999999999999'), 'rate': Decimal('0.35')},
+    ]
 
-        BigDecimal tax = BigDecimal.ZERO;
+    def calculate_tax(self, taxable_income: Decimal) -> Decimal:
+        """
+        Calculate progressive income tax
+        Args:
+            taxable_income: Income after deductions
+        Returns:
+            Total tax amount
+        """
+        if taxable_income <= 0:
+            return Decimal('0')
 
-        for (TaxBracket bracket : TAX_BRACKETS) {
-            if (taxableIncome.compareTo(bracket.getMinAmount()) > 0) {
-                BigDecimal taxableInBracket = taxableIncome
-                    .min(bracket.getMaxAmount())
-                    .subtract(bracket.getMinAmount());
+        total_tax = Decimal('0')
 
-                BigDecimal bracketTax = taxableInBracket
-                    .multiply(bracket.getRate());
+        for bracket in self.TAX_BRACKETS:
+            if taxable_income > bracket['min']:
+                # Amount taxable in this bracket
+                taxable_in_bracket = min(taxable_income, bracket['max']) - bracket['min']
 
-                tax = tax.add(bracketTax);
+                # Tax for this bracket
+                bracket_tax = taxable_in_bracket * bracket['rate']
+                total_tax += bracket_tax
 
-                if (taxableIncome.compareTo(bracket.getMaxAmount()) <= 0) {
-                    break;
-                }
-            }
-        }
+                # If income doesn't reach next bracket, stop
+                if taxable_income <= bracket['max']:
+                    break
 
-        return tax;
-    }
-}
+        return total_tax.quantize(Decimal('0.01'))  # Round to 2 decimal places
+
+    def get_effective_rate(self, taxable_income: Decimal) -> Decimal:
+        """Calculate effective tax rate"""
+        if taxable_income <= 0:
+            return Decimal('0')
+
+        tax = self.calculate_tax(taxable_income)
+        return (tax / taxable_income * 100).quantize(Decimal('0.01'))
+
+    def get_tax_breakdown(self, taxable_income: Decimal) -> List[Dict]:
+        """Get detailed tax calculation by bracket"""
+        if taxable_income <= 0:
+            return []
+
+        breakdown = []
+
+        for bracket in self.TAX_BRACKETS:
+            if taxable_income > bracket['min']:
+                taxable_in_bracket = min(taxable_income, bracket['max']) - bracket['min']
+                bracket_tax = taxable_in_bracket * bracket['rate']
+
+                breakdown.append({
+                    'bracket': f"{bracket['min']:,.0f} - {bracket['max']:,.0f}",
+                    'rate': float(bracket['rate'] * 100),
+                    'taxable_amount': float(taxable_in_bracket),
+                    'tax_amount': float(bracket_tax)
+                })
+
+                if taxable_income <= bracket['max']:
+                    break
+
+        return breakdown
 ```
 
 ---
@@ -800,63 +923,121 @@ public class BatchProcessor {
 
 ### 7.1 Authentication & Authorization
 
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/employee/**").hasRole("EMPLOYEE")
-                .requestMatchers("/api/hr/**").hasRole("HR")
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .oauth2Login()
-            .jwt(jwt -> jwt.jwtDecoder(jwtDecoder()))
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        return http.build();
-    }
+**Django Settings (settings.py):**
+```python
+# REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
+
+# JWT Settings
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+}
+```
+
+**Custom Permissions (permissions.py):**
+```python
+from rest_framework import permissions
+
+class IsHRManager(permissions.BasePermission):
+    """Allow access only to HR managers"""
+    def has_permission(self, request, view):
+        return request.user.groups.filter(name='HR_MANAGER').exists()
+
+class IsAccountant(permissions.BasePermission):
+    """Allow access only to accountants"""
+    def has_permission(self, request, view):
+        return request.user.groups.filter(name='ACCOUNTANT').exists()
+
+class IsOwnerOrHR(permissions.BasePermission):
+    """Allow access to owner or HR staff"""
+    def has_object_permission(self, request, view, obj):
+        # HR can access any employee
+        if request.user.groups.filter(name__in=['HR_MANAGER', 'ADMIN']).exists():
+            return True
+        # Employee can only access their own data
+        return obj.user == request.user
 ```
 
 ### 7.2 Data Encryption
 
-```java
-@Component
-public class EncryptionService {
+**Encryption Service (Django):**
+```python
+from cryptography.fernet import Fernet
+from django.conf import settings
+import base64
 
-    private static final String ALGORITHM = "AES/GCM/NoPadding";
-    private static final int KEY_SIZE = 256;
+class EncryptionService:
+    """Service for encrypting sensitive data"""
 
-    @Value("${encryption.key}")
-    private String masterKey;
+    def __init__(self):
+        # Load encryption key from settings
+        key = settings.ENCRYPTION_KEY.encode()
+        self.cipher = Fernet(key)
 
-    public String encrypt(String plainText) {
-        try {
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            SecretKey key = generateKey();
-            cipher.init(Cipher.ENCRYPT_MODE, key);
+    def encrypt(self, plaintext: str) -> str:
+        """
+        Encrypt plaintext string
+        Args:
+            plaintext: String to encrypt
+        Returns:
+            Base64 encoded encrypted string
+        """
+        try:
+            encrypted = self.cipher.encrypt(plaintext.encode())
+            return base64.b64encode(encrypted).decode()
+        except Exception as e:
+            raise EncryptionException(f"Encryption failed: {str(e)}")
 
-            byte[] cipherText = cipher.doFinal(plainText.getBytes());
-            byte[] iv = cipher.getIV();
+    def decrypt(self, encrypted_text: str) -> str:
+        """
+        Decrypt encrypted string
+        Args:
+            encrypted_text: Base64 encoded encrypted string
+        Returns:
+            Decrypted plaintext string
+        """
+        try:
+            encrypted = base64.b64decode(encrypted_text.encode())
+            decrypted = self.cipher.decrypt(encrypted)
+            return decrypted.decode()
+        except Exception as e:
+            raise EncryptionException(f"Decryption failed: {str(e)}")
 
-            return Base64.getEncoder().encodeToString(
-                ArrayUtils.addAll(iv, cipherText));
-        } catch (Exception e) {
-            throw new EncryptionException("Encryption failed", e);
-        }
-    }
+# Usage in models
+from django.db import models
 
-    public String decrypt(String encryptedText) {
-        // Decryption implementation
-    }
-}
+class EncryptedCharField(models.CharField):
+    """Custom field that automatically encrypts data"""
+
+    def __init__(self, *args, **kwargs):
+        self.encryption_service = EncryptionService()
+        super().__init__(*args, **kwargs)
+
+    def get_prep_value(self, value):
+        """Encrypt before saving to database"""
+        if value is None:
+            return value
+        return self.encryption_service.encrypt(value)
+
+    def from_db_value(self, value, expression, connection):
+        """Decrypt when loading from database"""
+        if value is None:
+            return value
+        return self.encryption_service.decrypt(value)
 ```
 
 ---
