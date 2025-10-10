@@ -492,6 +492,8 @@ Hamburger Menu for:
 └─────────────────────────────────────────┘
 ```
 
+![Salary template](../7_img/sal_template.png)
+
 #### Key Metrics Cards
 ```html
 <div class="metrics-grid">
