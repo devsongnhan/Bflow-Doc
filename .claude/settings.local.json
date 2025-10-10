@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(where claude)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

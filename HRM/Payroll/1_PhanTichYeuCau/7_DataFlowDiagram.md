@@ -59,12 +59,15 @@ Data Flow Diagram (DFD) mô tả luồng dữ liệu trong hệ thống quản l
 
 ```mermaid
 graph TB
-    subgraph "Internal Entities"
-        EMP[Nhân viên]
+    subgraph "HR staff"
         HR[HR Staff]
+    end
+    
+    subgraph "Related staff"
+        EMP[Nhân viên]
         MGR[Quản lý]
         ACC[Kế toán]
-        TAX[Cơ quan Thuế]
+    end
 
     subgraph "External Entities"
         TAX[Cơ quan Thuế]
@@ -340,8 +343,8 @@ SalaryTemplate = {
 **Purpose:** Tính lương cơ bản dựa trên công thức
 
 **Input:**
-- Work days từ D5 (Attendance)
-- Basic salary từ D1 (Employee)
+- Work days (số ngày chấm công được tính) từ D5 (Attendance)
+- Basic salary từ D1 (lương cơ bản từ hợp đồng lao động Employee)
 - Formula từ D2 (Template)
 
 **Processing Logic:**
