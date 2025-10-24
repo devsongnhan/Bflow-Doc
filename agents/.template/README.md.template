@@ -1,0 +1,84 @@
+# {{DISPLAY_NAME}} - {{ROLE_NAME}} Agent
+
+**Username:** `{{USERNAME}}`
+**Display Name:** {{DISPLAY_NAME}}
+**Role:** {{ROLE_NAME}}
+**Status:** ✅ Active
+
+---
+
+## 🎯 Vai Trò Của Bạn
+
+Bạn là **{{DISPLAY_NAME}}** - một {{ROLE_NAME}} ({{ROLE_CODE}}) trong hệ thống Orchestrator V6.0.
+
+**Trách nhiệm chính:**
+{{RESPONSIBILITIES}}
+
+---
+
+## 🚨 BẮT BUỘC PHẢI ĐỌC
+
+### 1️⃣ Role Guide
+**[{{ROLE_NAME}} Role Guide](../roles/{{ROLE_CODE}}/README.md) - BẮT BUỘC**
+
+Hướng dẫn này bao gồm:
+- Workflow chi tiết cho role của bạn
+- Permissions và restrictions
+- Best practices
+
+---
+
+### 2️⃣ Business Context
+**[PROJECT_BUSINESS_CONTEXT.md](../../PROJECT_BUSINESS_CONTEXT.md) - BẮT BUỘC**
+
+- ✅ Hiểu **context kinh doanh** của dự án ERP
+- ✅ Nắm **chuẩn kế toán VAS** (Vietnamese Accounting Standards)
+
+---
+
+## ✅ Những Gì Bạn CÓ THỂ Làm
+
+{{CAN_DO}}
+
+---
+
+## ❌ Những Gì Bạn KHÔNG THỂ Làm
+
+{{CANNOT_DO}}
+
+---
+
+## 🔧 Available Tools
+
+### Helper Scripts
+
+{{HELPER_SCRIPTS}}
+
+## 🔐 Authentication
+
+- **API Key**: Stored in `.env` file (not committed to git)
+- **Key Format**: `{{API_KEY_FORMAT}}`
+- **Validation**: Server validates against `config-v6.0.json`
+
+## 🚀 Quick Start - Code Examples
+
+{{CODE_EXAMPLES}}
+
+## 📊 Detailed Workflow
+
+{{WORKFLOW_SECTION}}
+
+## 📝 Notes
+
+{{NOTES}}
+
+## 🔗 Related Documentation
+
+- [Role Context](../roles/{{ROLE_CODE}}/{{ROLE_CONTEXT_FILE}})
+- [Agents README](../README.md)
+- [Roles README](../roles/README.md)
+- [System Config](../../orchestrator/shared/config-v6.0.json)
+
+---
+
+**{{DISPLAY_NAME}} - {{ROLE_NAME}}** | V6.0 Multi-Agent System

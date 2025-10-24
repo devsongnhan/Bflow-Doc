@@ -1,0 +1,8 @@
+{
+  "orchestratorUrl": "http://localhost:3000",
+  "agentName": "dev-local",
+  "environment": "development",
+  "timeout": 10000,
+  "retryAttempts": 3,
+  "retryDelay": 1000
+}

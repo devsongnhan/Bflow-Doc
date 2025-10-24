@@ -1,0 +1,10 @@
+{
+  "orchestratorUrl": "http://localhost:3000",
+  "agentName": "qa-local",
+  "environment": "testing",
+  "timeout": 10000,
+  "retryAttempts": 3,
+  "retryDelay": 1000,
+  "autoLoop": false,
+  "loopDelay": 5000
+}
