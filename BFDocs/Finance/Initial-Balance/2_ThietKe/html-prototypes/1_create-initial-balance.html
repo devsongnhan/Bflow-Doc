@@ -520,7 +520,7 @@
                             <label for="currency" class="form-label">
                                 Loại Tiền Tệ (Currency) <span class="required">*</span>
                             </label>
-                            <select id="currency" class="form-control" required>
+                            <select id="currency" class="form-control" required onchange="onCurrencyChange()">
                                 <option value="">-- Select Currency --</option>
                                 <option value="VND" selected>VND - Vietnamese Dong (₫)</option>
                                 <option value="USD">USD - US Dollar ($)</option>
@@ -543,7 +543,7 @@
                                 <label for="accountCash" class="form-label">
                                     Account <span class="required">*</span>
                                 </label>
-                                <input type="text" id="accountCash" class="form-control" value="111 - Tiền Mặt (Cash)" readonly>
+                                <input type="text" id="accountCash" class="form-control" readonly>
                             </div>
                         </div>
                     </div>
@@ -690,6 +690,8 @@
         // Account mapping
         const accountMap = {
             '111': 'Tiền Mặt (Cash)',
+            '1111': 'Tiền Việt Nam (VND)',
+            '1112': 'Ngoại tệ (Foreign Currency)',
             '112': 'Tiền Gửi Ngân Hàng (Bank Deposits)',
             '113': 'Tiền Gửi Có Kỳ Hạn (Fixed Deposits)'
         };
@@ -734,12 +736,38 @@
             if (moneyType === 'cash') {
                 document.getElementById('cashInputDiv').style.display = 'block';
                 document.getElementById('bankInputDiv').style.display = 'none';
+                updateAccountDisplay();
             } else {
                 document.getElementById('cashInputDiv').style.display = 'none';
                 document.getElementById('bankInputDiv').style.display = 'block';
             }
 
             resetForm();
+        }
+
+        // Currency change handler
+        function onCurrencyChange() {
+            const moneyType = document.querySelector('input[name="moneyType"]:checked').value;
+            if (moneyType === 'cash') {
+                updateAccountDisplay();
+            }
+        }
+
+        // Update account display based on currency
+        function updateAccountDisplay() {
+            const currency = document.getElementById('currency').value;
+            let accountCode = '';
+            let accountName = '';
+
+            if (currency === 'VND') {
+                accountCode = '1111';
+                accountName = accountMap['1111'];
+            } else if (currency && currency !== '') {
+                accountCode = '1112';
+                accountName = accountMap['1112'];
+            }
+
+            document.getElementById('accountCash').value = accountCode ? `${accountCode} - ${accountName}` : '';
         }
 
         // Format currency
@@ -781,8 +809,13 @@
             let accountName = '';
 
             if (moneyType === 'cash') {
-                accountCode = '111';
-                accountName = accountMap['111'];
+                const accountCashField = document.getElementById('accountCash').value;
+                accountCode = accountCashField.split(' - ')[0]; // Extract code from "1111 - Tiền Việt Nam (VND)"
+                if (!accountCode) {
+                    alert('Please select a currency');
+                    return;
+                }
+                accountName = accountMap[accountCode];
             } else {
                 accountCode = document.getElementById('accountBank').value;
                 if (!accountCode) {
@@ -862,7 +895,7 @@
             document.getElementById('description').value = row.description;
             document.getElementById('currency').value = row.currency;
 
-            if (row.code === '111') {
+            if (row.code === '1111' || row.code === '1112') {
                 document.getElementById('cashRadio').checked = true;
             } else {
                 document.getElementById('bankRadio').checked = true;
