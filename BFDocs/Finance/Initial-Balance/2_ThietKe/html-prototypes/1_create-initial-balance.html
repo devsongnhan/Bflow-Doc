@@ -637,30 +637,348 @@
                 </div>
             </div>
 
-            <!-- TAB 2-7: Placeholder (same structure) -->
+            <!-- TAB 2: Hàng Hóa Vật Tư (Goods & Materials) -->
             <div id="tab2" class="tab-panel">
                 <h5 class="section-title">📦 Hàng Hóa Vật Tư (Goods & Materials)</h5>
-                <p>TAB 2 content coming soon...</p>
+                <div id="section2bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account2" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account2" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="121">121 - Hàng Hóa (Goods)</option>
+                                <option value="122">122 - Vật Tư (Materials)</option>
+                                <option value="123">123 - Công Cụ Dụng Cụ (Tools)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount2" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount2" class="form-control" placeholder="e.g., 500,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description2" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description2" class="form-control" placeholder="e.g., Opening inventory">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" id="addBtn2" onclick="addRow2()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section2cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable2">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody2"></tbody>
+                            <tbody id="totalRow2"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 3: Phải Thu Khách Hàng (Customer Receivables) -->
             <div id="tab3" class="tab-panel">
                 <h5 class="section-title">👥 Phải Thu Khách Hàng (Customer Receivables)</h5>
-                <p>TAB 3 content coming soon...</p>
+                <div id="section3bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account3" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account3" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="131">131 - Phải Thu Khách Hàng (Customer AR)</option>
+                                <option value="132">132 - Trích Dự Phòng (Reserve)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount3" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount3" class="form-control" placeholder="e.g., 100,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description3" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description3" class="form-control" placeholder="e.g., Opening balance from customers">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" onclick="addRow3()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section3cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable3">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody3"></tbody>
+                            <tbody id="totalRow3"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 4: Phải Trả Nhà Cung Cấp (Supplier Payables) -->
             <div id="tab4" class="tab-panel">
                 <h5 class="section-title">🏭 Phải Trả Nhà Cung Cấp (Supplier Payables)</h5>
-                <p>TAB 4 content coming soon...</p>
+                <div id="section4bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account4" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account4" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="331">331 - Phải Trả Nhà Cung Cấp (Supplier AP)</option>
+                                <option value="332">332 - Xác Định Giá Mua (Accrual)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount4" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount4" class="form-control" placeholder="e.g., 200,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description4" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description4" class="form-control" placeholder="e.g., Opening payables">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" onclick="addRow4()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section4cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable4">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody4"></tbody>
+                            <tbody id="totalRow4"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 5: Phải Thu Nhân Viên (Employee Receivables) -->
             <div id="tab5" class="tab-panel">
                 <h5 class="section-title">👔 Phải Thu Nhân Viên (Employee Receivables)</h5>
-                <p>TAB 5 content coming soon...</p>
+                <div id="section5bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account5" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account5" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="141">141 - Phải Thu Nhân Viên (Employee AR)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount5" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount5" class="form-control" placeholder="e.g., 50,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description5" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description5" class="form-control" placeholder="e.g., Employee loans/advances">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" onclick="addRow5()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section5cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable5">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody5"></tbody>
+                            <tbody id="totalRow5"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 6: Tài Sản Công Cụ (Fixed Assets) -->
             <div id="tab6" class="tab-panel">
                 <h5 class="section-title">🏢 Tài Sản Công Cụ (Fixed Assets)</h5>
-                <p>TAB 6 content coming soon...</p>
+                <div id="section6bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account6" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account6" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="151">151 - Công Cụ (Equipment)</option>
+                                <option value="152">152 - Phương Tiện Vận Tải (Vehicles)</option>
+                                <option value="153">153 - Tài Sản Khác (Other Assets)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount6" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount6" class="form-control" placeholder="e.g., 1,000,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description6" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description6" class="form-control" placeholder="e.g., Fixed assets at opening">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" onclick="addRow6()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section6cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable6">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody6"></tbody>
+                            <tbody id="totalRow6"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+
+            <!-- TAB 7: Chi Phí Dở Dang (Work in Progress) -->
             <div id="tab7" class="tab-panel">
                 <h5 class="section-title">🔧 Chi Phí Dở Dang (Work in Progress)</h5>
-                <p>TAB 7 content coming soon...</p>
+                <div id="section7bContainer">
+                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="account7" class="form-label">
+                                Account <span class="required">*</span>
+                            </label>
+                            <select id="account7" class="form-control" required>
+                                <option value="">-- Select Account --</option>
+                                <option value="154">154 - Chi Phí Xây Dựng (Construction Cost)</option>
+                                <option value="155">155 - Chi Phí Lắp Đặt (Installation Cost)</option>
+                                <option value="156">156 - Chi Phí Sản Xuất (Production Cost)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="amount7" class="form-label">
+                            Opening Balance Amount <span class="required">*</span>
+                        </label>
+                        <input type="text" id="amount7" class="form-control" placeholder="e.g., 300,000,000">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="description7" class="form-label">Description (Mô Tả)</label>
+                        <input type="text" id="description7" class="form-control" placeholder="e.g., Work in progress at opening">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <button class="btn-add" onclick="addRow7()">+ Add Account</button>
+                    </div>
+                </div>
+                <div id="section7cContainer">
+                    <h6 class="section-title">📋 Account Summary</h6>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable7">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 20%;">Account Code</th>
+                                    <th style="width: 35%;">Account Name</th>
+                                    <th style="width: 25%;">Amount</th>
+                                    <th style="width: 15%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody7"></tbody>
+                            <tbody id="totalRow7"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- Alert Box -->
@@ -971,6 +1289,143 @@
 
             alert(`✅ Opening Balance submitted!\n\nTotal Amount: ${formatCurrency(total)} ${currencySymbol}\nNumber of Accounts: ${accountData.length}\n\nStatus: PENDING APPROVAL`);
         }
+
+        // Generic function for adding rows to other tabs
+        function addRowToTab(tabNumber) {
+            const accountField = document.getElementById(`account${tabNumber}`);
+            const amountField = document.getElementById(`amount${tabNumber}`);
+            const descriptionField = document.getElementById(`description${tabNumber}`);
+
+            const accountCode = accountField.value;
+            const amountInput = amountField.value;
+            const description = descriptionField.value;
+
+            if (!accountCode) {
+                alert('Please select an account');
+                return;
+            }
+
+            if (!amountInput) {
+                alert('Please enter amount');
+                return;
+            }
+
+            const amount = parseCurrency(amountInput);
+            if (amount <= 0) {
+                alert('Amount must be greater than 0');
+                return;
+            }
+
+            // Create account mapping for each tab
+            const accountMaps = {
+                2: {
+                    '121': 'Hàng Hóa (Goods)',
+                    '122': 'Vật Tư (Materials)',
+                    '123': 'Công Cụ Dụng Cụ (Tools)'
+                },
+                3: {
+                    '131': 'Phải Thu Khách Hàng (Customer AR)',
+                    '132': 'Trích Dự Phòng (Reserve)'
+                },
+                4: {
+                    '331': 'Phải Trả Nhà Cung Cấp (Supplier AP)',
+                    '332': 'Xác Định Giá Mua (Accrual)'
+                },
+                5: {
+                    '141': 'Phải Thu Nhân Viên (Employee AR)'
+                },
+                6: {
+                    '151': 'Công Cụ (Equipment)',
+                    '152': 'Phương Tiện Vận Tải (Vehicles)',
+                    '153': 'Tài Sản Khác (Other Assets)'
+                },
+                7: {
+                    '154': 'Chi Phí Xây Dựng (Construction Cost)',
+                    '155': 'Chi Phí Lắp Đặt (Installation Cost)',
+                    '156': 'Chi Phí Sản Xuất (Production Cost)'
+                }
+            };
+
+            const accountName = accountMaps[tabNumber][accountCode] || 'Unknown';
+
+            // Store data in global structure
+            const tabData = window[`tabData${tabNumber}`] = window[`tabData${tabNumber}`] || [];
+
+            // Check for duplicates
+            if (tabData.find(row => row.code === accountCode)) {
+                alert('This account has already been added');
+                return;
+            }
+
+            // Add to data array
+            tabData.push({
+                code: accountCode,
+                name: accountName,
+                amount: amount,
+                description: description
+            });
+
+            // Clear form
+            accountField.value = '';
+            amountField.value = '';
+            descriptionField.value = '';
+
+            // Re-render table
+            renderTableForTab(tabNumber);
+        }
+
+        function renderTableForTab(tabNumber) {
+            const tabData = window[`tabData${tabNumber}`] || [];
+            const tableBody = document.getElementById(`tableBody${tabNumber}`);
+            const totalRow = document.getElementById(`totalRow${tabNumber}`);
+
+            tableBody.innerHTML = '';
+            totalRow.innerHTML = '';
+
+            let total = 0;
+            tabData.forEach((row, index) => {
+                total += row.amount;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${row.code}</strong></td>
+                    <td>${row.name}</td>
+                    <td class="text-end">${formatCurrency(row.amount)}</td>
+                    <td>
+                        <button class="btn-delete" onclick="deleteRowFromTab(${tabNumber}, ${index})">🗑️</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            if (tabData.length > 0) {
+                const totalTr = document.createElement('tr');
+                totalTr.innerHTML = `
+                    <td colspan="3"><strong>Total</strong></td>
+                    <td class="text-end"><strong>${formatCurrency(total)}</strong></td>
+                    <td></td>
+                `;
+                totalRow.appendChild(totalTr);
+            }
+        }
+
+        function deleteRowFromTab(tabNumber, index) {
+            if (!confirm('Xóa tài khoản này khỏi danh sách?')) {
+                return;
+            }
+            const tabData = window[`tabData${tabNumber}`] || [];
+            tabData.splice(index, 1);
+            renderTableForTab(tabNumber);
+        }
+
+        // Add row functions for each tab
+        function addRow2() { addRowToTab(2); }
+        function addRow3() { addRowToTab(3); }
+        function addRow4() { addRowToTab(4); }
+        function addRow5() { addRowToTab(5); }
+        function addRow6() { addRowToTab(6); }
+        function addRow7() { addRowToTab(7); }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
