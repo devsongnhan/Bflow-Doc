@@ -470,56 +470,26 @@
                 <div id="section2Container">
                     <div class="section-title">Ứng trước tiền</div>
 
+                    <!-- Field 2.1: Checkbox + Number Input (Combined) -->
                     <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="advancePaymentCheck">
-                            <label class="form-check-label" for="advancePaymentCheck">
-                                Danh sách phiếu thu tạm ứng của khách hàng (không theo hợp đồng)
-                            </label>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <div class="input-group-text">
+                                        <input class="form-check-input mt-0" type="checkbox" id="advancePaymentCheck" aria-label="Enable advance payment">
+                                    </div>
+                                    <span class="input-group-text flex-grow-1">
+                                        Khách hàng ứng trước tiền mua hàng (không theo hợp đồng)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="advancePaymentAmount" placeholder="0" disabled min="0">
+                                    <span class="input-group-text">VNĐ</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Advance Vouchers Table - Hidden by default, shows when checkbox is checked -->
-                    <div class="table-responsive mb-3" id="advanceVouchersTableWrapper" style="display: none;">
-                        <table class="table table-sm table-bordered" id="advanceVouchersTable">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 40px;"><input type="checkbox" id="selectAllAdvanceVouchers"></th>
-                                    <th>Cash in Code</th>
-                                    <th>Issued Date</th>
-                                    <th>Description</th>
-                                    <th class="text-end">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody id="advanceVouchersTableBody">
-                                <tr>
-                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI001"></td>
-                                    <td>CI001</td>
-                                    <td>1/10/2024</td>
-                                    <td>Phiếu thu tạm ứng</td>
-                                    <td class="text-end">8,000,000</td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI002"></td>
-                                    <td>CI002</td>
-                                    <td>5/10/2024</td>
-                                    <td>Phiếu thu tạm ứng</td>
-                                    <td class="text-end">5,000,000</td>
-                                </tr>
-                                <tr>
-                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI003"></td>
-                                    <td>CI003</td>
-                                    <td>10/10/2024</td>
-                                    <td>Phiếu thu tạm ứng</td>
-                                    <td class="text-end">3,500,000</td>
-                                </tr>
-                                <!-- Total Row -->
-                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
-                                    <td colspan="4" class="text-end">TỔNG CỘNG (Total)</td>
-                                    <td class="text-end" id="advanceVouchersTotal">0 VNĐ</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
 
@@ -1228,9 +1198,8 @@
                 // Hide Section 2 - Advance Payments
                 section2Container.style.display = 'none';
                 advancePaymentCheck.checked = false;
-                const advanceVouchersTableWrapper = document.getElementById('advanceVouchersTableWrapper');
-                if (advanceVouchersTableWrapper) advanceVouchersTableWrapper.style.display = 'none';
-                document.getElementById('advanceVouchersTotal').textContent = '0 VNĐ';
+                advancePaymentAmount.disabled = true;
+                advancePaymentAmount.value = '';
 
                 // Hide Section 3 - Contract Advances
                 section3Container.style.display = 'none';
@@ -1394,72 +1363,18 @@
             });
         });
 
-        // Advance Payment Checkbox Logic (Show/Hide Table)
+        // Advance Payment Checkbox Logic (Enable/Disable Number Input)
         advancePaymentCheck.addEventListener('change', function() {
-            const advanceVouchersTableWrapper = document.getElementById('advanceVouchersTableWrapper');
-
             if (this.checked) {
-                // Show table
-                advanceVouchersTableWrapper.style.display = '';
+                // Enable input
+                advancePaymentAmount.disabled = false;
+                advancePaymentAmount.focus();
             } else {
-                // Hide table and reset all
-                advanceVouchersTableWrapper.style.display = 'none';
-
-                // Uncheck all row checkboxes
-                document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-
-                // Reset select all checkbox
-                document.getElementById('selectAllAdvanceVouchers').checked = false;
-
-                // Reset total
-                document.getElementById('advanceVouchersTotal').textContent = '0 VNĐ';
+                // Disable input and clear value
+                advancePaymentAmount.disabled = true;
+                advancePaymentAmount.value = '';
             }
-            // Update section total
-            updateSectionTotalPayment();
         });
-
-        // Select All Advance Vouchers Checkbox Logic
-        document.getElementById('selectAllAdvanceVouchers').addEventListener('change', function() {
-            const isChecked = this.checked;
-            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
-                checkbox.checked = isChecked;
-                checkbox.dispatchEvent(new Event('change'));
-            });
-        });
-
-        // Individual Advance Voucher Row Checkbox Logic
-        document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // Update select all checkbox state
-                const allChecked = Array.from(document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox')).every(cb => cb.checked);
-                const someChecked = Array.from(document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox')).some(cb => cb.checked);
-
-                const selectAllCheckbox = document.getElementById('selectAllAdvanceVouchers');
-                selectAllCheckbox.checked = allChecked;
-                selectAllCheckbox.indeterminate = someChecked && !allChecked;
-
-                // Update total
-                updateAdvanceVouchersTotal();
-                updateSectionTotalPayment();
-            });
-        });
-
-        // Function to calculate advance vouchers total
-        function updateAdvanceVouchersTotal() {
-            let total = 0;
-            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox:checked').forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const amountCell = row.querySelector('td:nth-child(5)');
-                const amountText = amountCell.textContent.trim();
-                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-                total += amount;
-            });
-
-            const totalElement = document.getElementById('advanceVouchersTotal');
-            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
-        }
 
         // Invoice Payment Checkbox Logic (Show/Hide Table)
         invoicePaymentCheck.addEventListener('change', function() {
