@@ -502,15 +502,16 @@
                     <table class="table table-striped" id="accountTable">
                         <thead>
                             <tr>
-                                <th style="width: 10%;">Money Type</th>
-                                <th style="width: 10%;">Currency</th>
-                                <th style="width: 10%;">Account Code</th>
-                                <th style="width: 15%;">Account Name</th>
-                                <th style="width: 12%;">Amount</th>
-                                <th style="width: 13%;" id="exchangeHeader">Quy đổi VND</th>
-                                <th style="width: 12%;">Nợ (Debit)</th>
-                                <th style="width: 12%;">Có (Credit)</th>
-                                <th style="width: 10%;">Action</th>
+                                <th style="width: 9%;">Money Type</th>
+                                <th style="width: 9%;">Currency</th>
+                                <th style="width: 9%;">Account Code</th>
+                                <th style="width: 14%;">Account Name</th>
+                                <th style="width: 11%;">Amount</th>
+                                <th style="width: 11%;" id="exchangeHeader">Quy đổi VND</th>
+                                <th style="width: 11%;">Nợ (Debit)</th>
+                                <th style="width: 11%;">Có (Credit)</th>
+                                <th style="width: 8%;">Detail</th>
+                                <th style="width: 7%;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -877,11 +878,52 @@
         </div>
     </div>
 
+    <!-- Modal Detail Tài Khoản Ngân Hàng -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi Tiết Tài Khoản Ngân Hàng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên Ngân Hàng</label>
+                        <input type="text" class="form-control" id="detailBankName" placeholder="e.g., Vietcombank">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số Tài Khoản</label>
+                        <input type="text" class="form-control" id="detailAccountNumber" placeholder="e.g., 1010123456">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Chủ Tài Khoản</label>
+                        <input type="text" class="form-control" id="detailAccountOwner" placeholder="e.g., Nguyễn Văn A">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi Chú</label>
+                        <textarea class="form-control" id="detailNote" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveDetailModal()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Data structure to hold account rows
         let accountData = [];
         let editingRowIndex = -1;
+        let detailModalIndex = -1;
+        let inputRowDetail = {
+            bankName: '',
+            accountNumber: '',
+            accountOwner: '',
+            note: ''
+        };
 
         const accountMap = {
             '1111': 'Tiền Mặt VND',
@@ -925,10 +967,15 @@
             const currency = document.getElementById('inputCurrency').value;
             const accountCodeInput = document.getElementById('inputAccountCode');
             const accountNameInput = document.getElementById('inputAccountName');
+            const detailBtn = document.getElementById('inputDetailBtn');
 
             if (!currency) {
                 accountCodeInput.value = '';
                 accountNameInput.value = '';
+                detailBtn.style.color = '#ccc';
+                detailBtn.style.cursor = 'not-allowed';
+                detailBtn.style.opacity = '0.5';
+                detailBtn.onclick = null;
                 return;
             }
 
@@ -936,9 +983,19 @@
             if (moneyType === 'cash') {
                 code = currency === 'VND' ? '1111' : '1112';
                 name = accountMap[code];
+                // Disable Detail button cho Cash
+                detailBtn.style.color = '#ccc';
+                detailBtn.style.cursor = 'not-allowed';
+                detailBtn.style.opacity = '0.5';
+                detailBtn.onclick = null;
             } else if (moneyType === 'bank') {
                 code = currency === 'VND' ? '1121' : '1122';
                 name = accountMap[code];
+                // Enable Detail button cho Bank
+                detailBtn.style.color = '#6c757d';
+                detailBtn.style.cursor = 'pointer';
+                detailBtn.style.opacity = '1';
+                detailBtn.onclick = () => openInputDetailModal();
             }
 
             accountCodeInput.value = code;
@@ -1002,8 +1059,20 @@
                 code: code,
                 name: name,
                 amount: amount,
-                exchangedAmount: exchangedAmount
+                exchangedAmount: exchangedAmount,
+                bankName: inputRowDetail.bankName,
+                accountNumber: inputRowDetail.accountNumber,
+                accountOwner: inputRowDetail.accountOwner,
+                note: inputRowDetail.note
             });
+
+            // Reset input row detail
+            inputRowDetail = {
+                bankName: '',
+                accountNumber: '',
+                accountOwner: '',
+                note: ''
+            };
 
             renderInputTable();
             renderAddedAccounts();
@@ -1035,7 +1104,10 @@
                 <td><input type="text" class="form-control form-control-sm" id="inputExchange" placeholder="Exchange" oninput="updateDebitCreditDisplay()"></td>
                 <td><span class="text-end" id="debitDisplay">-</span></td>
                 <td><span class="text-end" id="creditDisplay">-</span></td>
-                <td><button class="btn btn-sm btn-primary" onclick="addRow()">Add</button></td>
+                <td style="text-align: center;">
+                    <button class="btn btn-sm btn-link p-1" id="inputDetailBtn" onclick="openInputDetailModal()" style="color: #ccc; font-size: 14px; cursor: not-allowed; opacity: 0.5;">ℹ️</button>
+                </td>
+                <td style="text-align: center;"><button class="btn btn-sm btn-primary" onclick="addRow()">Add</button></td>
             `;
             tbody.insertBefore(tr, tbody.firstChild);
         }
@@ -1069,6 +1141,9 @@
                         <td><span class="text-end" id="edit_debit_${idx}">-</span></td>
                         <td><span class="text-end" id="edit_credit_${idx}">-</span></td>
                         <td style="text-align: center;">
+                            <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${row.moneyType === 'bank' ? '#6c757d' : '#ccc'}; font-size: 14px; cursor: ${row.moneyType === 'bank' ? 'pointer' : 'not-allowed'}; opacity: ${row.moneyType === 'bank' ? '1' : '0.5'};">ℹ️</button>
+                        </td>
+                        <td style="text-align: center;">
                             <button class="btn btn-sm btn-link p-1" onclick="saveEditRow(${idx})" style="color: #28a745; font-size: 18px;">✓</button>
                             <button class="btn btn-sm btn-link p-1" onclick="cancelEditRow()" style="color: #dc3545; font-size: 18px;">✕</button>
                         </td>
@@ -1079,6 +1154,10 @@
                     const debitVal = isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
                     const creditVal = !isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
 
+                    const detailBtnColor = row.moneyType === 'bank' ? '#6c757d' : '#ccc';
+                    const detailBtnCursor = row.moneyType === 'bank' ? 'pointer' : 'not-allowed';
+                    const detailBtnOpacity = row.moneyType === 'bank' ? '1' : '0.5';
+
                     tr.innerHTML = `
                         <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
                         <td><strong>${row.currency}</strong></td>
@@ -1088,6 +1167,9 @@
                         <td class="text-end">${exVal}</td>
                         <td class="text-end">${debitVal}</td>
                         <td class="text-end">${creditVal}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${detailBtnColor}; font-size: 14px; cursor: ${detailBtnCursor}; opacity: ${detailBtnOpacity};">ℹ️</button>
+                        </td>
                         <td style="text-align: center;">
                             <button class="btn btn-sm btn-link p-1" onclick="startEditRow(${idx})" style="color: #ffc107; font-size: 18px;">✏</button>
                             <button class="btn btn-sm btn-link p-1" onclick="deleteAddedAccount(${idx})" style="color: #dc3545; font-size: 18px;">🗑</button>
@@ -1165,6 +1247,63 @@
                 accountData.splice(idx, 1);
                 renderAddedAccounts();
             }
+        }
+
+        function openInputDetailModal() {
+            detailModalIndex = -1; // Mark as input row detail
+
+            // Load data từ inputRowDetail vào modal
+            document.getElementById('detailBankName').value = inputRowDetail.bankName || '';
+            document.getElementById('detailAccountNumber').value = inputRowDetail.accountNumber || '';
+            document.getElementById('detailAccountOwner').value = inputRowDetail.accountOwner || '';
+            document.getElementById('detailNote').value = inputRowDetail.note || '';
+
+            // Mở modal
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+        }
+
+        function openDetailModal(idx) {
+            detailModalIndex = idx;
+            const row = accountData[idx];
+
+            // Load data vào modal
+            document.getElementById('detailBankName').value = row.bankName || '';
+            document.getElementById('detailAccountNumber').value = row.accountNumber || '';
+            document.getElementById('detailAccountOwner').value = row.accountOwner || '';
+            document.getElementById('detailNote').value = row.note || '';
+
+            // Mở modal
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+        }
+
+        function saveDetailModal() {
+            if (detailModalIndex < 0) {
+                // Save to input row detail
+                inputRowDetail.bankName = document.getElementById('detailBankName').value;
+                inputRowDetail.accountNumber = document.getElementById('detailAccountNumber').value;
+                inputRowDetail.accountOwner = document.getElementById('detailAccountOwner').value;
+                inputRowDetail.note = document.getElementById('detailNote').value;
+            } else {
+                // Save to added accounts
+                const row = accountData[detailModalIndex];
+                row.bankName = document.getElementById('detailBankName').value;
+                row.accountNumber = document.getElementById('detailAccountNumber').value;
+                row.accountOwner = document.getElementById('detailAccountOwner').value;
+                row.note = document.getElementById('detailNote').value;
+
+                renderAddedAccounts();
+            }
+
+            // Đóng modal
+            const modalEl = document.getElementById('detailModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                modal.hide();
+            }
+
+            detailModalIndex = -1;
         }
 
         function resetForm() {}
