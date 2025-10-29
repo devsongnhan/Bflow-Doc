@@ -38,21 +38,111 @@
 
 ---
 
-## 2. Form Sections (áp dụng cho tất cả tabs)
+## 2. TAB 1: Tiền (Cash/Money) - Chi Tiết
 
-### SECTION 1: Nhập Số Dư Tài Khoản
-- Account (Select, lọc theo tab)
-- Debit Amount (Currency)
-- Credit Amount (Currency)
+### SUBSECTION 1.1: Lựa Chọn Loại Tiền (Money Type Selection)
+
+**Radio Buttons / Toggle:**
+1. **💵 Tiền Mặt (Cash)**
+   - Accounts: 111
+   - Use for: Physical cash
+
+2. **🏦 Tiền Ngân Hàng (Bank)**
+   - Accounts: 112, 113
+   - Use for: Bank deposits, fixed deposits
+
+**On Selection Change:**
+- Filter the "Account" dropdown below to show relevant accounts
+- Reset all input fields
+- Reset table data for this type
+
+---
+
+### SUBSECTION 1.2: Chọn Loại Tiền Tệ (Currency Selection)
+
+**Currency Dropdown:**
+- Default: VND (Vietnamese Dong)
+- Options: VND, USD, EUR, JPY, etc.
+
+**Label:** Loại Tiền Tệ (Currency)
+**Required:** YES (*)
+**Format:** Display currency symbol (₫, $, €, ¥)
+**Affects:** Number formatting in input fields and table
+
+---
+
+### SUBSECTION 1.3: Nhập Số Dư Tài Khoản (Input Form)
+
+**Based on selected Money Type:**
+
+**If Cash Selected:**
+- Account: 111 - Tiền Mặt (Cash) [Auto-filled, read-only]
+- Opening Balance Amount
+- Description (optional)
+
+**If Bank Selected:**
+- Account: [Dropdown with 112, 113]
+  - 112 - Tiền Gửi Ngân Hàng (Bank Deposits)
+  - 113 - Tiền Gửi Có Kỳ Hạn (Fixed Deposits)
+- Opening Balance Amount
+- Description (optional)
+
+**Button:** + Add Account
+
+---
+
+### SUBSECTION 1.4: Bảng Tổng Hợp Tài Khoản (Account Summary Table)
+
+**Columns:**
+| # | Account Code | Account Name | Amount (Debit/Credit) | Currency | Description | Actions |
+
+**Sample Data:**
+```
+1  | 111 | Tiền Mặt | 50,000,000 (Nợ) | VND | Opening cash | Edit Delete
+2  | 112 | Tiền Ngân Hàng | 500,000,000 (Nợ) | VND | Bank deposit | Edit Delete
+3  | 113 | Tiền Có Kỳ Hạn | 200,000,000 (Nợ) | VND | Fixed deposit | Edit Delete
+─────────────────────────────────────────────────────────────────
+   |     | TỔNG CỘNG | 750,000,000 | VND | |
+```
+
+**Table Features:**
+- Header background: #f8f9fa (light gray)
+- Total row: Bold, background #f0f0f0, border-top 2px solid #2196f3
+- Hover effect on rows
+- Edit/Delete actions per row
+- Real-time total update
+
+**Actions:**
+- **Edit (✏️):** Load row to input form, remove from table
+- **Delete (🗑️):** Confirm then remove with total update
+
+---
+
+### SUBSECTION 1.5: Summary & Status (TAB 1 Bottom)
+
+- **Total Opening Balance (TAB 1 only):** Auto-calculate from table
+- **Currency:** Display based on selected currency
+- **Status:** All accounts entered and balanced
+
+---
+
+## 3. Form Structure - Tabs 2-7 (Tương tự cấu trúc cơ bản)
+
+### Tabs 2-7 Layout (Tương tự TAB 1 nhưng đơn giản hơn):
+
+**SECTION 1: Nhập Số Dư Tài Khoản**
+- Account (Select, lọc theo tab) - Required *
+- Debit Amount (Currency) - Conditional
+- Credit Amount (Currency) - Conditional
 - Description (Text, optional)
 - Add Row Button
 
-### SECTION 2: Danh Sách Số Dư
+**SECTION 2: Danh Sách Số Dư**
 - Table: # | Code | Account Name | Debit | Credit | Description | Actions
-- Edit/Delete buttons
+- Edit/Delete buttons per row
 - Total row at bottom
 
-### SECTION 3: Tóm Tắt
+**SECTION 3: Tóm Tắt**
 - Total Debit (Read-only)
 - Total Credit (Read-only)
 - Balance Status (BALANCED/UNBALANCED)
@@ -60,17 +150,18 @@
 
 ---
 
-## 3. Validation Rules
+## 4. Validation Rules
 
 - Account required
 - Debit OR Credit must be filled (one, not both)
 - Amount > 0
 - No duplicate accounts in same table
 - Total Debit = Total Credit for submission
+- **TAB 1 Specific:** If Cash selected, only 1 account (111) allowed
 
 ---
 
-## 4. Color Reference
+## 5. Color Reference
 
 | Tab | Background | Border |
 |-----|-----------|--------|
