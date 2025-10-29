@@ -467,7 +467,7 @@
                 </div>
 
                 <!-- Section 2: Ứng Trước Tiền (Conditional - Show only for Customer payment) -->
-                <div id="section2Container" style="display: none;">
+                <div id="section2Container">
                     <div class="section-title">Ứng trước tiền</div>
 
                     <div class="mb-3">
@@ -524,7 +524,7 @@
                 </div>
 
                 <!-- Section 3: Khách Hàng Tạm Ứng Theo Hợp Đồng (Conditional - Show only for Customer payment) -->
-                <div id="section3Container" style="display: none;">
+                <div id="section3Container">
                     <div class="section-title">Khách hàng tạm ứng theo Hợp đồng (không có hóa đơn)</div>
 
                     <div class="mb-3">
@@ -581,7 +581,7 @@
                 </div>
 
                 <!-- Section 4: Khách hàng thanh toán theo hóa đơn -->
-                <div id="section4Container" style="display: none;">
+                <div id="section4Container">
                     <div class="section-title">Khách hàng thanh toán theo hóa đơn</div>
 
                     <div class="mb-3">
@@ -1188,6 +1188,11 @@
             const invoiceTable = document.getElementById('invoiceTable');
             const paymentInputs = document.querySelectorAll('.payment-input');
             const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+            // Initialize - hide sections 2, 3, 4 by default
+            section2Container.style.display = 'none';
+            section3Container.style.display = 'none';
+            section4Container.style.display = 'none';
 
             typeSelect.addEventListener('change', function() {
                 const selectedValue = this.value;
