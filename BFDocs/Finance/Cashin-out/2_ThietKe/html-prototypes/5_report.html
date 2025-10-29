@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Thu Chi - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #2c3e50;
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .report-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 30px auto;
+        }
+        .filter-panel {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background-color: white;
+            border: 1px solid #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="1_transaction-list.html">← Danh sách Giao dịch</a>
+            <span class="navbar-text text-white">Báo cáo Thu Chi</span>
+        </div>
+    </nav>
+
+    <div class="container-lg mt-4">
+        <!-- Header -->
+        <div class="report-container mb-4">
+            <h2>📊 Báo cáo Thu Chi Tổng hợp</h2>
+            <p class="text-muted">Báo cáo chi tiết về các giao dịch thu/chi trong kỳ báo cáo</p>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <h5 class="mb-3">Bộ lọc báo cáo</h5>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" class="form-control" value="2024-10-01">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" class="form-control" value="2024-10-31">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Loại giao dịch</label>
+                    <select class="form-select">
+                        <option>Tất cả (Thu & Chi)</option>
+                        <option>Thu (Cash-In)</option>
+                        <option>Chi (Cash-Out)</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label class="form-label">Bộ phận</label>
+                    <select class="form-select">
+                        <option>Tất cả</option>
+                        <option>Nhân sự</option>
+                        <option>Kinh doanh</option>
+                        <option>Vận hành</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-0">
+                    <button class="btn btn-primary w-100">Tạo báo cáo</button>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <button class="btn btn-outline-secondary w-100">Xóa bộ lọc</button>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <button class="btn btn-outline-success w-100">📥 Xuất Excel</button>
+                </div>
+                <div class="col-md-3 mb-0">
+                    <button class="btn btn-outline-primary w-100">📄 In báo cáo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống kê tóm tắt -->
+        <div class="report-container">
+            <h4 class="mb-4">Thống kê Tóm tắt - Tháng 10/2024</h4>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Tổng Thu</div>
+                        <div class="stat-value" style="color: #28a745;">2,500,000,000</div>
+                        <div class="stat-label">₫</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Tổng Chi</div>
+                        <div class="stat-value" style="color: #dc3545;">1,800,000,000</div>
+                        <div class="stat-label">₫</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Lợi nhuận Ròng</div>
+                        <div class="stat-value" style="color: #007bff;">700,000,000</div>
+                        <div class="stat-label">₫</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Số giao dịch</div>
+                        <div class="stat-value">28</div>
+                        <div class="stat-label">lệnh</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Breakdown stats -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Số giao dịch Chi theo Loại chi phí</h5>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Loại chi phí</th>
+                                <th class="text-end">Số lượng</th>
+                                <th class="text-end">Tổng tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Lương & Phúc lợi</td>
+                                <td class="text-end">1</td>
+                                <td class="text-end">150,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Chi phí vận hành</td>
+                                <td class="text-end">3</td>
+                                <td class="text-end">450,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Mua vật tư / Hàng hóa</td>
+                                <td class="text-end">2</td>
+                                <td class="text-end">600,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Chi phí quản lý</td>
+                                <td class="text-end">2</td>
+                                <td class="text-end">400,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Chi phí tiếp thị</td>
+                                <td class="text-end">1</td>
+                                <td class="text-end">200,000,000 ₫</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>Tổng cộng</td>
+                                <td class="text-end">9</td>
+                                <td class="text-end">1,800,000,000 ₫</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-md-6">
+                    <h5 class="mb-3">Số giao dịch Thu theo Loại</h5>
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Loại thu</th>
+                                <th class="text-end">Số lượng</th>
+                                <th class="text-end">Tổng tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Thu bán hàng</td>
+                                <td class="text-end">8</td>
+                                <td class="text-end">1,700,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Thu tiền hợp đồng</td>
+                                <td class="text-end">5</td>
+                                <td class="text-end">600,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td>Thu hỗ trợ/tài trợ</td>
+                                <td class="text-end">3</td>
+                                <td class="text-end">200,000,000 ₫</td>
+                            </tr>
+                            <tr class="table-light fw-bold">
+                                <td>Tổng cộng</td>
+                                <td class="text-end">16</td>
+                                <td class="text-end">2,500,000,000 ₫</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chi tiết theo Bộ phận -->
+        <div class="report-container">
+            <h4 class="mb-4">Chi tiết theo Bộ phận</h4>
+
+            <div class="table-wrapper">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Bộ phận</th>
+                            <th class="text-end">Tổng Thu</th>
+                            <th class="text-end">Tổng Chi</th>
+                            <th class="text-end">Lợi nhuận</th>
+                            <th class="text-end">Số giao dịch</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Kinh doanh</td>
+                            <td class="text-end text-success">1,800,000,000 ₫</td>
+                            <td class="text-end text-danger">400,000,000 ₫</td>
+                            <td class="text-end">1,400,000,000 ₫</td>
+                            <td class="text-end">12</td>
+                        </tr>
+                        <tr>
+                            <td>Nhân sự</td>
+                            <td class="text-end text-success">200,000,000 ₫</td>
+                            <td class="text-end text-danger">150,000,000 ₫</td>
+                            <td class="text-end">50,000,000 ₫</td>
+                            <td class="text-end">3</td>
+                        </tr>
+                        <tr>
+                            <td>Vận hành</td>
+                            <td class="text-end text-success">500,000,000 ₫</td>
+                            <td class="text-end text-danger">450,000,000 ₫</td>
+                            <td class="text-end">50,000,000 ₫</td>
+                            <td class="text-end">5</td>
+                        </tr>
+                        <tr>
+                            <td>Quản lý</td>
+                            <td class="text-end text-success">-</td>
+                            <td class="text-end text-danger">400,000,000 ₫</td>
+                            <td class="text-end text-danger">-400,000,000 ₫</td>
+                            <td class="text-end">4</td>
+                        </tr>
+                        <tr class="table-light fw-bold">
+                            <td>Tổng</td>
+                            <td class="text-end">2,500,000,000 ₫</td>
+                            <td class="text-end">1,800,000,000 ₫</td>
+                            <td class="text-end">700,000,000 ₫</td>
+                            <td class="text-end">28</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chi tiết các giao dịch -->
+        <div class="report-container">
+            <h4 class="mb-4">Danh sách Chi tiết Giao dịch</h4>
+
+            <div class="table-wrapper">
+                <table class="table table-hover table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ngày</th>
+                            <th>Mã giao dịch</th>
+                            <th>Mô tả</th>
+                            <th>Loại</th>
+                            <th class="text-end">Số tiền</th>
+                            <th>Bộ phận</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2024-10-31</td>
+                            <td>#TRX028</td>
+                            <td>Thu bán hàng cuối tháng</td>
+                            <td><span class="badge bg-success">Thu</span></td>
+                            <td class="text-end text-success">+500,000,000 ₫</td>
+                            <td>Kinh doanh</td>
+                            <td><span class="badge bg-success">Đã duyệt</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-10-27</td>
+                            <td>#TRX002</td>
+                            <td>Chi trả lương tháng 10</td>
+                            <td><span class="badge bg-danger">Chi</span></td>
+                            <td class="text-end text-danger">-150,000,000 ₫</td>
+                            <td>Nhân sự</td>
+                            <td><span class="badge bg-success">Đã duyệt</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-10-26</td>
+                            <td>#TRX004</td>
+                            <td>Thu tiền bán hàng tháng 10</td>
+                            <td><span class="badge bg-success">Thu</span></td>
+                            <td class="text-end text-success">+1,200,000,000 ₫</td>
+                            <td>Kinh doanh</td>
+                            <td><span class="badge bg-success">Đã duyệt</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-10-25</td>
+                            <td>#TRX006</td>
+                            <td>Chi trả hợp đồng dự án X</td>
+                            <td><span class="badge bg-danger">Chi</span></td>
+                            <td class="text-end text-danger">-75,000,000 ₫</td>
+                            <td>Kinh doanh</td>
+                            <td><span class="badge bg-warning">Chờ duyệt</span></td>
+                        </tr>
+                        <tr>
+                            <td>2024-10-20</td>
+                            <td>#TRX001</td>
+                            <td>Thu thanh toán hóa đơn khách A</td>
+                            <td><span class="badge bg-success">Thu</span></td>
+                            <td class="text-end text-success">+800,000,000 ₫</td>
+                            <td>Kinh doanh</td>
+                            <td><span class="badge bg-success">Đã duyệt</span></td>
+                        </tr>
+                        <!-- Thêm các dòng khác -->
+                    </tbody>
+                </table>
+            </div>
+
+            <nav class="mt-3" aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Footer -->
+        <div class="report-container mt-4">
+            <p class="text-muted mb-0">
+                <small>
+                    Báo cáo được tạo vào: 2024-10-28 10:30<br>
+                    Kỳ báo cáo: 01/10/2024 - 31/10/2024
+                </small>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

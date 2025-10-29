@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Giao dịch - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #2c3e50;
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .detail-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 30px auto;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .detail-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #666;
+            min-width: 200px;
+        }
+        .detail-value {
+            color: #333;
+            flex: 1;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: black;
+        }
+        .status-approved {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-rejected {
+            background-color: #dc3545;
+            color: white;
+        }
+        .approval-item {
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .approval-item.approved {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+        .approval-item.pending {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        .approval-item.rejected {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item {
+            padding: 15px;
+            border-left: 3px solid #e9ecef;
+            margin-bottom: 15px;
+            margin-left: 10px;
+        }
+        .timeline-item.success {
+            border-left-color: #28a745;
+        }
+        .timeline-item.pending {
+            border-left-color: #ffc107;
+        }
+        .timeline-item.error {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="1_transaction-list.html">← Danh sách Giao dịch</a>
+            <span class="navbar-text text-white">Chi tiết Giao dịch #TRX002</span>
+        </div>
+    </nav>
+
+    <div class="detail-container">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h3 class="mb-2">Giao dịch #TRX002</h3>
+                <p class="text-muted mb-0">Chi trả lương tháng 10</p>
+            </div>
+            <div>
+                <span class="status-badge status-approved">✓ Đã duyệt</span>
+            </div>
+        </div>
+
+        <!-- Thông tin tóm tắt -->
+        <div class="section-title">Thông tin Tóm tắt</div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="detail-row">
+                    <div class="detail-label">Loại giao dịch:</div>
+                    <div class="detail-value"><span class="badge bg-danger">Chi (Cash-Out)</span></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Số tiền:</div>
+                    <div class="detail-value" style="color: #dc3545; font-weight: 600;">-150,000,000 ₫</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Ngày giao dịch:</div>
+                    <div class="detail-value">2024-10-27</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="detail-row">
+                    <div class="detail-label">Loại chi phí:</div>
+                    <div class="detail-value">Lương & Phúc lợi</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phương thức thanh toán:</div>
+                    <div class="detail-value">Chuyển khoản ngân hàng</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Trạng thái:</div>
+                    <div class="detail-value"><span class="status-badge status-approved">Đã duyệt</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin người/Đơn vị nhận -->
+        <div class="section-title">Thông tin Người/Đơn vị Nhận Tiền</div>
+        <div class="detail-row">
+            <div class="detail-label">Tên:</div>
+            <div class="detail-value">Công ty TNHH ABC Việt Nam</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Mã số thuế:</div>
+            <div class="detail-value">0123456789</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Số điện thoại:</div>
+            <div class="detail-value">0912345678</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Email:</div>
+            <div class="detail-value">contact@abc.com.vn</div>
+        </div>
+
+        <!-- Thông tin tài khoản thanh toán -->
+        <div class="section-title">Thông tin Tài khoản Thanh toán</div>
+        <div class="detail-row">
+            <div class="detail-label">Tài khoản:</div>
+            <div class="detail-value">VCB - 0123456789</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Ngân hàng:</div>
+            <div class="detail-value">Ngân hàng TMCP Ngoại thương Việt Nam (Vietcombank)</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Số dư lúc tạo:</div>
+            <div class="detail-value">2,500,000,000 ₫</div>
+        </div>
+
+        <!-- Mô tả chi tiết -->
+        <div class="section-title">Chi tiết Giao dịch</div>
+        <div class="detail-row">
+            <div class="detail-label">Mô tả:</div>
+            <div class="detail-value">Chi trả lương nhân viên tháng 10 năm 2024 cho tất cả nhân sự của công ty</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Số hóa đơn:</div>
+            <div class="detail-value">LƯƠNG-2024-10-001</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Bộ phận chịu trách nhiệm:</div>
+            <div class="detail-value">Nhân sự</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Dự án / Chi phí:</div>
+            <div class="detail-value">HR-2024-10</div>
+        </div>
+        <div class="detail-row">
+            <div class="detail-label">Ghi chú:</div>
+            <div class="detail-value">Thanh toán theo lương chính thức, kèm theo các khoản hỗ trợ đã được phê duyệt</div>
+        </div>
+
+        <!-- Tài liệu đính kèm -->
+        <div class="section-title">Tài liệu Đính kèm</div>
+        <div style="padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><a href="#">bang-luong-thang-10-2024.xlsx</a></li>
+                <li><a href="#">chi-tiet-thanh-toan.pdf</a></li>
+                <li><a href="#">dap-ung-yeu-cau-ktv.pdf</a></li>
+            </ul>
+        </div>
+
+        <!-- Phê duyệt -->
+        <div class="section-title">Quá trình Phê duyệt</div>
+
+        <!-- Approval 1 -->
+        <div class="approval-item approved">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h6 class="mb-2">✓ Trưởng phòng Kế toán - Nguyễn Văn A</h6>
+                    <p class="mb-2 text-muted">Trạng thái: <strong>Đã phê duyệt</strong></p>
+                    <p class="mb-0 text-muted">Thời gian: 2024-10-27 14:30</p>
+                </div>
+                <span style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px;">Duyệt</span>
+            </div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                <p class="mb-0"><strong>Nhận xét:</strong> Chứng từ đầy đủ, số liệu chính xác. Đồng ý phê duyệt.</p>
+            </div>
+        </div>
+
+        <!-- Approval 2 -->
+        <div class="approval-item approved">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h6 class="mb-2">✓ Giám đốc - Đinh Văn D</h6>
+                    <p class="mb-2 text-muted">Trạng thái: <strong>Đã phê duyệt</strong></p>
+                    <p class="mb-0 text-muted">Thời gian: 2024-10-27 15:45</p>
+                </div>
+                <span style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px;">Duyệt</span>
+            </div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.1);">
+                <p class="mb-0"><strong>Nhận xét:</strong> Được duyệt. Hãy tiến hành thanh toán.</p>
+            </div>
+        </div>
+
+        <!-- Lịch sử thay đổi -->
+        <div class="section-title">Lịch sử Thay đổi</div>
+        <div class="timeline">
+            <div class="timeline-item success">
+                <h6 class="mb-2">✓ Giao dịch được duyệt hoàn toàn</h6>
+                <p class="text-muted mb-0">2024-10-27 16:00 - Hệ thống</p>
+            </div>
+            <div class="timeline-item success">
+                <h6 class="mb-2">✓ Phê duyệt từ Giám đốc</h6>
+                <p class="text-muted mb-0">2024-10-27 15:45 - Đinh Văn D</p>
+            </div>
+            <div class="timeline-item success">
+                <h6 class="mb-2">✓ Phê duyệt từ Trưởng phòng Kế toán</h6>
+                <p class="text-muted mb-0">2024-10-27 14:30 - Nguyễn Văn A</p>
+            </div>
+            <div class="timeline-item pending">
+                <h6 class="mb-2">📤 Giao dịch được gửi duyệt</h6>
+                <p class="text-muted mb-0">2024-10-27 10:15 - Người tạo: Trần Thị B</p>
+            </div>
+        </div>
+
+        <!-- Hành động -->
+        <div class="section-title">Thao tác</div>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <button class="btn btn-primary">In / Xuất PDF</button>
+            <button class="btn btn-outline-secondary">Sao chép giao dịch</button>
+            <a href="1_transaction-list.html" class="btn btn-outline-secondary">Quay lại danh sách</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

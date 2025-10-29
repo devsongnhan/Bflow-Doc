@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách Giao dịch - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #2c3e50;
+        }
+        .navbar-brand {
+            color: white !important;
+        }
+        .sidebar {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .table-wrapper {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .badge-cashin {
+            background-color: #28a745;
+        }
+        .badge-cashout {
+            background-color: #dc3545;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: black;
+        }
+        .status-approved {
+            background-color: #28a745;
+        }
+        .status-rejected {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">← Quay lại Trang chính</a>
+            <span class="navbar-text text-white">Danh sách Giao dịch Thu Chi</span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar Filter -->
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <h6 class="mb-3">Bộ lọc</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Loại giao dịch</label>
+                        <select class="form-select form-select-sm">
+                            <option>Tất cả</option>
+                            <option>Thu (Cash-in)</option>
+                            <option>Chi (Cash-out)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select form-select-sm">
+                            <option>Tất cả</option>
+                            <option>Chờ duyệt</option>
+                            <option>Đã duyệt</option>
+                            <option>Từ chối</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control form-control-sm">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control form-control-sm">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Số tiền từ</label>
+                        <input type="number" class="form-control form-control-sm" placeholder="0">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Số tiền đến</label>
+                        <input type="number" class="form-control form-control-sm" placeholder="100,000,000">
+                    </div>
+
+                    <button class="btn btn-primary btn-sm w-100 mb-2">Tìm kiếm</button>
+                    <button class="btn btn-outline-secondary btn-sm w-100">Xóa bộ lọc</button>
+                </div>
+
+                <div class="sidebar">
+                    <h6 class="mb-3">Thao tác</h6>
+                    <a href="2_create-cashin.html" class="btn btn-success btn-sm w-100 mb-2">+ Tạo Thu</a>
+                    <a href="3_create-cashout.html" class="btn btn-danger btn-sm w-100 mb-2">+ Tạo Chi</a>
+                    <button class="btn btn-outline-primary btn-sm w-100">📥 Xuất Excel</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Summary Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Tổng Thu</h6>
+                                <h4 style="color: #28a745;">2,500,000,000 ₫</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Tổng Chi</h6>
+                                <h4 style="color: #dc3545;">1,800,000,000 ₫</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h6 class="text-muted mb-2">Lệnh chờ duyệt</h6>
+                                <h4 style="color: #ffc107;">12 lệnh</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrapper">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã giao dịch</th>
+                                <th>Loại</th>
+                                <th>Số tiền</th>
+                                <th>Ngày</th>
+                                <th>Mô tả</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>#TRX001</strong></td>
+                                <td><span class="badge badge-cashin">Thu</span></td>
+                                <td class="text-success">+500,000,000 ₫</td>
+                                <td>2024-10-28</td>
+                                <td>Thanh toán hóa đơn khách hàng A</td>
+                                <td><span class="badge status-approved">Đã duyệt</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>#TRX002</strong></td>
+                                <td><span class="badge badge-cashout">Chi</span></td>
+                                <td class="text-danger">-150,000,000 ₫</td>
+                                <td>2024-10-27</td>
+                                <td>Chi trả lương tháng 10</td>
+                                <td><span class="badge status-approved">Đã duyệt</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>#TRX003</strong></td>
+                                <td><span class="badge badge-cashout">Chi</span></td>
+                                <td class="text-danger">-50,000,000 ₫</td>
+                                <td>2024-10-27</td>
+                                <td>Thanh toán tiền điện, nước</td>
+                                <td><span class="badge status-pending">Chờ duyệt</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>#TRX004</strong></td>
+                                <td><span class="badge badge-cashin">Thu</span></td>
+                                <td class="text-success">+1,200,000,000 ₫</td>
+                                <td>2024-10-26</td>
+                                <td>Thu tiền bán hàng tháng 10</td>
+                                <td><span class="badge status-approved">Đã duyệt</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>#TRX005</strong></td>
+                                <td><span class="badge badge-cashout">Chi</span></td>
+                                <td class="text-danger">-30,000,000 ₫</td>
+                                <td>2024-10-25</td>
+                                <td>Mua vật tư công ty</td>
+                                <td><span class="badge status-rejected">Từ chối</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>#TRX006</strong></td>
+                                <td><span class="badge badge-cashout">Chi</span></td>
+                                <td class="text-danger">-75,000,000 ₫</td>
+                                <td>2024-10-25</td>
+                                <td>Chi trả hợp đồng dự án X</td>
+                                <td><span class="badge status-pending">Chờ duyệt</span></td>
+                                <td><a href="4_transaction-detail.html" class="btn btn-sm btn-outline-primary">Chi tiết</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Pagination -->
+                    <nav class="mt-3" aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

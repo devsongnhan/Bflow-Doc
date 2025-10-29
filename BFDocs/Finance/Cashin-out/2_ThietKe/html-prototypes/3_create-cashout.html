@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Giao dịch Chi - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+            color: white;
+        }
+
+        .btn-close-header {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-close-header:hover {
+            background-color: #c82333;
+            color: white;
+        }
+
+        .btn-diagram {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-diagram:hover {
+            background-color: #138496;
+            color: white;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            z-index: 900;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            border-left-color: #007bff;
+        }
+
+        .sidebar-link.active {
+            background-color: #e7f3ff;
+            border-left-color: #007bff;
+            color: #007bff;
+            font-weight: 600;
+        }
+
+        .sidebar-toggle {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #e9ecef;
+            border-left-color: #007bff;
+        }
+
+        .sidebar-submenu {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s;
+        }
+
+        .sidebar-submenu.show {
+            max-height: 500px;
+        }
+
+        .sidebar-submenu .sidebar-item {
+            padding-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 20px;
+            min-height: calc(100vh - 65px);
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+        }
+
+        .form-heading {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .warning-alert {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background-color: #e7f3ff;
+            border-color: #2196F3;
+            color: #01579b;
+            border: 1px solid #2196F3;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .alert-info h6 {
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .alert-info li {
+            margin-bottom: 5px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            font-size: 13px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-control:disabled, .form-select:disabled {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+
+        .row {
+            margin-bottom: 5px;
+        }
+
+        .form-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .form-footer button, .form-footer a {
+            padding: 10px 20px;
+            font-size: 13px;
+            border-radius: 4px;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+            color: #333;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            color: white;
+        }
+
+        .btn-outline-secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+            }
+
+            .header-buttons {
+                gap: 5px;
+            }
+
+            .header-buttons button {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-footer {
+                flex-direction: column-reverse;
+            }
+
+            .form-footer button, .form-footer a {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-title">💸 Tạo Giao dịch Chi Tiền</div>
+        <div class="header-buttons">
+            <button class="btn-save">Lưu Nháp</button>
+            <button class="btn-close-header">Đóng</button>
+            <button class="btn-diagram">Sơ đồ</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">🏠 Home</a>
+            </li>
+            <li class="sidebar-item">
+                <div class="sidebar-toggle" onclick="toggleSubmenu(this)">
+                    💰 Cashflow <span>▼</span>
+                </div>
+                <ul class="sidebar-submenu show">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">📥 Cash inflow</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link active">📤 Cash outflow</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">📊 Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">⚙️ Settings</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="form-container">
+            <div class="form-heading">💸 Tạo Giao dịch Chi Tiền</div>
+
+            <!-- Warning Alert -->
+            <div class="warning-alert">
+                <strong>⚠️ Lưu ý:</strong> Giao dịch chi cần phê duyệt từ Trưởng phòng Kế toán và Giám đốc trước khi thực hiện thanh toán.
+            </div>
+
+            <form id="cashOutForm">
+                <!-- Section 1: Thông tin giao dịch -->
+                <div class="section-title">Thông tin giao dịch</div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="transactionDate" class="form-label">Ngày giao dịch <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="transactionDate" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="expenseCategory" class="form-label">Loại chi phí <span class="required">*</span></label>
+                        <select class="form-select" id="expenseCategory" required>
+                            <option value="">-- Chọn loại chi phí --</option>
+                            <option>Lương & Phúc lợi</option>
+                            <option>Chi phí vận hành</option>
+                            <option>Chi phí quản lý</option>
+                            <option>Chi phí tiếp thị</option>
+                            <option>Mua vật tư / Hàng hóa</option>
+                            <option>Thanh toán hợp đồng / Dịch vụ</option>
+                            <option>Chi khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="transactionAmount" class="form-label">Số tiền <span class="required">*</span></label>
+                        <input type="number" class="form-control" id="transactionAmount" placeholder="0" required>
+                        <small class="text-muted">Đơn vị: VNĐ</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="paymentMethod" class="form-label">Phương thức thanh toán <span class="required">*</span></label>
+                        <select class="form-select" id="paymentMethod" required>
+                            <option value="">-- Chọn phương thức --</option>
+                            <option>Chuyển khoản ngân hàng</option>
+                            <option>Tiền mặt</option>
+                            <option>Séc</option>
+                            <option>Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section 2: Thông tin người nhận -->
+                <div class="section-title">Thông tin người/Đơn vị nhận tiền</div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="recipientName" class="form-label">Tên người/Công ty nhận tiền <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="recipientName" placeholder="VD: Công ty Cung Cấp ABC" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="recipientPhone" class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-control" id="recipientPhone" placeholder="0987654321">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="recipientEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="recipientEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="recipientTaxId" class="form-label">Mã số thuế / Số định danh</label>
+                        <input type="text" class="form-control" id="recipientTaxId" placeholder="0123456789">
+                    </div>
+                </div>
+
+                <!-- Section 3: Thông tin tài khoản thanh toán -->
+                <div class="section-title">Thông tin tài khoản thanh toán</div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="bankAccount" class="form-label">Tài khoản thanh toán <span class="required">*</span></label>
+                        <select class="form-select" id="bankAccount" required onchange="updateBankBalance()">
+                            <option value="">-- Chọn tài khoản --</option>
+                            <option data-balance="2500000000">VCB - 0123456789 (Vietcombank) - Số dư: 2,500,000,000 ₫</option>
+                            <option data-balance="500000000">ACB - 0987654321 (Á Châu Bank) - Số dư: 500,000,000 ₫</option>
+                            <option data-balance="1200000000">VIB - 1234567890 (VIB) - Số dư: 1,200,000,000 ₫</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="bankBalance" class="form-label">Số dư tài khoản</label>
+                        <input type="text" class="form-control" id="bankBalance" placeholder="Tự động điền" disabled>
+                    </div>
+                </div>
+
+                <!-- Section 4: Thông tin chi tiết -->
+                <div class="section-title">Thông tin chi tiết</div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Mô tả chi tiêu / Nội dung thanh toán <span class="required">*</span></label>
+                    <textarea class="form-control" id="description" rows="3" placeholder="VD: Chi trả tiền lương nhân viên tháng 10 năm 2024..." required></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="invoiceNumber" class="form-label">Số hóa đơn / Số chứng từ</label>
+                        <input type="text" class="form-control" id="invoiceNumber" placeholder="VD: HĐ-2024-001">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="referenceDocument" class="form-label">Liên quan đến tài liệu</label>
+                        <input type="text" class="form-control" id="referenceDocument" placeholder="VD: HĐ-2024-001">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="department" class="form-label">Bộ phận chịu trách nhiệm</label>
+                        <select class="form-select" id="department">
+                            <option>-- Chọn bộ phận --</option>
+                            <option>Nhân sự</option>
+                            <option>Kinh doanh</option>
+                            <option>Vận hành</option>
+                            <option>Quản lý</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="project" class="form-label">Dự án / Chi phí</label>
+                        <input type="text" class="form-control" id="project" placeholder="VD: PRJ-2024-001">
+                    </div>
+                </div>
+
+                <!-- Section 5: Phê duyệt -->
+                <div class="section-title">Phê duyệt</div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="requester" class="form-label">Người yêu cầu</label>
+                        <input type="text" class="form-control" id="requester" placeholder="Tự động điền" disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="approver1" class="form-label">Trưởng phòng Kế toán <span class="required">*</span></label>
+                        <select class="form-select" id="approver1" required>
+                            <option value="">-- Chọn người duyệt --</option>
+                            <option>Nguyễn Văn A</option>
+                            <option>Trần Thị B</option>
+                            <option>Lê Văn C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="approver2" class="form-label">Giám đốc <span class="required">*</span></label>
+                        <select class="form-select" id="approver2" required>
+                            <option value="">-- Chọn người duyệt --</option>
+                            <option>Đinh Văn D</option>
+                            <option>Phạm Thị E</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section 6: Tài liệu hỗ trợ -->
+                <div class="section-title">Tài liệu hỗ trợ</div>
+
+                <div class="mb-3">
+                    <label for="attachments" class="form-label">Tải lên tài liệu (Hóa đơn, Chứng từ, Đơn, v.v...)</label>
+                    <input type="file" class="form-control" id="attachments" multiple>
+                    <small class="text-muted">Cho phép: PDF, Excel, Image (Max 5MB/file)</small>
+                </div>
+
+                <!-- Ghi chú -->
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Ghi chú thêm</label>
+                    <textarea class="form-control" id="notes" rows="2" placeholder="Ghi chú nội bộ"></textarea>
+                </div>
+
+                <!-- Form Footer -->
+                <div class="form-footer">
+                    <a href="1_transaction-list.html" class="btn btn-outline-secondary">Hủy</a>
+                    <button type="reset" class="btn btn-outline-secondary">Xóa</button>
+                    <button type="submit" class="btn btn-warning">Lưu Nháp</button>
+                    <button type="submit" class="btn btn-danger">Tạo & Gửi Duyệt</button>
+                </div>
+            </form>
+
+            <!-- Validation Note -->
+            <div class="alert-info">
+                <h6>💡 Quy tắc kiểm tra:</h6>
+                <ul>
+                    <li>Các trường có dấu <span class="required">*</span> là bắt buộc</li>
+                    <li>Số tiền phải > 0 và <= Số dư tài khoản</li>
+                    <li>Cần phê duyệt từ ít nhất 2 người (Trưởng phòng Kế toán & Giám đốc)</li>
+                    <li>Khi nhấn "Tạo & Gửi Duyệt", giao dịch sẽ được gửi đến người duyệt được chỉ định</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle sidebar submenu
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            const arrow = element.querySelector('span');
+
+            submenu.classList.toggle('show');
+
+            if (submenu.classList.contains('show')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        }
+
+        // Update bank balance when account is selected
+        function updateBankBalance() {
+            const bankAccountSelect = document.getElementById('bankAccount');
+            const bankBalanceInput = document.getElementById('bankBalance');
+
+            const selectedOption = bankAccountSelect.options[bankAccountSelect.selectedIndex];
+            const balance = selectedOption.getAttribute('data-balance');
+
+            if (balance) {
+                const balanceNumber = parseInt(balance);
+                bankBalanceInput.value = new Intl.NumberFormat('vi-VN').format(balanceNumber) + ' ₫';
+            } else {
+                bankBalanceInput.value = '';
+            }
+        }
+
+        // Set today's date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+
+            // Auto-fill requester name (in real scenario, this would come from session)
+            document.getElementById('requester').value = 'Current User (Auto-filled)';
+
+            // Set default transaction amount placeholder
+            document.getElementById('transactionAmount').addEventListener('input', function() {
+                const amount = this.value;
+                const balance = document.getElementById('bankBalance').value;
+
+                if (amount && balance) {
+                    // Validate amount vs balance
+                    const amountNum = parseInt(amount);
+                    const balanceNum = parseInt(balance.replace(/[^\d]/g, ''));
+
+                    if (amountNum > balanceNum) {
+                        this.style.borderColor = '#dc3545';
+                        this.title = 'Số tiền vượt quá số dư tài khoản!';
+                    } else {
+                        this.style.borderColor = 'ced4da';
+                        this.title = '';
+                    }
+                }
+            });
+
+            // Form submission handler
+            document.getElementById('cashOutForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                console.log('Form submitted with data:', Object.fromEntries(formData));
+
+                // Show success message
+                alert('Giao dịch đã được xử lý. Sẽ chuyển hướng sang danh sách giao dịch.');
+
+                // Redirect to transaction list after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '1_transaction-list.html';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản lý Thu Chi - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+            border-radius: 8px;
+        }
+        .header h1 {
+            margin-bottom: 10px;
+        }
+        .card {
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn-prototype {
+            display: block;
+            padding: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏦 Hệ thống Quản lý Thu Chi</h1>
+            <p class="mb-0">Danh sách các màn hình prototype - Dành cho Dev Reference</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Danh sách giao dịch -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📋 Danh sách Giao dịch</h5>
+                        <p class="card-text text-muted">Xem toàn bộ giao dịch thu/chi, tìm kiếm, lọc theo ngày, khoảng tiền, trạng thái...</p>
+                        <a href="1_transaction-list.html" class="btn btn-primary btn-prototype">Xem Prototype</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tạo giao dịch thu -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">💰 Tạo Giao dịch Thu</h5>
+                        <p class="card-text text-muted">Form nhập liệu tạo giao dịch thu tiền vào tài khoản công ty</p>
+                        <a href="2_create-cashin.html" class="btn btn-success btn-prototype">Xem Prototype</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tạo giao dịch chi -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">💸 Tạo Giao dịch Chi</h5>
+                        <p class="card-text text-muted">Form nhập liệu tạo giao dịch chi tiền ra từ tài khoản công ty</p>
+                        <a href="3_create-cashout.html" class="btn btn-danger btn-prototype">Xem Prototype</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chi tiết giao dịch -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">🔍 Chi tiết Giao dịch</h5>
+                        <p class="card-text text-muted">Xem chi tiết một giao dịch, lịch sử thay đổi, duyệt, phê duyệt, từ chối</p>
+                        <a href="4_transaction-detail.html" class="btn btn-info btn-prototype">Xem Prototype</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Báo cáo Thu Chi -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Báo cáo Thu Chi</h5>
+                        <p class="card-text text-muted">Báo cáo tổng hợp thu chi theo thời gian, bộ phận, loại chi phí, v.v...</p>
+                        <a href="5_report.html" class="btn btn-warning btn-prototype">Xem Prototype</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="alert alert-info mt-40">
+            <h6>📝 Hướng dẫn sử dụng:</h6>
+            <ul class="mb-0">
+                <li>Các prototype này được tạo bằng Bootstrap 5 và HTML thuần</li>
+                <li>Mục đích: Giúp Dev hiểu rõ nghiệp vụ và flow giao dịch</li>
+                <li>Dev có thể tham khảo code HTML/CSS để implement tính năng thực tế</li>
+                <li>Không chú trọng màu sắc hay hiển thị đẹp, chỉ cần đủ để hiểu logic</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

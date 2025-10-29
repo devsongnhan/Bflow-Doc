@@ -87,6 +87,16 @@
   - Accessibility Guidelines (WCAG compliance)
   - Responsive design specifications
 
+- **HTML Prototypes**
+  - Interactive HTML/CSS/JavaScript prototypes
+  - Functional mockups cho stakeholder review
+  - User flow demonstrations
+  - Form validation examples
+  - Modal dialogs & interaction patterns
+  - Responsive design testing (Mobile/Tablet/Desktop)
+  - Browser compatibility verification
+  - Live component library for development reference
+
 ### Tài liệu bảo mật & tích hợp:
 - **Security Design & Threat Model**
   - Security architecture

@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Giao dịch Thu - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+            color: white;
+        }
+
+        .btn-close-header {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-close-header:hover {
+            background-color: #c82333;
+            color: white;
+        }
+
+        .btn-diagram {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-diagram:hover {
+            background-color: #138496;
+            color: white;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            z-index: 900;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+        }
+
+        .sidebar-link.active {
+            background-color: #e3f2fd;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .sidebar-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px 20px;
+            color: #333;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #e9ecef;
+        }
+
+        .sidebar-submenu {
+            list-style: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .sidebar-submenu.show {
+            max-height: 500px;
+        }
+
+        .sidebar-submenu .sidebar-link {
+            padding-left: 40px;
+            font-size: 13px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+        }
+
+        .form-heading {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* Section Containers - Distinct Blocks */
+        #section2Container,
+        #section3Container,
+        #section4Container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        #section2Container {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        #section3Container {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+
+        #section4Container {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        /* Section 5 - Thông tin chi tiết */
+        .section-title:nth-of-type(3) ~ form > div:last-of-type,
+        #totalPaymentSection {
+            background-color: #fff3e0;
+            border: 1px solid #ffe0b2;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 0.375rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .customer-select-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .customer-select-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .modal-header {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        /* Form Footer Buttons */
+        .form-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-footer button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* Alert */
+        .alert-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .alert-info h6 {
+            margin-bottom: 10px;
+            color: #004085;
+        }
+
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .alert-info li {
+            color: #004085;
+        }
+
+        /* Advance Payment Checkbox + Input Layout */
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-check-input {
+            margin-top: 0;
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .form-check-label {
+            margin-bottom: 0;
+            cursor: pointer;
+            flex-grow: 1;
+            white-space: nowrap;
+        }
+
+        .form-check #advancePaymentAmount {
+            flex: 1;
+            max-width: 300px;
+            margin-left: auto;
+        }
+
+        .invoice-detail-btn:disabled,
+        .invoice-detail-btn[data-disabled="true"] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .invoice-detail-btn:not(:disabled):not([data-disabled="true"]) {
+            cursor: pointer;
+        }
+
+        /* Checkbox disabled styling in modal */
+        .installment-checkbox:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .installment-checkbox:disabled ~ label {
+            opacity: 0.5;
+        }
+
+        /* Modal optimizations */
+        #invoiceDetailModal .table {
+            width: 100%;
+            min-width: 1000px;
+            margin-bottom: 0;
+        }
+
+        #invoiceDetailModal .table th,
+        #invoiceDetailModal .table td {
+            white-space: nowrap;
+            padding: 10px 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Column width optimization */
+        #invoiceDetailModal th:nth-child(1) { min-width: 50px; }   /* Checkbox */
+        #invoiceDetailModal th:nth-child(2) { min-width: 80px; }   /* Installment */
+        #invoiceDetailModal th:nth-child(3) { min-width: 120px; }  /* Description */
+        #invoiceDetailModal th:nth-child(4) { min-width: 90px; }   /* Issue Invoice */
+        #invoiceDetailModal th:nth-child(5) { min-width: 80px; }   /* AR Code */
+        #invoiceDetailModal th:nth-child(6) { min-width: 130px; }  /* Invoice Value */
+        #invoiceDetailModal th:nth-child(7) { min-width: 130px; }  /* Total Payment */
+        #invoiceDetailModal th:nth-child(8) { min-width: 110px; }  /* Balance */
+        #invoiceDetailModal th:nth-child(9) { min-width: 150px; }  /* Payment Input */
+        #invoiceDetailModal th:nth-child(10) { min-width: 100px; } /* Due Date */
+
+        #invoiceDetailModal .table-responsive {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+        }
+
+        #invoiceDetailModal .installment-payment-input {
+            min-width: 120px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-title">Cash inflow\CIO001</div>
+        <div class="header-buttons">
+            <button type="reset" class="btn btn-outline-secondary">Clear</button>
+            <button type="submit" class="btn btn-success">Lưu Nháp</button>
+            <button type="submit" class="btn btn-primary">Gửi Duyệt</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">🏠 Home</a>
+            </li>
+            <li class="sidebar-item">
+                <div class="sidebar-toggle" onclick="toggleSubmenu(this)">
+                    💰 Cashflow <span>▼</span>
+                </div>
+                <ul class="sidebar-submenu show">
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link active">📥 Cash inflow</a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="#" class="sidebar-link">📤 Cash outflow</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">📊 Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">⚙️ Settings</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="form-container">
+            <div class="form-heading">💰 Tạo Giao dịch Thu Tiền</div>
+
+            <form id="cashInForm">
+                <!-- Section 1: Thông tin giao dịch -->
+                <div class="section-title">Thông tin giao dịch</div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label">Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" id="name" placeholder="Enter name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="postingDate" class="form-label">Posting Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="postingDate" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="type" class="form-label">Type <span class="required">*</span></label>
+                        <select class="form-select" id="type" required>
+                            <option value="">-- Select type --</option>
+                            <option>Thu tiền khách hàng (Customer payment)</option>
+                            <option>Thu tiền hoàn ứng của nhân viên (Employee advance repayment)</option>
+                            <option>Thu tiền khác (Other payment)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="documentDate" class="form-label">Document Date <span class="required">*</span></label>
+                        <input type="date" class="form-control" id="documentDate" required>
+                    </div>
+                </div>
+
+                <div class="row" id="customerEmployeeRow" style="display: none;">
+                    <div class="col-md-6 mb-3">
+                        <label for="customerEmployee" class="form-label" id="customerEmployeeLabel">Customer <span class="required">*</span></label>
+                        <div class="customer-select-display">
+                            <input type="text" class="form-control" id="customerEmployee" placeholder="-- Select customer --" readonly required>
+                            <button type="button" class="btn btn-outline-primary customer-select-btn" id="customerEmployeeBtn" data-bs-toggle="modal" data-bs-target="#customerModal">
+                                ...
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Ứng Trước Tiền (Conditional - Show only for Customer payment) -->
+                <div id="section2Container" style="display: none;">
+                    <div class="section-title">Ứng trước tiền</div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="advancePaymentCheck">
+                            <label class="form-check-label" for="advancePaymentCheck">
+                                Danh sách phiếu thu tạm ứng của khách hàng (không theo hợp đồng)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Advance Vouchers Table - Hidden by default, shows when checkbox is checked -->
+                    <div class="table-responsive mb-3" id="advanceVouchersTableWrapper" style="display: none;">
+                        <table class="table table-sm table-bordered" id="advanceVouchersTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllAdvanceVouchers"></th>
+                                    <th>Cash in Code</th>
+                                    <th>Issued Date</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advanceVouchersTableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI001"></td>
+                                    <td>CI001</td>
+                                    <td>1/10/2024</td>
+                                    <td>Phiếu thu tạm ứng</td>
+                                    <td class="text-end">8,000,000</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI002"></td>
+                                    <td>CI002</td>
+                                    <td>5/10/2024</td>
+                                    <td>Phiếu thu tạm ứng</td>
+                                    <td class="text-end">5,000,000</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="advance-voucher-checkbox" data-voucher-code="CI003"></td>
+                                    <td>CI003</td>
+                                    <td>10/10/2024</td>
+                                    <td>Phiếu thu tạm ứng</td>
+                                    <td class="text-end">3,500,000</td>
+                                </tr>
+                                <!-- Total Row -->
+                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
+                                    <td colspan="4" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="advanceVouchersTotal">0 VNĐ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 3: Khách Hàng Tạm Ứng Theo Hợp Đồng (Conditional - Show only for Customer payment) -->
+                <div id="section3Container" style="display: none;">
+                    <div class="section-title">Khách hàng tạm ứng theo Hợp đồng (không có hóa đơn)</div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="contractAdvanceCheck">
+                            <label class="form-check-label" for="contractAdvanceCheck">
+                                Danh sách phiếu thu tạm ứng theo hợp đồng (không có hóa đơn)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Contract Advance Vouchers Table - Hidden by default, shows when checkbox is checked -->
+                    <div class="table-responsive mb-3" id="contractTableWrapper" style="display: none;">
+                        <table class="table table-sm table-bordered" id="contractTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllRows"></th>
+                                    <th>Cash in Code</th>
+                                    <th>Issued Date</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contractTableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI101"></td>
+                                    <td>CI101</td>
+                                    <td>2/10/2024</td>
+                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td class="text-end">10,000,000</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI102"></td>
+                                    <td>CI102</td>
+                                    <td>6/10/2024</td>
+                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td class="text-end">20,000,000</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI103"></td>
+                                    <td>CI103</td>
+                                    <td>12/10/2024</td>
+                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td class="text-end">10,000,000</td>
+                                </tr>
+                                <!-- Total Row -->
+                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
+                                    <td colspan="4" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="paymentTotal">0 VNĐ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 4: Khách hàng thanh toán theo hóa đơn -->
+                <div id="section4Container" style="display: none;">
+                    <div class="section-title">Khách hàng thanh toán theo hóa đơn</div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="invoicePaymentCheck">
+                            <label class="form-check-label" for="invoicePaymentCheck">
+                                Khách hàng thanh toán theo hóa đơn
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Table - Hidden by default, shows when checkbox is checked -->
+                    <div class="table-responsive mb-3" id="invoiceTableWrapper" style="display: none;">
+                        <table class="table table-sm table-bordered" id="invoiceTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllInvoices"></th>
+                                    <th>Code</th>
+                                    <th>Document Type</th>
+                                    <th>Document Date</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Balance</th>
+                                    <th class="text-end">Reconcile</th>
+                                    <th class="text-end">Payment</th>
+                                    <th class="text-end">Discount %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceTableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" data-invoice-id="AR0001"></td>
+                                    <td>AR0001</td>
+                                    <td>AR invoice</td>
+                                    <td>1/10/2024</td>
+                                    <td class="text-end">25,000,000</td>
+                                    <td class="text-end">25,000,000</td>
+                                    <td class="text-end">
+                                        <span class="reconcile-display" data-invoice-id="AR0001">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0001" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0001">
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="invoice-payment-display" data-invoice-id="AR0001">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0001" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0001">
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0001" placeholder="%" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" data-invoice-id="AR0012"></td>
+                                    <td>AR0012</td>
+                                    <td>AR invoice</td>
+                                    <td>14/10/2024</td>
+                                    <td class="text-end">22,000,000</td>
+                                    <td class="text-end">15,000,000</td>
+                                    <td class="text-end">
+                                        <span class="reconcile-display" data-invoice-id="AR0012">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0012" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0012">
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="invoice-payment-display" data-invoice-id="AR0012">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0012" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0012">
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0012" placeholder="%" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" data-invoice-id="AR0034"></td>
+                                    <td>AR0034</td>
+                                    <td>AR invoice</td>
+                                    <td>19/10/2024</td>
+                                    <td class="text-end">30,000,000</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td class="text-end">
+                                        <span class="reconcile-display" data-invoice-id="AR0034">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0034" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0034">
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="invoice-payment-display" data-invoice-id="AR0034">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0034" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0034">
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0034" placeholder="%" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" data-invoice-id="AR0143"></td>
+                                    <td>AR0143</td>
+                                    <td>AR invoice</td>
+                                    <td>7/11/2024</td>
+                                    <td class="text-end">14,000,000</td>
+                                    <td class="text-end">14,000,000</td>
+                                    <td class="text-end">
+                                        <span class="reconcile-display" data-invoice-id="AR0143">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0143" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0143">
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="invoice-payment-display" data-invoice-id="AR0143">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0143" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0143">
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0143" placeholder="%" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" data-invoice-id="AR0159"></td>
+                                    <td>AR0159</td>
+                                    <td>AR invoice</td>
+                                    <td>9/11/2024</td>
+                                    <td class="text-end">27,000,000</td>
+                                    <td class="text-end">20,000,000</td>
+                                    <td class="text-end">
+                                        <span class="reconcile-display" data-invoice-id="AR0159">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0159" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0159">
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="invoice-payment-display" data-invoice-id="AR0159">-</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0159" style="margin-left: 5px;">...</button>
+                                        <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0159">
+                                    </td>
+                                    <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0159" placeholder="%" disabled></td>
+                                </tr>
+                                <!-- Total Row -->
+                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
+                                    <td colspan="7" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="invoicePaymentTotal">0 VNĐ</td>
+                                    <td class="text-end">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 6: Danh Sách Phiếu Tạm Ứng (Conditional - Show only when Type = Employee advance AND Employee selected) -->
+                <div id="section6Container" style="display: none; background-color: #f0f7ff; border: 1px solid #b3d9f2; border-left: 4px solid #0066cc; padding: 20px; margin: 15px 0; border-radius: 0.375rem;">
+                    <div class="section-title">Danh sách Phiếu Tạm Ứng</div>
+
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered" id="advanceVoucherTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllVouchers"></th>
+                                    <th>Cash out code</th>
+                                    <th>Advance Date</th>
+                                    <th>Description</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Repaid</th>
+                                    <th class="text-end">Balance</th>
+                                    <th class="text-end">Payment</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advanceVoucherTableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="voucher-checkbox" data-voucher-id="CO0005"></td>
+                                    <td>CO0005</td>
+                                    <td>15/10/2024</td>
+                                    <td>Tiền xăng</td>
+                                    <td class="text-end">5,000,000</td>
+                                    <td class="text-end">0</td>
+                                    <td class="text-end" data-balance="5000000">5,000,000</td>
+                                    <td><input type="number" class="form-control form-control-sm voucher-payment-input" data-voucher-id="CO0005" data-balance="5000000" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="voucher-checkbox" data-voucher-id="CO0012"></td>
+                                    <td>CO0012</td>
+                                    <td>20/10/2024</td>
+                                    <td>Tiền công tác</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td class="text-end">3,000,000</td>
+                                    <td class="text-end" data-balance="7000000">7,000,000</td>
+                                    <td><input type="number" class="form-control form-control-sm voucher-payment-input" data-voucher-id="CO0012" data-balance="7000000" disabled></td>
+                                </tr>
+                                <!-- Total Row -->
+                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
+                                    <td colspan="7" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="voucherPaymentTotal">0 VNĐ</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 5: Thông tin chi tiết -->
+                <div id="section5Container" style="background-color: #fff3e0; border: 1px solid #ffe0b2; border-left: 4px solid #ff9800; padding: 20px; margin: 15px 0; border-radius: 0.375rem;">
+                    <div class="section-title">Thông tin chi tiết</div>
+
+                    <div class="row align-items-end mb-3">
+                        <div class="col-md-6">
+                            <label for="totalPayment" class="form-label">Total payment</label>
+                            <input type="text" class="form-control" id="totalPayment" value="" readonly>
+                        </div>
+                        <div class="col-md-6 d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary">Budget Plan</button>
+                            <button type="button" class="btn btn-primary" id="paymentMethodBtn" data-bs-toggle="modal" data-bs-target="#paymentMethodModal">Phương Thức Thanh Toán</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Note</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="Ghi chú nội bộ (không hiển thị cho khách hàng)"></textarea>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Validation Note -->
+            <div class="alert-info">
+                <h6>💡 Quy tắc kiểm tra:</h6>
+                <ul>
+                    <li>Các trường có dấu <span class="required">*</span> là bắt buộc</li>
+                    <li>Chọn Customer từ danh sách (Click nút "...")</li>
+                    <li>Ngày Posting Date và Document Date không được ở quá khứ quá 30 ngày</li>
+                    <li>Khi nhấn "Gửi Duyệt", giao dịch sẽ được gửi đến người duyệt</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Selection Modal -->
+    <div class="modal fade" id="customerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="customerSearch" placeholder="Tìm kiếm customer (Name, Tax ID, Phone)...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên Customer</th>
+                                    <th>Mã số thuế</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Địa chỉ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerTableBody">
+                                <tr class="customer-row" data-customer-name="ABC Company" data-customer-tax="0123456789">
+                                    <td>ABC Company</td>
+                                    <td>0123456789</td>
+                                    <td>0912345678</td>
+                                    <td>123 Đường A, TP.HCM</td>
+                                </tr>
+                                <tr class="customer-row" data-customer-name="XYZ Corporation" data-customer-tax="9876543210">
+                                    <td>XYZ Corporation</td>
+                                    <td>9876543210</td>
+                                    <td>0987654321</td>
+                                    <td>456 Đường B, Hà Nội</td>
+                                </tr>
+                                <tr class="customer-row" data-customer-name="Tech Solutions Ltd" data-customer-tax="1357924680">
+                                    <td>Tech Solutions Ltd</td>
+                                    <td>1357924680</td>
+                                    <td>0945678901</td>
+                                    <td>789 Đường C, Đà Nẵng</td>
+                                </tr>
+                                <tr class="customer-row" data-customer-name="Global Trade Inc" data-customer-tax="2468135790">
+                                    <td>Global Trade Inc</td>
+                                    <td>2468135790</td>
+                                    <td>0923456789</td>
+                                    <td>321 Đường D, Cần Thơ</td>
+                                </tr>
+                                <tr class="customer-row" data-customer-name="Việt Anh Industries" data-customer-tax="5555555555">
+                                    <td>Việt Anh Industries</td>
+                                    <td>5555555555</td>
+                                    <td>0931234567</td>
+                                    <td>555 Đường E, Biên Hòa</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Payment Detail Modal -->
+    <div class="modal fade" id="invoiceDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl" style="max-width: 1200px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn đợt thanh toán theo hóa đơn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Invoice: <span id="currentInvoiceId">AR0001</span></strong></label>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"></th>
+                                    <th>Installment</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Issue Invoice</th>
+                                    <th class="text-center">AR Code</th>
+                                    <th class="text-end">Invoice Value After Tax</th>
+                                    <th class="text-end">Total Payment</th>
+                                    <th class="text-end">Balance</th>
+                                    <th class="text-end">Payment</th>
+                                    <th class="text-end">Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceDetailTableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="installment-checkbox" data-installment-id="D1" disabled></td>
+                                    <td>Đợt 1</td>
+                                    <td>Tạm ứng sau kỳ HD</td>
+                                    <td class="text-center">-</td>
+                                    <td class="text-center">-</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td class="text-end">0</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td><input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D1" data-balance="10000000" disabled></td>
+                                    <td>1/1/2024</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="installment-checkbox" data-installment-id="D2" data-invoice-id="AR0001" data-issue-invoice="1"></td>
+                                    <td>Đợt 2</td>
+                                    <td>Giao hàng lần 1</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center"><strong>AR0001</strong></td>
+                                    <td class="text-end">35,000,000</td>
+                                    <td class="text-end">25,000,000</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td><input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D2" data-balance="10000000" disabled></td>
+                                    <td>7/2/2024</td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="installment-checkbox" data-installment-id="D3" data-invoice-id="AR0012" data-issue-invoice="2" disabled></td>
+                                    <td>Đợt 3</td>
+                                    <td>Giao hàng lần 2</td>
+                                    <td class="text-center">2</td>
+                                    <td class="text-center"><strong>AR0012</strong></td>
+                                    <td class="text-end">40,000,000</td>
+                                    <td class="text-end">25,000,000</td>
+                                    <td class="text-end">15,000,000</td>
+                                    <td><input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D3" data-balance="15000000" disabled></td>
+                                    <td>2/3/2024</td>
+                                </tr>
+                                <!-- Total Row -->
+                                <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
+                                    <td colspan="8" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="installmentPaymentTotal">0 VNĐ</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            💡 <strong>Hướng dẫn thanh toán:</strong><br>
+                            • Chỉ thanh toán các đợt có Issue Invoice (không thể chọn các dòng hiển thị "-")<br>
+                            • Số tiền thanh toán không được vượt quá Balance (nợ còn lại)<br>
+                            • Balance = Invoice Value After Tax - Total Payment (đã thanh toán)<br>
+                            • Ví dụ: Đợt 2 có Balance 10,000,000 thì chỉ được thanh toán tối đa 10,000,000
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="confirmInstallmentBtn">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Selection Modal -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn Employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="employeeSearch" placeholder="Tìm kiếm employee (Name, ID, Department)...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên Employee</th>
+                                    <th>Employee ID</th>
+                                    <th>Department</th>
+                                    <th>Position</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeTableBody">
+                                <tr class="employee-row" data-employee-name="Nguyễn Văn A" data-employee-id="EMP001">
+                                    <td>Nguyễn Văn A</td>
+                                    <td>EMP001</td>
+                                    <td>Sales</td>
+                                    <td>Sales Executive</td>
+                                </tr>
+                                <tr class="employee-row" data-employee-name="Trần Thị B" data-employee-id="EMP002">
+                                    <td>Trần Thị B</td>
+                                    <td>EMP002</td>
+                                    <td>Finance</td>
+                                    <td>Accountant</td>
+                                </tr>
+                                <tr class="employee-row" data-employee-name="Lê Văn C" data-employee-id="EMP003">
+                                    <td>Lê Văn C</td>
+                                    <td>EMP003</td>
+                                    <td>HR</td>
+                                    <td>HR Manager</td>
+                                </tr>
+                                <tr class="employee-row" data-employee-name="Phạm Thị D" data-employee-id="EMP004">
+                                    <td>Phạm Thị D</td>
+                                    <td>EMP004</td>
+                                    <td>Operations</td>
+                                    <td>Operations Lead</td>
+                                </tr>
+                                <tr class="employee-row" data-employee-name="Đinh Văn E" data-employee-id="EMP005">
+                                    <td>Đinh Văn E</td>
+                                    <td>EMP005</td>
+                                    <td>IT</td>
+                                    <td>IT Specialist</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reconcile Modal -->
+    <div class="modal fade" id="reconcileModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cấn trừ cho Invoice <span id="reconcileInvoiceId">AR0001</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- SECTION 1: Advance Payments (Tạm ứng không theo hợp đồng) -->
+                    <div style="margin-bottom: 25px;">
+                        <h6 style="color: #0066cc; font-weight: 600; margin-bottom: 10px;">Danh sách tạm ứng của khách hàng (không theo hợp đồng)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="selectAllAdvance" data-section="advance"></th>
+                                        <th>Code</th>
+                                        <th class="text-end">Total Value</th>
+                                        <th class="text-end">Reconciled Value</th>
+                                        <th class="text-end">Balance</th>
+                                        <th class="text-end">Reconcile Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reconcileAdvanceTableBody">
+                                    <!-- Will be populated dynamically -->
+                                </tbody>
+                                <tfoot style="background-color: #f9f9f9; font-weight: 600;">
+                                    <tr>
+                                        <td colspan="4" class="text-end">Subtotal:</td>
+                                        <td colspan="2" class="text-end" id="subtotalAdvance" style="color: #0066cc;">0 VNĐ</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: Contract Advances (Tạm ứng theo hợp đồng) -->
+                    <div style="margin-bottom: 20px;">
+                        <h6 style="color: #9c27b0; font-weight: 600; margin-bottom: 10px;" id="contractSectionTitle">Danh sách tạm ứng theo hợp đồng</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="selectAllContract" data-section="contract"></th>
+                                        <th>Code</th>
+                                        <th class="text-end">Total Value</th>
+                                        <th class="text-end">Reconciled Value</th>
+                                        <th class="text-end">Balance</th>
+                                        <th class="text-end">Reconcile Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reconcileContractTableBody">
+                                    <!-- Will be populated dynamically -->
+                                </tbody>
+                                <tfoot style="background-color: #f9f9f9; font-weight: 600;">
+                                    <tr>
+                                        <td colspan="4" class="text-end">Subtotal:</td>
+                                        <td colspan="2" class="text-end" id="subtotalContract" style="color: #9c27b0;">0 VNĐ</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL -->
+                    <div style="background-color: #f0f0f0; padding: 12px; border-radius: 4px; border: 2px solid #ff9800; margin-top: 15px;">
+                        <strong style="font-size: 1.05em;">Tổng cấn trừ:</strong> <span id="totalReconcileAmount" style="font-size: 1.2em; color: #ff9800; font-weight: 700;">0 VNĐ</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="confirmReconcileBtn">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Modal -->
+    <div class="modal fade" id="paymentMethodModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Phương thức thanh toán</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cashAmount" class="form-label">Cash</label>
+                            <input type="text" class="form-control" id="cashAmount" value="">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cashAccount" class="form-label">Account</label>
+                            <select class="form-select" id="cashAccount">
+                                <option value="1111">1111</option>
+                                <option value="1112">1112</option>
+                                <option value="1113">1113</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="bankAmount" class="form-label">Bank</label>
+                            <input type="text" class="form-control" id="bankAmount" value="">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bankAccount" class="form-label">Account</label>
+                            <select class="form-select" id="bankAccount">
+                                <option value="1121">1121</option>
+                                <option value="1122">1122</option>
+                                <option value="1123">1123</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selectBankAccount" class="form-label">Select bank account</label>
+                        <select class="form-select" id="selectBankAccount">
+                            <option value="">-- Chọn tài khoản ngân hàng --</option>
+                            <option value="0234877389-ACB">0234877389-Ngân Hàng ACB</option>
+                            <option value="0876543210-VCB">0876543210-Ngân Hàng VCB</option>
+                            <option value="0987654321-TPB">0987654321-Ngân Hàng TPB</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="paymentMethodError" style="display: none; color: #dc3545; margin-right: auto; font-size: 0.9rem;">
+                        ⚠️ <span id="errorMessage"></span>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="confirmPaymentMethodBtn">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar submenu
+            function toggleSubmenu(element) {
+                const submenu = element.nextElementSibling;
+                const arrow = element.querySelector('span');
+
+                submenu.classList.toggle('show');
+
+                if (submenu.classList.contains('show')) {
+                    arrow.textContent = '▲';
+                } else {
+                    arrow.textContent = '▼';
+                }
+            }
+
+            // Conditional Logic for Field 1.5 (Customer/Employee), Section 2, 3, and 4
+            const typeSelect = document.getElementById('type');
+            const customerEmployeeRow = document.getElementById('customerEmployeeRow');
+            const customerEmployeeLabel = document.getElementById('customerEmployeeLabel');
+            const customerEmployeeInput = document.getElementById('customerEmployee');
+            const customerEmployeeBtn = document.getElementById('customerEmployeeBtn');
+            const section2Container = document.getElementById('section2Container');
+            const section3Container = document.getElementById('section3Container');
+            const section4Container = document.getElementById('section4Container');
+            const advancePaymentCheck = document.getElementById('advancePaymentCheck');
+            const advancePaymentAmount = document.getElementById('advancePaymentAmount');
+            const contractAdvanceCheck = document.getElementById('contractAdvanceCheck');
+            const contractTable = document.getElementById('contractTable');
+            const invoicePaymentCheck = document.getElementById('invoicePaymentCheck');
+            const invoiceTable = document.getElementById('invoiceTable');
+            const paymentInputs = document.querySelectorAll('.payment-input');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+
+            typeSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+
+                if (selectedValue === 'Thu tiền khách hàng (Customer payment)') {
+                // Show field 1.5 and set to Customer mode
+                customerEmployeeRow.style.display = '';
+                customerEmployeeLabel.innerHTML = 'Customer <span class="required">*</span>';
+                customerEmployeeInput.placeholder = '-- Select customer --';
+                customerEmployeeBtn.setAttribute('data-bs-target', '#customerModal');
+                customerEmployeeInput.value = '';
+
+                // Show Section 2
+                section2Container.style.display = '';
+
+                // Show Section 3
+                section3Container.style.display = '';
+
+                // Show Section 4
+                section4Container.style.display = '';
+
+                // Hide Section 6
+                hideSection6();
+                selectedEmployeeId = '';
+            } else if (selectedValue === 'Thu tiền hoàn ứng của nhân viên (Employee advance repayment)') {
+                // Show field 1.5 and set to Employee mode
+                customerEmployeeRow.style.display = '';
+                customerEmployeeLabel.innerHTML = 'Employee <span class="required">*</span>';
+                customerEmployeeInput.placeholder = '-- Select employee --';
+                customerEmployeeBtn.setAttribute('data-bs-target', '#employeeModal');
+                customerEmployeeInput.value = '';
+
+                // Hide Section 2 - Advance Payments
+                section2Container.style.display = 'none';
+                advancePaymentCheck.checked = false;
+                const advanceVouchersTableWrapper = document.getElementById('advanceVouchersTableWrapper');
+                if (advanceVouchersTableWrapper) advanceVouchersTableWrapper.style.display = 'none';
+                document.getElementById('advanceVouchersTotal').textContent = '0 VNĐ';
+
+                // Hide Section 3 - Contract Advances
+                section3Container.style.display = 'none';
+                contractAdvanceCheck.checked = false;
+                const contractTableWrapper = document.getElementById('contractTableWrapper');
+                if (contractTableWrapper) contractTableWrapper.style.display = 'none';
+                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+
+                // Hide Section 4 - Invoice Payments
+                section4Container.style.display = 'none';
+                invoicePaymentCheck.checked = false;
+                const invoiceTableWrapper = document.getElementById('invoiceTableWrapper');
+                if (invoiceTableWrapper) invoiceTableWrapper.style.display = 'none';
+                document.getElementById('invoicePaymentTotal').textContent = '0 VNĐ';
+
+                // Hide Section 6 (will show when employee is selected)
+                hideSection6();
+                selectedEmployeeId = '';
+            } else if (selectedValue === 'Thu tiền khác (Other payment)') {
+                // Hide field 1.5
+                customerEmployeeRow.style.display = 'none';
+                customerEmployeeInput.value = '';
+
+                // Hide Section 2
+                section2Container.style.display = 'none';
+                advancePaymentCheck.checked = false;
+                advancePaymentAmount.disabled = true;
+                advancePaymentAmount.value = '';
+
+                // Hide Section 3
+                section3Container.style.display = 'none';
+                contractAdvanceCheck.checked = false;
+                resetContractTable();
+                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+
+                // Hide Section 4
+                section4Container.style.display = 'none';
+                invoicePaymentCheck.checked = false;
+                resetInvoiceTable();
+                document.getElementById('invoicePaymentTotal').textContent = '0 VNĐ';
+
+                // Hide Section 6
+                hideSection6();
+                selectedEmployeeId = '';
+            }
+        });
+
+        // Function to reset contract table
+        function resetContractTable() {
+            contractTable.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = false);
+            paymentInputs.forEach(input => input.disabled = true);
+            document.getElementById('selectAllRows').checked = false;
+        }
+
+        // Function to reset invoice table
+        function resetInvoiceTable() {
+            invoiceTable.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.invoice-payment-input').forEach(input => input.disabled = true);
+            document.querySelectorAll('.invoice-discount-input').forEach(input => input.disabled = true);
+            document.getElementById('selectAllInvoices').checked = false;
+        }
+
+        // Function to calculate and update invoice payment total
+        function updateInvoicePaymentTotal() {
+            const invoicePaymentInputs = document.querySelectorAll('.invoice-payment-input');
+            let total = 0;
+
+            invoicePaymentInputs.forEach(input => {
+                if (input.value && !input.disabled) {
+                    total += parseInt(input.value) || 0;
+                }
+            });
+
+            const totalElement = document.getElementById('invoicePaymentTotal');
+            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+        }
+
+        // Customer selection functionality
+        const customerRows = document.querySelectorAll('.customer-row');
+        const customerModal = document.getElementById('customerModal');
+        const customerSearch = document.getElementById('customerSearch');
+        const customerTableBody = document.getElementById('customerTableBody');
+        const customerAllRows = Array.from(customerTableBody.querySelectorAll('.customer-row'));
+
+        // Handle customer row click
+        customerRows.forEach(row => {
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', function() {
+                const customerName = this.getAttribute('data-customer-name');
+                const customerTax = this.getAttribute('data-customer-tax');
+
+                customerEmployeeInput.value = `${customerName} - ${customerTax}`;
+
+                // Close modal (Bootstrap 5)
+                const modalInstance = bootstrap.Modal.getInstance(customerModal);
+                if (modalInstance) modalInstance.hide();
+            });
+        });
+
+        // Customer search functionality
+        customerSearch.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            customerAllRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const text = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Employee selection functionality
+        const employeeRows = document.querySelectorAll('.employee-row');
+        const employeeModal = document.getElementById('employeeModal');
+        const employeeSearch = document.getElementById('employeeSearch');
+        const employeeTableBody = document.getElementById('employeeTableBody');
+        const employeeAllRows = Array.from(employeeTableBody.querySelectorAll('.employee-row'));
+
+        // Store selected employee ID globally
+        let selectedEmployeeId = '';
+
+        // Handle employee row click
+        employeeRows.forEach(row => {
+            row.style.cursor = 'pointer';
+            row.addEventListener('click', function() {
+                const employeeName = this.getAttribute('data-employee-name');
+                const employeeId = this.getAttribute('data-employee-id');
+
+                customerEmployeeInput.value = `${employeeName} - ${employeeId}`;
+                selectedEmployeeId = employeeId;
+
+                // Show Section 6 when employee is selected (only for employee advance type)
+                const typeSelect = document.getElementById('type');
+                if (typeSelect && typeSelect.value === 'Thu tiền hoàn ứng của nhân viên (Employee advance repayment)') {
+                    showSection6ForEmployee(employeeId);
+                }
+
+                // Close modal (Bootstrap 5)
+                const modalInstanceEmp = bootstrap.Modal.getInstance(employeeModal);
+                if (modalInstanceEmp) modalInstanceEmp.hide();
+            });
+        });
+
+        // Employee search functionality
+        employeeSearch.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            employeeAllRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const text = Array.from(cells).map(cell => cell.textContent.toLowerCase()).join(' ');
+
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Advance Payment Checkbox Logic (Show/Hide Table)
+        advancePaymentCheck.addEventListener('change', function() {
+            const advanceVouchersTableWrapper = document.getElementById('advanceVouchersTableWrapper');
+
+            if (this.checked) {
+                // Show table
+                advanceVouchersTableWrapper.style.display = '';
+            } else {
+                // Hide table and reset all
+                advanceVouchersTableWrapper.style.display = 'none';
+
+                // Uncheck all row checkboxes
+                document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+
+                // Reset select all checkbox
+                document.getElementById('selectAllAdvanceVouchers').checked = false;
+
+                // Reset total
+                document.getElementById('advanceVouchersTotal').textContent = '0 VNĐ';
+            }
+            // Update section total
+            updateSectionTotalPayment();
+        });
+
+        // Select All Advance Vouchers Checkbox Logic
+        document.getElementById('selectAllAdvanceVouchers').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Individual Advance Voucher Row Checkbox Logic
+        document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Update select all checkbox state
+                const allChecked = Array.from(document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox')).every(cb => cb.checked);
+                const someChecked = Array.from(document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox')).some(cb => cb.checked);
+
+                const selectAllCheckbox = document.getElementById('selectAllAdvanceVouchers');
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+
+                // Update total
+                updateAdvanceVouchersTotal();
+                updateSectionTotalPayment();
+            });
+        });
+
+        // Function to calculate advance vouchers total
+        function updateAdvanceVouchersTotal() {
+            let total = 0;
+            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox:checked').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const amountCell = row.querySelector('td:nth-child(5)');
+                const amountText = amountCell.textContent.trim();
+                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+                total += amount;
+            });
+
+            const totalElement = document.getElementById('advanceVouchersTotal');
+            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+        }
+
+        // Invoice Payment Checkbox Logic (Show/Hide Table)
+        invoicePaymentCheck.addEventListener('change', function() {
+            const invoiceTableWrapper = document.getElementById('invoiceTableWrapper');
+
+            if (this.checked) {
+                // Show table
+                invoiceTableWrapper.style.display = '';
+            } else {
+                // Hide table and reset all
+                invoiceTableWrapper.style.display = 'none';
+
+                // Uncheck all row checkboxes
+                document.querySelectorAll('#invoiceTableBody .invoice-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+
+                // Disable and clear all payment and discount inputs
+                document.querySelectorAll('.invoice-payment-input').forEach(input => {
+                    input.disabled = true;
+                    input.value = '';
+                });
+                document.querySelectorAll('.invoice-discount-input').forEach(input => {
+                    input.disabled = true;
+                    input.value = '';
+                });
+
+                // Reset select all checkbox
+                document.getElementById('selectAllInvoices').checked = false;
+
+                // Reset payment total
+                document.getElementById('invoicePaymentTotal').textContent = '0 VNĐ';
+            }
+        });
+
+        // Select All Invoices Checkbox Logic
+        document.getElementById('selectAllInvoices').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('#invoiceTableBody .invoice-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+                // Trigger change event to update payment inputs
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Individual Invoice Row Checkbox Logic
+        document.querySelectorAll('#invoiceTableBody .invoice-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const invoiceId = this.getAttribute('data-invoice-id');
+                const paymentInput = document.querySelector(`.invoice-payment-input[data-invoice-id="${invoiceId}"]`);
+                const discountInput = document.querySelector(`.invoice-discount-input[data-invoice-id="${invoiceId}"]`);
+
+                if (this.checked) {
+                    // Enable payment and discount inputs
+                    paymentInput.disabled = false;
+                    discountInput.disabled = false;
+                    paymentInput.focus();
+                } else {
+                    // Disable and clear payment and discount inputs
+                    paymentInput.disabled = true;
+                    paymentInput.value = '';
+                    discountInput.disabled = true;
+                    discountInput.value = '';
+                }
+
+                // Update select all checkbox state
+                const allChecked = Array.from(document.querySelectorAll('#invoiceTableBody .invoice-checkbox')).every(cb => cb.checked);
+                const someChecked = Array.from(document.querySelectorAll('#invoiceTableBody .invoice-checkbox')).some(cb => cb.checked);
+
+                const selectAllCheckbox = document.getElementById('selectAllInvoices');
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+
+                // Update invoice payment total
+                updateInvoicePaymentTotal();
+            });
+        });
+
+        // Add event listeners to invoice payment inputs for real-time total calculation & validation
+        document.querySelectorAll('.invoice-payment-input').forEach(input => {
+            input.addEventListener('input', function() {
+                validateInvoicePayment(this);
+                updateInvoicePaymentTotal();
+                updateSectionTotalPayment();
+            });
+        });
+
+        // Function to validate invoice payment (cannot exceed balance - reconcile)
+        function validateInvoicePayment(input) {
+            const invoiceId = input.getAttribute('data-invoice-id');
+
+            // Get balance from the balance column (2 columns before payment)
+            const paymentTd = document.querySelector(`td:has(.invoice-payment-input[data-invoice-id="${invoiceId}"])`);
+            const balanceCell = paymentTd.previousElementSibling.previousElementSibling;
+            const balanceText = balanceCell.textContent.trim();
+            const balance = parseInt(balanceText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+
+            // Get reconcile amount from hidden input
+            const reconcileInput = document.querySelector(`.reconcile-invoice-input[data-invoice-id="${invoiceId}"]`);
+            const reconcileAmount = parseInt(reconcileInput.value) || 0;
+
+            // Calculate max allowed payment: Balance - Reconcile Amount
+            const maxPayment = balance - reconcileAmount;
+            const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
+
+            // Validate payment doesn't exceed (balance - reconcile)
+            if (paymentValue > maxPayment) {
+                // Highlight with error styling
+                input.classList.add('is-invalid');
+                input.style.borderColor = '#dc3545';
+
+                // Show warning
+                let warning = input.parentElement.querySelector('.payment-warning');
+                if (!warning) {
+                    warning = document.createElement('div');
+                    warning.className = 'payment-warning';
+                    warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
+                    input.parentElement.appendChild(warning);
+                }
+                warning.textContent = `Vượt quá Balance - Reconcile (${new Intl.NumberFormat('vi-VN').format(maxPayment)} VNĐ)`;
+            } else {
+                // Remove error styling
+                input.classList.remove('is-invalid');
+                input.style.borderColor = '';
+
+                // Remove warning
+                const warning = input.parentElement.querySelector('.payment-warning');
+                if (warning) {
+                    warning.remove();
+                }
+            }
+        }
+
+        // Reconcile Button - Open Modal
+        let currentInvoiceIdForReconcile = '';
+
+        function setupReconcileButtons() {
+            document.querySelectorAll('.reconcile-invoice-btn').forEach(btn => {
+                const invoiceId = btn.getAttribute('data-invoice-id');
+                const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
+
+                // Set initial state - disable if checkbox not checked
+                btn.disabled = !checkbox.checked;
+
+                // Update button state when checkbox changes
+                checkbox.addEventListener('change', function() {
+                    btn.disabled = !this.checked;
+                });
+
+                // Open reconcile modal on button click
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Only proceed if checkbox is checked
+                    if (checkbox.checked) {
+                        currentInvoiceIdForReconcile = invoiceId;
+
+                        // Update modal title
+                        document.getElementById('reconcileInvoiceId').textContent = invoiceId;
+
+                        // Populate reconcile table with Section 2 and Section 3 data
+                        populateReconcileTable();
+
+                        // Show modal (Bootstrap 5)
+                        const reconcileModal = new bootstrap.Modal(document.getElementById('reconcileModal'));
+                        reconcileModal.show();
+                    }
+                });
+            });
+        }
+
+        function populateReconcileTable() {
+            const advanceTableBody = document.getElementById('reconcileAdvanceTableBody');
+            const contractTableBody = document.getElementById('reconcileContractTableBody');
+            const contractSectionTitle = document.getElementById('contractSectionTitle');
+            advanceTableBody.innerHTML = '';
+            contractTableBody.innerHTML = '';
+
+            // SECTION 1: Advance payments (Section 2 - Cash in vouchers)
+            const advanceVouchersTableBody = document.getElementById('advanceVouchersTableBody');
+
+            if (advanceVouchersTableBody) {
+                const advanceVoucherRows = advanceVouchersTableBody.querySelectorAll('tr:not(:last-child)');
+
+                advanceVoucherRows.forEach(tr => {
+                    const codeCell = tr.querySelector('td:nth-child(2)');
+                    const cashInCode = codeCell.textContent.trim();
+                    const amountCell = tr.querySelector('td:nth-child(5)');
+                    const amountText = amountCell.textContent.trim();
+                    const totalValue = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+
+                    // Reconciled Value = Total Value - Balance (currently all are 0 since Total = Balance)
+                    const reconciledValue = 0;
+                    const balance = totalValue;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="advance" data-code="${cashInCode}" data-section="advance"></td>
+                        <td>${cashInCode}</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(totalValue)} VNĐ</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(reconciledValue)} VNĐ</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ</td>
+                        <td class="text-end">
+                            <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="advance" data-code="${cashInCode}" data-available="${balance}" data-section="advance" disabled>
+                        </td>
+                    `;
+                    advanceTableBody.appendChild(row);
+                });
+            }
+
+            // SECTION 2: Contract advance rows (Section 3 - Phiếu thu tạm ứng theo hợp đồng)
+            const contractTableBody2 = document.getElementById('contractTableBody');
+
+            if (contractTableBody2) {
+                const contractRows = contractTableBody2.querySelectorAll('tr:not(:last-child)');
+
+                contractRows.forEach(tr => {
+                    const codeCell = tr.querySelector('td:nth-child(2)');
+                    const ciCode = codeCell.textContent.trim();
+                    const amountCell = tr.querySelector('td:nth-child(5)');
+                    const amountText = amountCell.textContent.trim();
+                    const totalValue = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+
+                    // Reconciled Value = Total Value - Balance (currently all are 0 since Total = Balance)
+                    const reconciledValue = 0;
+                    const balance = totalValue;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="contract" data-code="${ciCode}" data-section="contract"></td>
+                        <td>${ciCode}</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(totalValue)} VNĐ</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(reconciledValue)} VNĐ</td>
+                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ</td>
+                        <td class="text-end">
+                            <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="contract" data-code="${ciCode}" data-available="${balance}" data-section="contract" disabled>
+                        </td>
+                    `;
+                    contractTableBody.appendChild(row);
+                });
+
+                // Update section title
+                contractSectionTitle.textContent = 'Danh sách phiếu thu tạm ứng theo hợp đồng';
+            } else {
+                contractSectionTitle.textContent = 'Danh sách phiếu thu tạm ứng theo hợp đồng';
+            }
+
+            // Setup reconcile item checkboxes
+            setupReconcileItemCheckboxes();
+
+            // Setup select all checkboxes for each section
+            const selectAllAdvance = document.getElementById('selectAllAdvance');
+            selectAllAdvance.onclick = null;
+            selectAllAdvance.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.reconcile-item-checkbox[data-section="advance"]:not(:disabled)').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+
+            const selectAllContract = document.getElementById('selectAllContract');
+            selectAllContract.onclick = null;
+            selectAllContract.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.reconcile-item-checkbox[data-section="contract"]:not(:disabled)').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+        }
+
+        function setupReconcileItemCheckboxes() {
+            document.querySelectorAll('.reconcile-item-checkbox:not(:disabled)').forEach(checkbox => {
+                checkbox.onclick = null; // Clear existing listeners
+                checkbox.addEventListener('change', function() {
+                    const source = this.getAttribute('data-source');
+                    const code = this.getAttribute('data-code');
+                    const amountInput = document.querySelector(`.reconcile-amount-input[data-source="${source}"][data-code="${code}"]`);
+                    const available = parseInt(amountInput.getAttribute('data-available')) || 0;
+
+                    if (this.checked) {
+                        amountInput.disabled = false;
+                        amountInput.max = available;
+                        amountInput.placeholder = `Max: ${new Intl.NumberFormat('vi-VN').format(available)}`;
+                        amountInput.focus();
+                    } else {
+                        amountInput.disabled = true;
+                        amountInput.value = '';
+                    }
+
+                    updateTotalReconcileAmount();
+                });
+            });
+
+            document.querySelectorAll('.reconcile-amount-input').forEach(input => {
+                input.oninput = null; // Clear existing listeners
+                input.addEventListener('input', function() {
+                    const available = parseInt(this.getAttribute('data-available')) || 0;
+                    const value = parseInt(this.value.replace(/,/g, '')) || 0;
+
+                    // Validate input doesn't exceed available
+                    if (value > available) {
+                        this.classList.add('is-invalid');
+                        this.style.borderColor = '#dc3545';
+                    } else {
+                        this.classList.remove('is-invalid');
+                        this.style.borderColor = '';
+                    }
+
+                    updateTotalReconcileAmount();
+                });
+            });
+        }
+
+        function updateTotalReconcileAmount() {
+            // Calculate subtotal for Advance section
+            let advanceSubtotal = 0;
+            document.querySelectorAll('.reconcile-amount-input[data-section="advance"]').forEach(input => {
+                if (!input.disabled && input.value) {
+                    advanceSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+                }
+            });
+            document.getElementById('subtotalAdvance').textContent = new Intl.NumberFormat('vi-VN').format(advanceSubtotal) + ' VNĐ';
+
+            // Calculate subtotal for Contract section
+            let contractSubtotal = 0;
+            document.querySelectorAll('.reconcile-amount-input[data-section="contract"]').forEach(input => {
+                if (!input.disabled && input.value) {
+                    contractSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+                }
+            });
+            document.getElementById('subtotalContract').textContent = new Intl.NumberFormat('vi-VN').format(contractSubtotal) + ' VNĐ';
+
+            // Calculate overall total
+            const total = advanceSubtotal + contractSubtotal;
+            document.getElementById('totalReconcileAmount').textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+        }
+
+        // Invoice Detail Button - Enable/Disable based on checkbox and Open Modal
+        let currentInvoiceIdForModal = '';
+
+        function setupInvoiceDetailButtons() {
+            document.querySelectorAll('.invoice-detail-btn').forEach(btn => {
+                const invoiceId = btn.getAttribute('data-invoice-id');
+                const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
+
+                // Set initial state
+                btn.disabled = !checkbox.checked;
+
+                // Update button state when checkbox changes
+                checkbox.addEventListener('change', function() {
+                    btn.disabled = !this.checked;
+                });
+
+                // Open modal on button click
+                btn.addEventListener('click', function(e) {
+                    // Allow click even on disabled button via JS
+                    const invoiceId = this.getAttribute('data-invoice-id');
+                    const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
+
+                    // Only proceed if row is actually selected
+                    if (checkbox.checked) {
+                        currentInvoiceIdForModal = invoiceId;
+                        document.getElementById('currentInvoiceId').textContent = currentInvoiceIdForModal;
+
+                        // Reset all checkboxes in modal
+                        document.querySelectorAll('#invoiceDetailTableBody .installment-checkbox').forEach(cb => {
+                            cb.checked = false;
+                            const paymentInput = cb.closest('tr').querySelector('.installment-payment-input');
+                            paymentInput.disabled = true;
+                        });
+
+                        // Show modal (Bootstrap 5)
+                        const invoiceDetailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
+                        invoiceDetailModal.show();
+                    }
+                });
+            });
+        }
+
+        // Installment Checkbox Logic in Modal
+        document.querySelectorAll('#invoiceDetailTableBody .installment-checkbox').forEach(checkbox => {
+            const hasIssueInvoice = checkbox.getAttribute('data-issue-invoice');
+
+            // If no issue invoice, keep checkbox disabled
+            if (!hasIssueInvoice) {
+                checkbox.disabled = true;
+                checkbox.parentElement.style.opacity = '0.5';
+                checkbox.parentElement.style.cursor = 'not-allowed';
+            }
+
+            checkbox.addEventListener('change', function() {
+                const paymentInput = this.closest('tr').querySelector('.installment-payment-input');
+
+                if (this.checked) {
+                    paymentInput.disabled = false;
+                    paymentInput.focus();
+                } else {
+                    paymentInput.disabled = true;
+                    paymentInput.value = '';
+                }
+
+                // Update total
+                updateInstallmentPaymentTotal();
+            });
+        });
+
+        // Function to calculate total installment payment
+        function updateInstallmentPaymentTotal() {
+            let totalPayment = 0;
+            document.querySelectorAll('#invoiceDetailTableBody .installment-payment-input').forEach(input => {
+                if (!input.disabled) {
+                    const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
+                    totalPayment += paymentValue;
+                }
+            });
+            const totalElement = document.getElementById('installmentPaymentTotal');
+            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+        }
+
+        // Installment Payment Input Validation - Cannot exceed Balance
+        document.querySelectorAll('#invoiceDetailTableBody .installment-payment-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const balance = parseInt(this.getAttribute('data-balance')) || 0;
+                const paymentValue = parseInt(this.value.replace(/,/g, '')) || 0;
+
+                // Validate payment doesn't exceed balance
+                if (paymentValue > balance) {
+                    // Highlight with error styling
+                    this.classList.add('is-invalid');
+                    this.style.borderColor = '#dc3545';
+
+                    // Show warning
+                    let warning = this.closest('tr').querySelector('.payment-warning');
+                    if (!warning) {
+                        warning = document.createElement('div');
+                        warning.className = 'payment-warning';
+                        warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
+                        this.closest('td').appendChild(warning);
+                    }
+                    warning.textContent = `Vượt quá Balance (${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ)`;
+                } else {
+                    // Remove error styling
+                    this.classList.remove('is-invalid');
+                    this.style.borderColor = '';
+
+                    // Remove warning
+                    const warning = this.closest('tr').querySelector('.payment-warning');
+                    if (warning) {
+                        warning.remove();
+                    }
+                }
+
+                // Update total
+                updateInstallmentPaymentTotal();
+            });
+
+            // Add max attribute for HTML5 validation
+            const balance = parseInt(input.getAttribute('data-balance')) || 0;
+            input.setAttribute('max', balance);
+            input.setAttribute('placeholder', `Max: ${new Intl.NumberFormat('vi-VN').format(balance)}`);
+        });
+
+        // Confirm Installment Selection
+        document.getElementById('confirmInstallmentBtn').addEventListener('click', function() {
+            let isValid = true;
+            let totalPayment = 0;
+
+            // Validate all checked installments don't exceed balance
+            document.querySelectorAll('#invoiceDetailTableBody .installment-checkbox:checked').forEach(checkbox => {
+                const paymentInput = checkbox.closest('tr').querySelector('.installment-payment-input');
+                if (paymentInput.value) {
+                    const balance = parseInt(paymentInput.getAttribute('data-balance')) || 0;
+                    const paymentValue = parseInt(paymentInput.value.replace(/,/g, '')) || 0;
+
+                    if (paymentValue > balance) {
+                        isValid = false;
+                    }
+
+                    totalPayment += paymentValue;
+                }
+            });
+
+            // Show error if validation fails
+            if (!isValid) {
+                alert('❌ Lỗi: Có ít nhất một đợt thanh toán vượt quá Balance!\n\nVui lòng kiểm tra lại các giá trị nhập.');
+                return;
+            }
+
+            // Update the main invoice payment input
+            const mainPaymentInput = document.querySelector(`.invoice-payment-input[data-invoice-id="${currentInvoiceIdForModal}"]`);
+            mainPaymentInput.value = totalPayment;
+
+            // Update the display (show payment value in table)
+            const displaySpan = document.querySelector(`.invoice-payment-display[data-invoice-id="${currentInvoiceIdForModal}"]`);
+            if (displaySpan) {
+                displaySpan.textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+            }
+
+            // Trigger input event to update total
+            mainPaymentInput.dispatchEvent(new Event('input'));
+
+            // Close modal (Bootstrap 5)
+            const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceDetailModal'));
+            if (modal) {
+                modal.hide();
+            }
+
+            // Update total payment in Section 5
+            updateSectionTotalPayment();
+        });
+
+        // Function to update total payment in Section 5 (sum of advance + contract + invoice payments)
+        function updateSectionTotalPayment() {
+            let totalPayment = 0;
+
+            // Sum advance voucher payments (Section 2)
+            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox:checked').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const amountCell = row.querySelector('td:nth-child(5)');
+                const amountText = amountCell.textContent.trim();
+                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+                totalPayment += amount;
+            });
+
+            // Sum contract advance payments (Section 3 - checked rows)
+            document.querySelectorAll('#contractTableBody .row-checkbox:checked').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const amountCell = row.querySelector('td:nth-child(5)');
+                const amountText = amountCell.textContent.trim();
+                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+                totalPayment += amount;
+            });
+
+            // Sum invoice payments (Section 4)
+            document.querySelectorAll('.invoice-payment-input').forEach(input => {
+                const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
+                totalPayment += paymentValue;
+            });
+
+            // Sum voucher payments (Section 6 - Employee advance repayments)
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-payment-input').forEach(input => {
+                const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
+                totalPayment += paymentValue;
+            });
+
+            const totalPaymentField = document.getElementById('totalPayment');
+            totalPaymentField.value = new Intl.NumberFormat('vi-VN').format(totalPayment);
+        }
+
+        // Contract Advance Checkbox Logic (Show/Hide Table)
+        contractAdvanceCheck.addEventListener('change', function() {
+            const contractTableWrapper = document.getElementById('contractTableWrapper');
+
+            if (this.checked) {
+                // Show table
+                contractTableWrapper.style.display = '';
+            } else {
+                // Hide table and reset all
+                contractTableWrapper.style.display = 'none';
+
+                // Uncheck all row checkboxes
+                document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+
+                // Disable and clear all payment inputs
+                document.querySelectorAll('.payment-input').forEach(input => {
+                    input.disabled = true;
+                    input.value = '';
+                });
+
+                // Reset select all checkbox
+                document.getElementById('selectAllRows').checked = false;
+
+                // Reset payment total
+                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+            }
+        });
+
+        // Function to show Section 6 and setup voucher table for selected employee
+        function showSection6ForEmployee(employeeId) {
+            const section6Container = document.getElementById('section6Container');
+            section6Container.style.display = '';
+
+            // Filter and display vouchers for this employee
+            // Note: In real implementation, this would fetch from backend filtered by employee + balance > 0
+            // For now, we'll show the sample vouchers
+            setupVoucherTable();
+        }
+
+        // Function to hide Section 6
+        function hideSection6() {
+            const section6Container = document.getElementById('section6Container');
+            section6Container.style.display = 'none';
+            resetVoucherTable();
+        }
+
+        // Function to reset voucher table
+        function resetVoucherTable() {
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            document.getElementById('selectAllVouchers').checked = false;
+            document.getElementById('voucherPaymentTotal').textContent = '0 VNĐ';
+        }
+
+        // Function to setup voucher table event listeners
+        function setupVoucherTable() {
+            // Voucher checkbox change logic
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-checkbox').forEach(checkbox => {
+                checkbox.onclick = null; // Clear existing listeners
+                checkbox.addEventListener('change', function() {
+                    const voucherId = this.getAttribute('data-voucher-id');
+                    const paymentInput = document.querySelector(`.voucher-payment-input[data-voucher-id="${voucherId}"]`);
+
+                    if (this.checked) {
+                        paymentInput.disabled = false;
+                        paymentInput.focus();
+                    } else {
+                        paymentInput.disabled = true;
+                        paymentInput.value = '';
+                    }
+
+                    updateVoucherPaymentTotal();
+                });
+            });
+
+            // Voucher payment input event listeners
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-payment-input').forEach(input => {
+                input.oninput = null; // Clear existing listeners
+                input.addEventListener('input', function() {
+                    const balance = parseInt(this.getAttribute('data-balance')) || 0;
+                    const paymentValue = parseInt(this.value.replace(/,/g, '')) || 0;
+
+                    // Validate payment doesn't exceed balance
+                    if (paymentValue > balance) {
+                        // Highlight with error styling
+                        this.classList.add('is-invalid');
+                        this.style.borderColor = '#dc3545';
+
+                        // Show warning
+                        let warning = this.closest('tr').querySelector('.payment-warning');
+                        if (!warning) {
+                            warning = document.createElement('div');
+                            warning.className = 'payment-warning';
+                            warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
+                            this.closest('td').appendChild(warning);
+                        }
+                        warning.textContent = `Vượt quá Balance (${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ)`;
+                    } else {
+                        // Remove error styling
+                        this.classList.remove('is-invalid');
+                        this.style.borderColor = '';
+
+                        // Remove warning
+                        const warning = this.closest('tr').querySelector('.payment-warning');
+                        if (warning) {
+                            warning.remove();
+                        }
+                    }
+
+                    updateVoucherPaymentTotal();
+                });
+
+                // Set max attribute for HTML5 validation
+                const balance = parseInt(input.getAttribute('data-balance')) || 0;
+                input.setAttribute('max', balance);
+                input.setAttribute('placeholder', `Max: ${new Intl.NumberFormat('vi-VN').format(balance)}`);
+            });
+
+            // Select All Vouchers checkbox logic
+            const selectAllVouchersCheckbox = document.getElementById('selectAllVouchers');
+            selectAllVouchersCheckbox.onclick = null;
+            selectAllVouchersCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('#advanceVoucherTableBody .voucher-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                    checkbox.dispatchEvent(new Event('change'));
+                });
+            });
+
+            updateVoucherPaymentTotal();
+        }
+
+        // Function to calculate total voucher payment
+        function updateVoucherPaymentTotal() {
+            let totalPayment = 0;
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-payment-input').forEach(input => {
+                if (!input.disabled) {
+                    const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
+                    totalPayment += paymentValue;
+                }
+            });
+            document.getElementById('voucherPaymentTotal').textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+
+            // Update Section 5 total (add voucher payments to section total)
+            updateSectionTotalPayment();
+        }
+
+        // Select All Rows Checkbox Logic
+        document.getElementById('selectAllRows').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+                // Trigger change event to update payment inputs
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Function to calculate and update payment total
+        function updatePaymentTotal() {
+            let total = 0;
+
+            // Sum checked rows from contract table (Section 3)
+            document.querySelectorAll('#contractTableBody .row-checkbox:checked').forEach(checkbox => {
+                const row = checkbox.closest('tr');
+                const amountCell = row.querySelector('td:nth-child(5)');
+                const amountText = amountCell.textContent.trim();
+                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
+                total += amount;
+            });
+
+            const totalElement = document.getElementById('paymentTotal');
+            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+        }
+
+        // Individual Row Checkbox Logic
+        document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const rowId = this.getAttribute('data-row-id');
+                const paymentInput = document.querySelector(`.payment-input[data-row-id="${rowId}"]`);
+
+                if (this.checked) {
+                    // Enable payment input
+                    paymentInput.disabled = false;
+                    paymentInput.focus();
+                } else {
+                    // Disable and clear payment input
+                    paymentInput.disabled = true;
+                    paymentInput.value = '';
+                }
+
+                // Update select all checkbox state
+                const allChecked = Array.from(document.querySelectorAll('#contractTableBody .row-checkbox')).every(cb => cb.checked);
+                const someChecked = Array.from(document.querySelectorAll('#contractTableBody .row-checkbox')).some(cb => cb.checked);
+
+                const selectAllCheckbox = document.getElementById('selectAllRows');
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+
+                // Update payment total
+                updatePaymentTotal();
+                updateSectionTotalPayment();
+            });
+            });
+
+            // Add event listeners to payment inputs for real-time total calculation
+            document.querySelectorAll('.payment-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    updatePaymentTotal();
+                    updateSectionTotalPayment();
+                });
+            });
+
+            // Payment Method Modal Validation
+            const cashAmountInput = document.getElementById('cashAmount');
+            const bankAmountInput = document.getElementById('bankAmount');
+            const totalPaymentField = document.getElementById('totalPayment');
+            const confirmPaymentMethodBtn = document.getElementById('confirmPaymentMethodBtn');
+            const paymentMethodError = document.getElementById('paymentMethodError');
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Function to validate payment method
+            function validatePaymentMethod() {
+                const cashAmount = parseInt(cashAmountInput.value.replace(/[,.]/g, '')) || 0;
+                const bankAmount = parseInt(bankAmountInput.value.replace(/[,.]/g, '')) || 0;
+                const totalPayment = parseInt(totalPaymentField.value.replace(/[,.]/g, '')) || 0;
+
+                const sumAmount = cashAmount + bankAmount;
+
+                if (sumAmount === 0 && totalPayment === 0) {
+                    paymentMethodError.style.display = 'none';
+                    return true;
+                }
+
+                if (sumAmount !== totalPayment) {
+                    paymentMethodError.style.display = '';
+                    errorMessage.textContent = `Tổng Cash + Bank (${new Intl.NumberFormat('vi-VN').format(sumAmount)}) phải bằng Total payment (${new Intl.NumberFormat('vi-VN').format(totalPayment)})`;
+                    confirmPaymentMethodBtn.disabled = true;
+                    return false;
+                } else {
+                    paymentMethodError.style.display = 'none';
+                    confirmPaymentMethodBtn.disabled = false;
+                    return true;
+                }
+            }
+
+            // Add real-time validation to input fields
+            cashAmountInput.addEventListener('input', validatePaymentMethod);
+            bankAmountInput.addEventListener('input', validatePaymentMethod);
+            cashAmountInput.addEventListener('change', validatePaymentMethod);
+            bankAmountInput.addEventListener('change', validatePaymentMethod);
+            cashAmountInput.addEventListener('blur', validatePaymentMethod);
+            bankAmountInput.addEventListener('blur', validatePaymentMethod);
+
+            // Validate when modal is shown
+            document.getElementById('paymentMethodModal').addEventListener('show.bs.modal', function() {
+                // Clear button disabled state initially
+                confirmPaymentMethodBtn.disabled = false;
+                validatePaymentMethod();
+            });
+
+            // Handle OK button click
+            confirmPaymentMethodBtn.addEventListener('click', function() {
+                if (validatePaymentMethod()) {
+                    // Close modal on success
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('paymentMethodModal'));
+                    if (modal) modal.hide();
+                }
+            });
+
+            // Confirm Reconcile Selection
+            document.getElementById('confirmReconcileBtn').addEventListener('click', function() {
+                let totalReconcile = 0;
+
+                // Calculate total reconciliation amount
+                document.querySelectorAll('.reconcile-amount-input').forEach(input => {
+                    if (!input.disabled && input.value) {
+                        const value = parseInt(input.value.replace(/,/g, '')) || 0;
+                        totalReconcile += value;
+                    }
+                });
+
+                // Update the reconcile display in the table
+                const reconcileDisplay = document.querySelector(`.reconcile-display[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
+                if (reconcileDisplay) {
+                    if (totalReconcile > 0) {
+                        reconcileDisplay.textContent = new Intl.NumberFormat('vi-VN').format(totalReconcile) + ' VNĐ';
+                    } else {
+                        reconcileDisplay.textContent = '-';
+                    }
+                }
+
+                // Store reconciliation value in hidden input
+                const reconcileInput = document.querySelector(`.reconcile-invoice-input[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
+                if (reconcileInput) {
+                    reconcileInput.value = totalReconcile;
+                }
+
+                // Re-validate payment input with new reconcile amount
+                const paymentInput = document.querySelector(`.invoice-payment-input[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
+                if (paymentInput) {
+                    validateInvoicePayment(paymentInput);
+                }
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reconcileModal'));
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Update section total
+                updateSectionTotalPayment();
+            });
+
+            // Set today's date as default and setup invoice buttons
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('postingDate').value = today;
+            document.getElementById('documentDate').value = today;
+
+            // Setup invoice detail buttons after DOM is fully loaded
+            setupInvoiceDetailButtons();
+
+            // Setup reconcile buttons after DOM is fully loaded
+            setupReconcileButtons();
+        });
+    </script>
+</body>
+</html>
