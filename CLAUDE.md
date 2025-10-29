@@ -175,6 +175,59 @@ HRM/Payroll/
 - Maintain professional technical tone
 - Respect the established documentation structure
 
+## Prototype Coding Standards (CashIn Form)
+
+### NUMBER FORMAT RULES - MANDATORY
+**Rule: MUST be consistent - no mixing comma & dot**
+
+**Display Numbers (HTML/UI):**
+- Format: `10,000,000 VNĐ` (comma separator)
+- Use `new Intl.NumberFormat('vi-VN').format(value)` for formatting
+- Example: `<td class="text-end">25,000,000</td>`
+
+**Data Attributes (HTML):**
+- Format: `data-available="8000000"` (NO separator, plain integer)
+- Example: `<input data-available="8000000">`
+
+**JavaScript Parsing:**
+- Remove comma: `.replace(/,/g, '')`
+- Parse to integer: `parseInt(cleanValue)`
+- Example: `const value = parseInt(input.value.replace(/,/g, '')) || 0;`
+
+**FORBIDDEN - NEVER DO:**
+- ❌ `10.000.000` (dot separator - European format)
+- ❌ `data-available="10,000,000"` (comma in data attribute)
+- ❌ `parseInt("10,000,000")` (direct parse with comma)
+
+### VALIDATION PATTERN - MUST USE
+**Pattern for reconcile/installment inputs:**
+```javascript
+// Validate input and show error if exceeds balance
+function validateInput(input) {
+    const balance = parseInt(input.getAttribute('data-balance')) || 0;
+    const cleanValue = (input.value || '').toString().replace(/,/g, '');
+    const enteredValue = parseInt(cleanValue) || 0;
+
+    const errorContainer = input.closest('div').querySelector('.error-element');
+    if (enteredValue > balance) {
+        // Show error - don't auto-fix
+        errorContainer.style.display = 'block';
+        input.style.borderColor = '#dc3545';
+    } else {
+        // Clear error
+        errorContainer.style.display = 'none';
+        input.style.borderColor = '';
+    }
+}
+```
+
+### KEY PRINCIPLES FOR AGENT
+1. **NEVER add validation logic without explicit user request**
+2. **Keep validation SIMPLE - show error, don't auto-fix**
+3. **Always reference existing working patterns** before adding new code
+4. **Follow the simplest working pattern** (look at Payment modal as reference)
+5. **When in doubt, ask user for clarification** before coding
+
 ## Success Metrics
 - Documentation completeness: 100% ✅
 - Stakeholder alignment: In progress

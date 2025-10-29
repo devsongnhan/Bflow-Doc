@@ -497,53 +497,77 @@
                 <div id="section3Container">
                     <div class="section-title">Khách hàng tạm ứng theo Hợp đồng (không có hóa đơn)</div>
 
+                    <!-- Field 3.1: Checkbox -->
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="contractAdvanceCheck">
                             <label class="form-check-label" for="contractAdvanceCheck">
-                                Danh sách phiếu thu tạm ứng theo hợp đồng (không có hóa đơn)
+                                Khách hàng tạm ứng theo Hợp đồng (không có hóa đơn)
                             </label>
                         </div>
                     </div>
 
-                    <!-- Contract Advance Vouchers Table - Hidden by default, shows when checkbox is checked -->
+                    <!-- Field 3.2: Contract Advance Table - Hidden by default, shows when checkbox is checked -->
                     <div class="table-responsive mb-3" id="contractTableWrapper" style="display: none;">
                         <table class="table table-sm table-bordered" id="contractTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th style="width: 40px;"><input type="checkbox" id="selectAllRows"></th>
-                                    <th>Cash in Code</th>
-                                    <th>Issued Date</th>
+                                    <th style="width: 40px;"><input type="checkbox" id="selectAllContractRows"></th>
+                                    <th>SO Code</th>
+                                    <th>Installment</th>
                                     <th>Description</th>
-                                    <th class="text-end">Amount</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Balance</th>
+                                    <th class="text-end">Payment</th>
                                 </tr>
                             </thead>
                             <tbody id="contractTableBody">
                                 <tr>
-                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI101"></td>
-                                    <td>CI101</td>
-                                    <td>2/10/2024</td>
-                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td><input type="checkbox" class="contract-row-checkbox" data-row-id="SO0001"></td>
+                                    <td>SO0001</td>
+                                    <td>Đợt 1</td>
+                                    <td>Tạm ứng sau kỳ HD</td>
                                     <td class="text-end">10,000,000</td>
+                                    <td class="text-end">10,000,000</td>
+                                    <td class="text-end">
+                                        <div>
+                                            <input type="number" class="form-control form-control-sm contract-payment-input" data-row-id="SO0001" data-balance="10000000" placeholder="0" disabled min="0" oninput="validateContractPayment(this)">
+                                            <small class="text-danger contract-error" style="display:none;"><span class="error-msg"></span></small>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI102"></td>
-                                    <td>CI102</td>
-                                    <td>6/10/2024</td>
-                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td><input type="checkbox" class="contract-row-checkbox" data-row-id="SO0012"></td>
+                                    <td>SO0012</td>
+                                    <td>Đợt 1</td>
+                                    <td>Tạm ứng sau kỳ HD</td>
                                     <td class="text-end">20,000,000</td>
+                                    <td class="text-end">20,000,000</td>
+                                    <td class="text-end">
+                                        <div>
+                                            <input type="number" class="form-control form-control-sm contract-payment-input" data-row-id="SO0012" data-balance="20000000" placeholder="0" disabled oninput="validateContractPayment(this)">
+                                            <small class="text-danger contract-error" style="display:none;"><span class="error-msg"></span></small>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
-                                    <td><input type="checkbox" class="row-checkbox" data-row-id="CI103"></td>
-                                    <td>CI103</td>
-                                    <td>12/10/2024</td>
-                                    <td>Phiếu thu tạm ứng theo hợp đồng</td>
+                                    <td><input type="checkbox" class="contract-row-checkbox" data-row-id="SO0034"></td>
+                                    <td>SO0034</td>
+                                    <td>Đợt 1</td>
+                                    <td>Tạm ứng sau kỳ HD</td>
+                                    <td class="text-end">30,000,000</td>
                                     <td class="text-end">10,000,000</td>
+                                    <td class="text-end">
+                                        <div>
+                                            <input type="number" class="form-control form-control-sm contract-payment-input" data-row-id="SO0034" data-balance="10000000" placeholder="0" disabled oninput="validateContractPayment(this)">
+                                            <small class="text-danger contract-error" style="display:none;"><span class="error-msg"></span></small>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <!-- Total Row -->
                                 <tr style="background-color: #f0f0f0; font-weight: 600; border-top: 2px solid #007bff;">
-                                    <td colspan="4" class="text-end">TỔNG CỘNG (Total)</td>
-                                    <td class="text-end" id="paymentTotal">0 VNĐ</td>
+                                    <td colspan="6" class="text-end">TỔNG CỘNG (Total)</td>
+                                    <td class="text-end" id="contractPaymentTotal">10,000,000 VNĐ</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -589,12 +613,12 @@
                                     <td class="text-end">25,000,000</td>
                                     <td class="text-end">
                                         <span class="reconcile-display" data-invoice-id="AR0001">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0001" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0001" data-bs-toggle="modal" data-bs-target="#reconcileModal" style="margin-left: 5px;" disabled>...</button>
                                         <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0001">
                                     </td>
                                     <td class="text-end">
                                         <span class="invoice-payment-display" data-invoice-id="AR0001">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0001" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0001" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal" style="margin-left: 5px;">...</button>
                                         <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0001">
                                     </td>
                                     <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0001" placeholder="%" disabled></td>
@@ -608,12 +632,12 @@
                                     <td class="text-end">15,000,000</td>
                                     <td class="text-end">
                                         <span class="reconcile-display" data-invoice-id="AR0012">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0012" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0012" data-bs-toggle="modal" data-bs-target="#reconcileModal" style="margin-left: 5px;" disabled>...</button>
                                         <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0012">
                                     </td>
                                     <td class="text-end">
                                         <span class="invoice-payment-display" data-invoice-id="AR0012">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0012" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0012" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal" style="margin-left: 5px;">...</button>
                                         <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0012">
                                     </td>
                                     <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0012" placeholder="%" disabled></td>
@@ -627,12 +651,12 @@
                                     <td class="text-end">10,000,000</td>
                                     <td class="text-end">
                                         <span class="reconcile-display" data-invoice-id="AR0034">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0034" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0034" data-bs-toggle="modal" data-bs-target="#reconcileModal" style="margin-left: 5px;" disabled>...</button>
                                         <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0034">
                                     </td>
                                     <td class="text-end">
                                         <span class="invoice-payment-display" data-invoice-id="AR0034">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0034" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0034" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal" style="margin-left: 5px;">...</button>
                                         <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0034">
                                     </td>
                                     <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0034" placeholder="%" disabled></td>
@@ -646,12 +670,12 @@
                                     <td class="text-end">14,000,000</td>
                                     <td class="text-end">
                                         <span class="reconcile-display" data-invoice-id="AR0143">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0143" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0143" data-bs-toggle="modal" data-bs-target="#reconcileModal" style="margin-left: 5px;" disabled>...</button>
                                         <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0143">
                                     </td>
                                     <td class="text-end">
                                         <span class="invoice-payment-display" data-invoice-id="AR0143">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0143" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0143" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal" style="margin-left: 5px;">...</button>
                                         <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0143">
                                     </td>
                                     <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0143" placeholder="%" disabled></td>
@@ -665,12 +689,12 @@
                                     <td class="text-end">20,000,000</td>
                                     <td class="text-end">
                                         <span class="reconcile-display" data-invoice-id="AR0159">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0159" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary reconcile-invoice-btn" data-invoice-id="AR0159" data-bs-toggle="modal" data-bs-target="#reconcileModal" style="margin-left: 5px;" disabled>...</button>
                                         <input type="hidden" class="reconcile-invoice-input" data-invoice-id="AR0159">
                                     </td>
                                     <td class="text-end">
                                         <span class="invoice-payment-display" data-invoice-id="AR0159">-</span>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0159" style="margin-left: 5px;">...</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary invoice-detail-btn" data-invoice-id="AR0159" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal" style="margin-left: 5px;">...</button>
                                         <input type="hidden" class="invoice-payment-input" data-invoice-id="AR0159">
                                     </td>
                                     <td><input type="number" class="form-control form-control-sm invoice-discount-input" data-invoice-id="AR0159" placeholder="%" disabled></td>
@@ -882,7 +906,12 @@
                                     <td class="text-end">35,000,000</td>
                                     <td class="text-end">25,000,000</td>
                                     <td class="text-end">10,000,000</td>
-                                    <td><input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D2" data-balance="10000000" disabled></td>
+                                    <td>
+                                        <div>
+                                            <input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D2" data-balance="10000000" disabled oninput="validateInstallmentInput(this)">
+                                            <small class="text-danger installment-error" style="display:none;"><span class="error-msg"></span></small>
+                                        </div>
+                                    </td>
                                     <td>7/2/2024</td>
                                 </tr>
                                 <tr>
@@ -894,7 +923,12 @@
                                     <td class="text-end">40,000,000</td>
                                     <td class="text-end">25,000,000</td>
                                     <td class="text-end">15,000,000</td>
-                                    <td><input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D3" data-balance="15000000" disabled></td>
+                                    <td>
+                                        <div>
+                                            <input type="number" class="form-control form-control-sm installment-payment-input" data-installment-id="D3" data-balance="15000000" disabled oninput="validateInstallmentInput(this)">
+                                            <small class="text-danger installment-error" style="display:none;"><span class="error-msg"></span></small>
+                                        </div>
+                                    </td>
                                     <td>2/3/2024</td>
                                 </tr>
                                 <!-- Total Row -->
@@ -1011,7 +1045,19 @@
                                     </tr>
                                 </thead>
                                 <tbody id="reconcileAdvanceTableBody">
-                                    <!-- Will be populated dynamically -->
+                                    <tr>
+                                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="advance" data-code="ADV-2.1" data-section="advance" onchange="toggleReconcileInput(this)"></td>
+                                        <td>ADV-2.1</td>
+                                        <td class="text-end">8,000,000 VNĐ</td>
+                                        <td class="text-end">0 VNĐ</td>
+                                        <td class="text-end">8,000,000 VNĐ</td>
+                                        <td class="text-end">
+                                            <div>
+                                                <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="advance" data-code="ADV-2.1" data-available="8000000" data-section="advance" disabled oninput="validateReconcileInput(this); updateTotalReconcileAmount()">
+                                                <small class="text-danger reconcile-error" style="display:none;"><span class="error-msg"></span></small>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                                 <tfoot style="background-color: #f9f9f9; font-weight: 600;">
                                     <tr>
@@ -1039,7 +1085,19 @@
                                     </tr>
                                 </thead>
                                 <tbody id="reconcileContractTableBody">
-                                    <!-- Will be populated dynamically -->
+                                    <tr>
+                                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="contract" data-code="SO0001" data-section="contract" onchange="toggleReconcileInput(this)"></td>
+                                        <td>SO0001</td>
+                                        <td class="text-end">10,000,000 VNĐ</td>
+                                        <td class="text-end">0 VNĐ</td>
+                                        <td class="text-end">10,000,000 VNĐ</td>
+                                        <td class="text-end">
+                                            <div>
+                                                <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="contract" data-code="SO0001" data-available="10000000" data-section="contract" disabled oninput="validateReconcileInput(this); updateTotalReconcileAmount()">
+                                                <small class="text-danger reconcile-error" style="display:none;"><span class="error-msg"></span></small>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                                 <tfoot style="background-color: #f9f9f9; font-weight: 600;">
                                     <tr>
@@ -1058,7 +1116,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="confirmReconcileBtn">Xác nhận</button>
+                    <button type="button" class="btn btn-primary" id="confirmReconcileBtn" data-bs-dismiss="modal">Xác nhận</button>
                 </div>
             </div>
         </div>
@@ -1126,6 +1184,121 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Helper function to format number with comma separator - GLOBAL SCOPE
+        function formatNumberVN(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // Helper function to toggle reconcile input field - GLOBAL SCOPE
+        function toggleReconcileInput(checkbox) {
+            const row = checkbox.closest('tr');
+            const input = row.querySelector('input[type="number"]');
+
+            if (!input) return;
+
+            if (checkbox.checked) {
+                input.disabled = false;
+                input.focus();
+            } else {
+                input.disabled = true;
+                input.value = '';
+            }
+        }
+
+        // Update reconcile total amounts - GLOBAL SCOPE
+        function updateTotalReconcileAmount() {
+            // Calculate subtotal for Advance section
+            let advanceSubtotal = 0;
+            document.querySelectorAll('.reconcile-amount-input[data-section="advance"]').forEach(input => {
+                if (!input.disabled && input.value) {
+                    advanceSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+                }
+            });
+            const advanceElement = document.getElementById('subtotalAdvance');
+            if (advanceElement) {
+                advanceElement.textContent = formatNumberVN(advanceSubtotal) + ' VNĐ';
+            }
+
+            // Calculate subtotal for Contract section
+            let contractSubtotal = 0;
+            document.querySelectorAll('.reconcile-amount-input[data-section="contract"]').forEach(input => {
+                if (!input.disabled && input.value) {
+                    contractSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+                }
+            });
+            const contractElement = document.getElementById('subtotalContract');
+            if (contractElement) {
+                contractElement.textContent = formatNumberVN(contractSubtotal) + ' VNĐ';
+            }
+
+            // Calculate overall total
+            const total = advanceSubtotal + contractSubtotal;
+            const totalElement = document.getElementById('totalReconcileAmount');
+            if (totalElement) {
+                totalElement.textContent = formatNumberVN(total) + ' VNĐ';
+            }
+        }
+
+        // Validate reconcile input and show error if exceeds available
+        function validateReconcileInput(input) {
+            const availableStr = input.getAttribute('data-available');
+            const available = parseInt(availableStr) || 0;
+            const cleanValue = (input.value || '').toString().replace(/,/g, '');
+            const enteredValue = parseInt(cleanValue) || 0;
+
+            const errorContainer = input.closest('div').querySelector('.reconcile-error');
+            const errorMsg = errorContainer.querySelector('.error-msg');
+
+            if (enteredValue > available) {
+                input.style.borderColor = '#dc3545';
+                errorContainer.style.display = 'block';
+                errorMsg.textContent = `⚠️ Vượt quá Balance (${formatNumberVN(available)} VNĐ)`;
+            } else {
+                input.style.borderColor = '';
+                errorContainer.style.display = 'none';
+            }
+        }
+
+        // Validate installment input and show error if exceeds balance
+        function validateInstallmentInput(input) {
+            const balanceStr = input.getAttribute('data-balance');
+            const balance = parseInt(balanceStr) || 0;
+            const cleanValue = (input.value || '').toString().replace(/,/g, '');
+            const enteredValue = parseInt(cleanValue) || 0;
+
+            const errorContainer = input.closest('div').querySelector('.installment-error');
+            const errorMsg = errorContainer.querySelector('.error-msg');
+
+            if (enteredValue > balance) {
+                input.style.borderColor = '#dc3545';
+                errorContainer.style.display = 'block';
+                errorMsg.textContent = `⚠️ Vượt quá Balance (${formatNumberVN(balance)} VNĐ)`;
+            } else {
+                input.style.borderColor = '';
+                errorContainer.style.display = 'none';
+            }
+        }
+
+        // Validate contract payment input and show error if exceeds balance
+        function validateContractPayment(input) {
+            const balanceStr = input.getAttribute('data-balance');
+            const balance = parseInt(balanceStr) || 0;
+            const cleanValue = (input.value || '').toString().replace(/,/g, '');
+            const enteredValue = parseInt(cleanValue) || 0;
+
+            const errorContainer = input.closest('div').querySelector('.contract-error');
+            const errorMsg = errorContainer.querySelector('.error-msg');
+
+            if (enteredValue > balance) {
+                input.style.borderColor = '#dc3545';
+                errorContainer.style.display = 'block';
+                errorMsg.textContent = `⚠️ Vượt quá Balance (${formatNumberVN(balance)} VNĐ)`;
+            } else {
+                input.style.borderColor = '';
+                errorContainer.style.display = 'none';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Toggle sidebar submenu
             function toggleSubmenu(element) {
@@ -1156,8 +1329,6 @@
             const contractTable = document.getElementById('contractTable');
             const invoicePaymentCheck = document.getElementById('invoicePaymentCheck');
             const invoiceTable = document.getElementById('invoiceTable');
-            const paymentInputs = document.querySelectorAll('.payment-input');
-            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
 
             // Initialize - hide sections 2, 3, 4 by default
             section2Container.style.display = 'none';
@@ -1183,6 +1354,8 @@
 
                 // Show Section 4
                 section4Container.style.display = '';
+                invoicePaymentCheck.checked = false;
+                resetInvoiceTable();
 
                 // Hide Section 6
                 hideSection6();
@@ -1204,9 +1377,9 @@
                 // Hide Section 3 - Contract Advances
                 section3Container.style.display = 'none';
                 contractAdvanceCheck.checked = false;
-                const contractTableWrapper = document.getElementById('contractTableWrapper');
-                if (contractTableWrapper) contractTableWrapper.style.display = 'none';
-                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+                document.querySelectorAll('#contractTableBody .contract-row-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('selectAllContractRows').checked = false;
+                document.getElementById('contractPaymentTotal').textContent = '0 VNĐ';
 
                 // Hide Section 4 - Invoice Payments
                 section4Container.style.display = 'none';
@@ -1232,8 +1405,9 @@
                 // Hide Section 3
                 section3Container.style.display = 'none';
                 contractAdvanceCheck.checked = false;
-                resetContractTable();
-                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+                document.querySelectorAll('#contractTableBody .contract-row-checkbox').forEach(cb => cb.checked = false);
+                document.getElementById('selectAllContractRows').checked = false;
+                document.getElementById('contractPaymentTotal').textContent = '0 VNĐ';
 
                 // Hide Section 4
                 section4Container.style.display = 'none';
@@ -1250,8 +1424,8 @@
         // Function to reset contract table
         function resetContractTable() {
             contractTable.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = false);
-            paymentInputs.forEach(input => input.disabled = true);
-            document.getElementById('selectAllRows').checked = false;
+            document.querySelectorAll('#contractTableBody .contract-payment-input').forEach(input => input.disabled = true);
+            document.getElementById('selectAllContractRows').checked = false;
         }
 
         // Function to reset invoice table
@@ -1274,7 +1448,7 @@
             });
 
             const totalElement = document.getElementById('invoicePaymentTotal');
-            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
+            totalElement.textContent = formatNumberVN(total) + ' VNĐ';
         }
 
         // Customer selection functionality
@@ -1387,9 +1561,10 @@
                 // Hide table and reset all
                 invoiceTableWrapper.style.display = 'none';
 
-                // Uncheck all row checkboxes
+                // Uncheck all row checkboxes and trigger change event
                 document.querySelectorAll('#invoiceTableBody .invoice-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
+                    checkbox.dispatchEvent(new Event('change'));
                 });
 
                 // Disable and clear all payment and discount inputs
@@ -1426,18 +1601,24 @@
                 const invoiceId = this.getAttribute('data-invoice-id');
                 const paymentInput = document.querySelector(`.invoice-payment-input[data-invoice-id="${invoiceId}"]`);
                 const discountInput = document.querySelector(`.invoice-discount-input[data-invoice-id="${invoiceId}"]`);
+                const reconcileBtn = document.querySelector(`.reconcile-invoice-btn[data-invoice-id="${invoiceId}"]`);
+                const detailBtn = document.querySelector(`.invoice-detail-btn[data-invoice-id="${invoiceId}"]`);
 
                 if (this.checked) {
-                    // Enable payment and discount inputs
+                    // Enable payment, discount inputs and buttons
                     paymentInput.disabled = false;
                     discountInput.disabled = false;
+                    if (reconcileBtn) reconcileBtn.disabled = false;
+                    if (detailBtn) detailBtn.disabled = false;
                     paymentInput.focus();
                 } else {
-                    // Disable and clear payment and discount inputs
+                    // Disable and clear payment, discount inputs and buttons
                     paymentInput.disabled = true;
                     paymentInput.value = '';
                     discountInput.disabled = true;
                     discountInput.value = '';
+                    if (reconcileBtn) reconcileBtn.disabled = true;
+                    if (detailBtn) detailBtn.disabled = true;
                 }
 
                 // Update select all checkbox state
@@ -1448,7 +1629,7 @@
                 selectAllCheckbox.checked = allChecked;
                 selectAllCheckbox.indeterminate = someChecked && !allChecked;
 
-                // Update invoice payment total
+                // Update payment total
                 updateInvoicePaymentTotal();
             });
         });
@@ -1458,7 +1639,6 @@
             input.addEventListener('input', function() {
                 validateInvoicePayment(this);
                 updateInvoicePaymentTotal();
-                updateSectionTotalPayment();
             });
         });
 
@@ -1494,7 +1674,7 @@
                     warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
                     input.parentElement.appendChild(warning);
                 }
-                warning.textContent = `Vượt quá Balance - Reconcile (${new Intl.NumberFormat('vi-VN').format(maxPayment)} VNĐ)`;
+                warning.textContent = `Vượt quá Balance - Reconcile (${formatNumberVN(maxPayment)} VNĐ)`;
             } else {
                 // Remove error styling
                 input.classList.remove('is-invalid');
@@ -1512,245 +1692,55 @@
         let currentInvoiceIdForReconcile = '';
 
         function setupReconcileButtons() {
-            document.querySelectorAll('.reconcile-invoice-btn').forEach(btn => {
-                const invoiceId = btn.getAttribute('data-invoice-id');
-                const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
+            const reconcileModal = document.getElementById('reconcileModal');
 
-                // Set initial state - disable if checkbox not checked
-                btn.disabled = !checkbox.checked;
-
-                // Update button state when checkbox changes
-                checkbox.addEventListener('change', function() {
-                    btn.disabled = !this.checked;
-                });
-
-                // Open reconcile modal on button click
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // Only proceed if checkbox is checked
-                    if (checkbox.checked) {
-                        currentInvoiceIdForReconcile = invoiceId;
-
-                        // Update modal title
-                        document.getElementById('reconcileInvoiceId').textContent = invoiceId;
-
-                        // Populate reconcile table with Section 2 and Section 3 data
-                        populateReconcileTable();
-
-                        // Show modal (Bootstrap 5)
-                        const reconcileModal = new bootstrap.Modal(document.getElementById('reconcileModal'));
-                        reconcileModal.show();
-                    }
-                });
-            });
-        }
-
-        function populateReconcileTable() {
-            const advanceTableBody = document.getElementById('reconcileAdvanceTableBody');
-            const contractTableBody = document.getElementById('reconcileContractTableBody');
-            const contractSectionTitle = document.getElementById('contractSectionTitle');
-            advanceTableBody.innerHTML = '';
-            contractTableBody.innerHTML = '';
-
-            // SECTION 1: Advance payments (Section 2 - Cash in vouchers)
-            const advanceVouchersTableBody = document.getElementById('advanceVouchersTableBody');
-
-            if (advanceVouchersTableBody) {
-                const advanceVoucherRows = advanceVouchersTableBody.querySelectorAll('tr:not(:last-child)');
-
-                advanceVoucherRows.forEach(tr => {
-                    const codeCell = tr.querySelector('td:nth-child(2)');
-                    const cashInCode = codeCell.textContent.trim();
-                    const amountCell = tr.querySelector('td:nth-child(5)');
-                    const amountText = amountCell.textContent.trim();
-                    const totalValue = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-
-                    // Reconciled Value = Total Value - Balance (currently all are 0 since Total = Balance)
-                    const reconciledValue = 0;
-                    const balance = totalValue;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="advance" data-code="${cashInCode}" data-section="advance"></td>
-                        <td>${cashInCode}</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(totalValue)} VNĐ</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(reconciledValue)} VNĐ</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ</td>
-                        <td class="text-end">
-                            <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="advance" data-code="${cashInCode}" data-available="${balance}" data-section="advance" disabled>
-                        </td>
-                    `;
-                    advanceTableBody.appendChild(row);
-                });
-            }
-
-            // SECTION 2: Contract advance rows (Section 3 - Phiếu thu tạm ứng theo hợp đồng)
-            const contractTableBody2 = document.getElementById('contractTableBody');
-
-            if (contractTableBody2) {
-                const contractRows = contractTableBody2.querySelectorAll('tr:not(:last-child)');
-
-                contractRows.forEach(tr => {
-                    const codeCell = tr.querySelector('td:nth-child(2)');
-                    const ciCode = codeCell.textContent.trim();
-                    const amountCell = tr.querySelector('td:nth-child(5)');
-                    const amountText = amountCell.textContent.trim();
-                    const totalValue = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-
-                    // Reconciled Value = Total Value - Balance (currently all are 0 since Total = Balance)
-                    const reconciledValue = 0;
-                    const balance = totalValue;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><input type="checkbox" class="reconcile-item-checkbox" data-source="contract" data-code="${ciCode}" data-section="contract"></td>
-                        <td>${ciCode}</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(totalValue)} VNĐ</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(reconciledValue)} VNĐ</td>
-                        <td class="text-end">${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ</td>
-                        <td class="text-end">
-                            <input type="number" class="form-control form-control-sm reconcile-amount-input" data-source="contract" data-code="${ciCode}" data-available="${balance}" data-section="contract" disabled>
-                        </td>
-                    `;
-                    contractTableBody.appendChild(row);
-                });
-
-                // Update section title
-                contractSectionTitle.textContent = 'Danh sách phiếu thu tạm ứng theo hợp đồng';
-            } else {
-                contractSectionTitle.textContent = 'Danh sách phiếu thu tạm ứng theo hợp đồng';
-            }
-
-            // Setup reconcile item checkboxes
-            setupReconcileItemCheckboxes();
-
-            // Setup select all checkboxes for each section
-            const selectAllAdvance = document.getElementById('selectAllAdvance');
-            selectAllAdvance.onclick = null;
-            selectAllAdvance.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.reconcile-item-checkbox[data-section="advance"]:not(:disabled)').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                    checkbox.dispatchEvent(new Event('change'));
-                });
-            });
-
-            const selectAllContract = document.getElementById('selectAllContract');
-            selectAllContract.onclick = null;
-            selectAllContract.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.reconcile-item-checkbox[data-section="contract"]:not(:disabled)').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                    checkbox.dispatchEvent(new Event('change'));
-                });
-            });
-        }
-
-        function setupReconcileItemCheckboxes() {
-            document.querySelectorAll('.reconcile-item-checkbox:not(:disabled)').forEach(checkbox => {
-                checkbox.onclick = null; // Clear existing listeners
-                checkbox.addEventListener('change', function() {
-                    const source = this.getAttribute('data-source');
-                    const code = this.getAttribute('data-code');
-                    const amountInput = document.querySelector(`.reconcile-amount-input[data-source="${source}"][data-code="${code}"]`);
-                    const available = parseInt(amountInput.getAttribute('data-available')) || 0;
-
-                    if (this.checked) {
-                        amountInput.disabled = false;
-                        amountInput.max = available;
-                        amountInput.placeholder = `Max: ${new Intl.NumberFormat('vi-VN').format(available)}`;
-                        amountInput.focus();
-                    } else {
-                        amountInput.disabled = true;
-                        amountInput.value = '';
-                    }
-
-                    updateTotalReconcileAmount();
-                });
-            });
-
-            document.querySelectorAll('.reconcile-amount-input').forEach(input => {
-                input.oninput = null; // Clear existing listeners
-                input.addEventListener('input', function() {
-                    const available = parseInt(this.getAttribute('data-available')) || 0;
-                    const value = parseInt(this.value.replace(/,/g, '')) || 0;
-
-                    // Validate input doesn't exceed available
-                    if (value > available) {
-                        this.classList.add('is-invalid');
-                        this.style.borderColor = '#dc3545';
-                    } else {
-                        this.classList.remove('is-invalid');
-                        this.style.borderColor = '';
-                    }
-
-                    updateTotalReconcileAmount();
-                });
-            });
-        }
-
-        function updateTotalReconcileAmount() {
-            // Calculate subtotal for Advance section
-            let advanceSubtotal = 0;
-            document.querySelectorAll('.reconcile-amount-input[data-section="advance"]').forEach(input => {
-                if (!input.disabled && input.value) {
-                    advanceSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+            // Update modal title when reconcile modal is shown
+            reconcileModal.addEventListener('show.bs.modal', function(e) {
+                const btn = e.relatedTarget;
+                if (btn) {
+                    const invoiceId = btn.getAttribute('data-invoice-id');
+                    document.getElementById('reconcileInvoiceId').textContent = invoiceId;
+                    currentInvoiceIdForReconcile = invoiceId;
                 }
             });
-            document.getElementById('subtotalAdvance').textContent = new Intl.NumberFormat('vi-VN').format(advanceSubtotal) + ' VNĐ';
 
-            // Calculate subtotal for Contract section
-            let contractSubtotal = 0;
-            document.querySelectorAll('.reconcile-amount-input[data-section="contract"]').forEach(input => {
-                if (!input.disabled && input.value) {
-                    contractSubtotal += parseInt(input.value.replace(/,/g, '')) || 0;
+            // Copy reconcile total to invoice display when modal closes
+            reconcileModal.addEventListener('hidden.bs.modal', function() {
+                if (currentInvoiceIdForReconcile) {
+                    const totalAmount = document.getElementById('totalReconcileAmount').textContent;
+                    const displaySpan = document.querySelector(`.reconcile-display[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
+                    if (displaySpan) {
+                        displaySpan.textContent = totalAmount;
+                    }
                 }
             });
-            document.getElementById('subtotalContract').textContent = new Intl.NumberFormat('vi-VN').format(contractSubtotal) + ' VNĐ';
-
-            // Calculate overall total
-            const total = advanceSubtotal + contractSubtotal;
-            document.getElementById('totalReconcileAmount').textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
         }
+
 
         // Invoice Detail Button - Enable/Disable based on checkbox and Open Modal
         let currentInvoiceIdForModal = '';
 
         function setupInvoiceDetailButtons() {
-            document.querySelectorAll('.invoice-detail-btn').forEach(btn => {
-                const invoiceId = btn.getAttribute('data-invoice-id');
+            // Setup modal shown event to populate data and prevent if checkbox not checked
+            document.getElementById('invoiceDetailModal').addEventListener('show.bs.modal', function(e) {
+                const invoiceId = e.relatedTarget.getAttribute('data-invoice-id');
                 const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
 
-                // Set initial state
-                btn.disabled = !checkbox.checked;
+                // Prevent modal if checkbox is NOT checked
+                if (!checkbox || !checkbox.checked) {
+                    e.preventDefault();
+                    return false;
+                }
 
-                // Update button state when checkbox changes
-                checkbox.addEventListener('change', function() {
-                    btn.disabled = !this.checked;
-                });
+                // Proceed if row is actually selected
+                currentInvoiceIdForModal = invoiceId;
+                document.getElementById('currentInvoiceId').textContent = currentInvoiceIdForModal;
 
-                // Open modal on button click
-                btn.addEventListener('click', function(e) {
-                    // Allow click even on disabled button via JS
-                    const invoiceId = this.getAttribute('data-invoice-id');
-                    const checkbox = document.querySelector(`.invoice-checkbox[data-invoice-id="${invoiceId}"]`);
-
-                    // Only proceed if row is actually selected
-                    if (checkbox.checked) {
-                        currentInvoiceIdForModal = invoiceId;
-                        document.getElementById('currentInvoiceId').textContent = currentInvoiceIdForModal;
-
-                        // Reset all checkboxes in modal
-                        document.querySelectorAll('#invoiceDetailTableBody .installment-checkbox').forEach(cb => {
-                            cb.checked = false;
-                            const paymentInput = cb.closest('tr').querySelector('.installment-payment-input');
-                            paymentInput.disabled = true;
-                        });
-
-                        // Show modal (Bootstrap 5)
-                        const invoiceDetailModal = new bootstrap.Modal(document.getElementById('invoiceDetailModal'));
-                        invoiceDetailModal.show();
-                    }
+                // Reset all checkboxes in modal
+                document.querySelectorAll('#invoiceDetailTableBody .installment-checkbox').forEach(cb => {
+                    cb.checked = false;
+                    const paymentInput = cb.closest('tr').querySelector('.installment-payment-input');
+                    paymentInput.disabled = true;
                 });
             });
         }
@@ -1792,7 +1782,7 @@
                 }
             });
             const totalElement = document.getElementById('installmentPaymentTotal');
-            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+            totalElement.textContent = formatNumberVN(totalPayment) + ' VNĐ';
         }
 
         // Installment Payment Input Validation - Cannot exceed Balance
@@ -1815,7 +1805,7 @@
                         warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
                         this.closest('td').appendChild(warning);
                     }
-                    warning.textContent = `Vượt quá Balance (${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ)`;
+                    warning.textContent = `Vượt quá Balance (${formatNumberVN(balance)} VNĐ)`;
                 } else {
                     // Remove error styling
                     this.classList.remove('is-invalid');
@@ -1835,7 +1825,7 @@
             // Add max attribute for HTML5 validation
             const balance = parseInt(input.getAttribute('data-balance')) || 0;
             input.setAttribute('max', balance);
-            input.setAttribute('placeholder', `Max: ${new Intl.NumberFormat('vi-VN').format(balance)}`);
+            input.setAttribute('placeholder', `Max: ${formatNumberVN(balance)}`);
         });
 
         // Confirm Installment Selection
@@ -1858,10 +1848,31 @@
                 }
             });
 
-            // Show error if validation fails
+            // Show error if installment validation fails
             if (!isValid) {
                 alert('❌ Lỗi: Có ít nhất một đợt thanh toán vượt quá Balance!\n\nVui lòng kiểm tra lại các giá trị nhập.');
                 return;
+            }
+
+            // Validate Payment + Reconcile doesn't exceed Balance in main table BEFORE confirm
+            const balanceCell = document.querySelector(`#invoiceTableBody .invoice-checkbox[data-invoice-id="${currentInvoiceIdForModal}"]`)
+                ?.closest('tr')?.querySelectorAll('td')[5];
+
+            if (balanceCell) {
+                const balanceText = balanceCell.textContent.trim().replace(/,/g, '');
+                const balance = parseInt(balanceText) || 0;
+
+                const reconcileDisplay = document.querySelector(`.reconcile-display[data-invoice-id="${currentInvoiceIdForModal}"]`);
+                const reconcileText = reconcileDisplay ? reconcileDisplay.textContent.trim().replace(/\s*VNĐ/g, '').replace(/,/g, '') : '0';
+                const reconcile = parseInt(reconcileText) || 0;
+
+                const totalUsed = totalPayment + reconcile;
+
+                // Block confirm if Payment + Reconcile > Balance
+                if (totalUsed > balance) {
+                    alert(`❌ Lỗi: Tổng thanh toán (${formatNumberVN(totalPayment)}) + Cấn trừ (${formatNumberVN(reconcile)}) = ${formatNumberVN(totalUsed)} vượt quá Balance (${formatNumberVN(balance)}).\n\nVui lòng giảm số tiền thanh toán hoặc cấn trừ.`);
+                    return;
+                }
             }
 
             // Update the main invoice payment input
@@ -1871,7 +1882,7 @@
             // Update the display (show payment value in table)
             const displaySpan = document.querySelector(`.invoice-payment-display[data-invoice-id="${currentInvoiceIdForModal}"]`);
             if (displaySpan) {
-                displaySpan.textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+                displaySpan.textContent = formatNumberVN(totalPayment) + ' VNĐ';
             }
 
             // Trigger input event to update total
@@ -1891,38 +1902,30 @@
         function updateSectionTotalPayment() {
             let totalPayment = 0;
 
-            // Sum advance voucher payments (Section 2)
-            document.querySelectorAll('#advanceVouchersTableBody .advance-voucher-checkbox:checked').forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const amountCell = row.querySelector('td:nth-child(5)');
-                const amountText = amountCell.textContent.trim();
-                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-                totalPayment += amount;
-            });
+            // Sum advance payment (Section 2 - single input field)
+            const advancePaymentCheck = document.getElementById('advancePaymentCheck');
+            const advancePaymentAmount = document.getElementById('advancePaymentAmount');
+            if (advancePaymentCheck && advancePaymentCheck.checked && advancePaymentAmount) {
+                const advanceValue = parseInt(advancePaymentAmount.value.replace(/,/g, '')) || 0;
+                totalPayment += advanceValue;
+            }
 
-            // Sum contract advance payments (Section 3 - checked rows)
-            document.querySelectorAll('#contractTableBody .row-checkbox:checked').forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const amountCell = row.querySelector('td:nth-child(5)');
-                const amountText = amountCell.textContent.trim();
-                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-                totalPayment += amount;
-            });
-
-            // Sum invoice payments (Section 4)
-            document.querySelectorAll('.invoice-payment-input').forEach(input => {
+            // Sum contract advance payments (Section 3 - from payment input fields)
+            document.querySelectorAll('#contractTableBody .contract-payment-input:not(:disabled)').forEach(input => {
                 const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
                 totalPayment += paymentValue;
             });
 
-            // Sum voucher payments (Section 6 - Employee advance repayments)
-            document.querySelectorAll('#advanceVoucherTableBody .voucher-payment-input').forEach(input => {
+            // Sum invoice payments (Section 4)
+            document.querySelectorAll('#invoiceTableBody .invoice-payment-input:not(:disabled)').forEach(input => {
                 const paymentValue = parseInt(input.value.replace(/,/g, '')) || 0;
                 totalPayment += paymentValue;
             });
 
             const totalPaymentField = document.getElementById('totalPayment');
-            totalPaymentField.value = new Intl.NumberFormat('vi-VN').format(totalPayment);
+            if (totalPaymentField) {
+                totalPaymentField.value = formatNumberVN(totalPayment) + ' VNĐ';
+            }
         }
 
         // Contract Advance Checkbox Logic (Show/Hide Table)
@@ -1937,23 +1940,73 @@
                 contractTableWrapper.style.display = 'none';
 
                 // Uncheck all row checkboxes
-                document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
+                document.querySelectorAll('#contractTableBody .contract-row-checkbox').forEach(checkbox => {
                     checkbox.checked = false;
-                });
-
-                // Disable and clear all payment inputs
-                document.querySelectorAll('.payment-input').forEach(input => {
-                    input.disabled = true;
-                    input.value = '';
+                    checkbox.dispatchEvent(new Event('change'));
                 });
 
                 // Reset select all checkbox
-                document.getElementById('selectAllRows').checked = false;
+                document.getElementById('selectAllContractRows').checked = false;
 
                 // Reset payment total
-                document.getElementById('paymentTotal').textContent = '0 VNĐ';
+                document.getElementById('contractPaymentTotal').textContent = '0 VNĐ';
             }
         });
+
+        // Select All Contract Rows Checkbox Logic
+        document.getElementById('selectAllContractRows').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.querySelectorAll('#contractTableBody .contract-row-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+
+        // Individual Contract Row Checkbox Logic
+        document.querySelectorAll('#contractTableBody .contract-row-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const rowId = this.getAttribute('data-row-id');
+                const paymentInput = document.querySelector(`.contract-payment-input[data-row-id="${rowId}"]`);
+
+                // Enable/Disable payment input based on checkbox state
+                if (this.checked) {
+                    paymentInput.disabled = false;
+                    paymentInput.focus();
+                } else {
+                    paymentInput.disabled = true;
+                    paymentInput.value = '';
+                }
+
+                // Update select all checkbox state
+                const allChecked = Array.from(document.querySelectorAll('#contractTableBody .contract-row-checkbox')).every(cb => cb.checked);
+                const someChecked = Array.from(document.querySelectorAll('#contractTableBody .contract-row-checkbox')).some(cb => cb.checked);
+                const selectAllCheckbox = document.getElementById('selectAllContractRows');
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+
+                // Update total
+                updateContractPaymentTotal();
+            });
+        });
+
+        // Contract Payment Input Logic
+        document.querySelectorAll('#contractTableBody .contract-payment-input').forEach(input => {
+            input.addEventListener('input', function() {
+                updateContractPaymentTotal();
+            });
+        });
+
+        // Function to calculate contract payment total
+        function updateContractPaymentTotal() {
+            let total = 0;
+            document.querySelectorAll('#contractTableBody .contract-payment-input:not(:disabled)').forEach(input => {
+                const value = parseInt(input.value) || 0;
+                total += value;
+            });
+
+            const totalElement = document.getElementById('contractPaymentTotal');
+            totalElement.textContent = formatNumberVN(total) + ' VNĐ';
+        }
 
         // Function to show Section 6 and setup voucher table for selected employee
         function showSection6ForEmployee(employeeId) {
@@ -2001,6 +2054,7 @@
                     }
 
                     updateVoucherPaymentTotal();
+                    updateGrandTotal();
                 });
             });
 
@@ -2025,7 +2079,7 @@
                             warning.style.cssText = 'color: #dc3545; font-size: 0.85rem; margin-top: 2px;';
                             this.closest('td').appendChild(warning);
                         }
-                        warning.textContent = `Vượt quá Balance (${new Intl.NumberFormat('vi-VN').format(balance)} VNĐ)`;
+                        warning.textContent = `Vượt quá Balance (${formatNumberVN(balance)} VNĐ)`;
                     } else {
                         // Remove error styling
                         this.classList.remove('is-invalid');
@@ -2039,12 +2093,13 @@
                     }
 
                     updateVoucherPaymentTotal();
+                    updateGrandTotal();
                 });
 
                 // Set max attribute for HTML5 validation
                 const balance = parseInt(input.getAttribute('data-balance')) || 0;
                 input.setAttribute('max', balance);
-                input.setAttribute('placeholder', `Max: ${new Intl.NumberFormat('vi-VN').format(balance)}`);
+                input.setAttribute('placeholder', `Max: ${formatNumberVN(balance)}`);
             });
 
             // Select All Vouchers checkbox logic
@@ -2070,76 +2125,11 @@
                     totalPayment += paymentValue;
                 }
             });
-            document.getElementById('voucherPaymentTotal').textContent = new Intl.NumberFormat('vi-VN').format(totalPayment) + ' VNĐ';
+            document.getElementById('voucherPaymentTotal').textContent = formatNumberVN(totalPayment) + ' VNĐ';
 
             // Update Section 5 total (add voucher payments to section total)
             updateSectionTotalPayment();
         }
-
-        // Select All Rows Checkbox Logic
-        document.getElementById('selectAllRows').addEventListener('change', function() {
-            const isChecked = this.checked;
-            document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
-                checkbox.checked = isChecked;
-                // Trigger change event to update payment inputs
-                checkbox.dispatchEvent(new Event('change'));
-            });
-        });
-
-        // Function to calculate and update payment total
-        function updatePaymentTotal() {
-            let total = 0;
-
-            // Sum checked rows from contract table (Section 3)
-            document.querySelectorAll('#contractTableBody .row-checkbox:checked').forEach(checkbox => {
-                const row = checkbox.closest('tr');
-                const amountCell = row.querySelector('td:nth-child(5)');
-                const amountText = amountCell.textContent.trim();
-                const amount = parseInt(amountText.replace(/,/g, '').replace(' VNĐ', '')) || 0;
-                total += amount;
-            });
-
-            const totalElement = document.getElementById('paymentTotal');
-            totalElement.textContent = new Intl.NumberFormat('vi-VN').format(total) + ' VNĐ';
-        }
-
-        // Individual Row Checkbox Logic
-        document.querySelectorAll('#contractTableBody .row-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const rowId = this.getAttribute('data-row-id');
-                const paymentInput = document.querySelector(`.payment-input[data-row-id="${rowId}"]`);
-
-                if (this.checked) {
-                    // Enable payment input
-                    paymentInput.disabled = false;
-                    paymentInput.focus();
-                } else {
-                    // Disable and clear payment input
-                    paymentInput.disabled = true;
-                    paymentInput.value = '';
-                }
-
-                // Update select all checkbox state
-                const allChecked = Array.from(document.querySelectorAll('#contractTableBody .row-checkbox')).every(cb => cb.checked);
-                const someChecked = Array.from(document.querySelectorAll('#contractTableBody .row-checkbox')).some(cb => cb.checked);
-
-                const selectAllCheckbox = document.getElementById('selectAllRows');
-                selectAllCheckbox.checked = allChecked;
-                selectAllCheckbox.indeterminate = someChecked && !allChecked;
-
-                // Update payment total
-                updatePaymentTotal();
-                updateSectionTotalPayment();
-            });
-            });
-
-            // Add event listeners to payment inputs for real-time total calculation
-            document.querySelectorAll('.payment-input').forEach(input => {
-                input.addEventListener('input', function() {
-                    updatePaymentTotal();
-                    updateSectionTotalPayment();
-                });
-            });
 
             // Payment Method Modal Validation
             const cashAmountInput = document.getElementById('cashAmount');
@@ -2164,7 +2154,7 @@
 
                 if (sumAmount !== totalPayment) {
                     paymentMethodError.style.display = '';
-                    errorMessage.textContent = `Tổng Cash + Bank (${new Intl.NumberFormat('vi-VN').format(sumAmount)}) phải bằng Total payment (${new Intl.NumberFormat('vi-VN').format(totalPayment)})`;
+                    errorMessage.textContent = `Tổng Cash + Bank (${formatNumberVN(sumAmount)}) phải bằng Total payment (${formatNumberVN(totalPayment)})`;
                     confirmPaymentMethodBtn.disabled = true;
                     return false;
                 } else {
@@ -2198,49 +2188,6 @@
                 }
             });
 
-            // Confirm Reconcile Selection
-            document.getElementById('confirmReconcileBtn').addEventListener('click', function() {
-                let totalReconcile = 0;
-
-                // Calculate total reconciliation amount
-                document.querySelectorAll('.reconcile-amount-input').forEach(input => {
-                    if (!input.disabled && input.value) {
-                        const value = parseInt(input.value.replace(/,/g, '')) || 0;
-                        totalReconcile += value;
-                    }
-                });
-
-                // Update the reconcile display in the table
-                const reconcileDisplay = document.querySelector(`.reconcile-display[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
-                if (reconcileDisplay) {
-                    if (totalReconcile > 0) {
-                        reconcileDisplay.textContent = new Intl.NumberFormat('vi-VN').format(totalReconcile) + ' VNĐ';
-                    } else {
-                        reconcileDisplay.textContent = '-';
-                    }
-                }
-
-                // Store reconciliation value in hidden input
-                const reconcileInput = document.querySelector(`.reconcile-invoice-input[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
-                if (reconcileInput) {
-                    reconcileInput.value = totalReconcile;
-                }
-
-                // Re-validate payment input with new reconcile amount
-                const paymentInput = document.querySelector(`.invoice-payment-input[data-invoice-id="${currentInvoiceIdForReconcile}"]`);
-                if (paymentInput) {
-                    validateInvoicePayment(paymentInput);
-                }
-
-                // Close modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('reconcileModal'));
-                if (modal) {
-                    modal.hide();
-                }
-
-                // Update section total
-                updateSectionTotalPayment();
-            });
 
             // Set today's date as default and setup invoice buttons
             const today = new Date().toISOString().split('T')[0];
@@ -2252,7 +2199,72 @@
 
             // Setup reconcile buttons after DOM is fully loaded
             setupReconcileButtons();
+
+            // Add listeners for Grand Total calculation
+            // Listen to Field 2.1 (advancePaymentAmount) changes
+            document.getElementById('advancePaymentAmount').addEventListener('input', updateGrandTotal);
+
+            // Listen to Section 3 (Contract Payment) changes
+            document.querySelectorAll('#contractTableBody .contract-payment-input').forEach(input => {
+                input.addEventListener('input', updateGrandTotal);
+            });
+
+            // Listen to Section 4 (Invoice Payment) changes
+            document.querySelectorAll('#invoiceTableBody .invoice-payment-input').forEach(input => {
+                input.addEventListener('input', updateGrandTotal);
+            });
+            document.querySelectorAll('#invoiceTableBody .invoice-discount-input').forEach(input => {
+                input.addEventListener('input', updateGrandTotal);
+            });
+
+            // Set default type to customer
+            typeSelect.value = 'customer';
+            typeSelect.dispatchEvent(new Event('change'));
+
+            // Initial calculation
+            updateGrandTotal();
         });
+
+        // Function to calculate and update Grand Total
+        function updateGrandTotal() {
+            let grandTotal = 0;
+
+            // Section 2: Field 2.1 - Advance Payment Amount
+            const advancePaymentCheck = document.getElementById('advancePaymentCheck');
+            const advancePaymentAmount = document.getElementById('advancePaymentAmount');
+            if (advancePaymentCheck && advancePaymentCheck.checked && advancePaymentAmount) {
+                const value = parseInt(advancePaymentAmount.value) || 0;
+                grandTotal += value;
+            }
+
+            // Section 3: Contract Payment Total
+            let contractTotal = 0;
+            document.querySelectorAll('#contractTableBody .contract-payment-input:not(:disabled)').forEach(input => {
+                const value = parseInt(input.value) || 0;
+                contractTotal += value;
+            });
+            grandTotal += contractTotal;
+
+            // Section 4: Invoice Payment Total
+            let invoiceTotal = 0;
+            document.querySelectorAll('#invoiceTableBody .invoice-payment-input:not(:disabled)').forEach(input => {
+                const value = parseInt(input.value) || 0;
+                invoiceTotal += value;
+            });
+            grandTotal += invoiceTotal;
+
+            // Section 6: Voucher Payment Total (Employee advance repayment)
+            let voucherTotal = 0;
+            document.querySelectorAll('#advanceVoucherTableBody .voucher-payment-input:not(:disabled)').forEach(input => {
+                const value = parseInt(input.value) || 0;
+                voucherTotal += value;
+            });
+            grandTotal += voucherTotal;
+
+            // Update Total Payment field
+            const totalPaymentField = document.getElementById('totalPayment');
+            totalPaymentField.value = formatNumberVN(grandTotal) + ' VNĐ';
+        }
     </script>
 </body>
 </html>

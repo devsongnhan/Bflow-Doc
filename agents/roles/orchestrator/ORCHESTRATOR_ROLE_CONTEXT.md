@@ -410,15 +410,23 @@ node test-dev-v5-full.js
 
 ## 📊 V6.0 ORCHESTRATOR STATUS
 
-### ✅ V6.0 ACTIVE (2025-10-24)
+### ✅ V6.0.1 ACTIVE (2025-10-24)
 
-#### V6.0: Orchestrator Server (ACTIVE)
+#### V6.0.1: Orchestrator Server (ACTIVE)
 - ✅ Issue Management System (QA-driven workflow)
 - ✅ Assignment-Issue lifecycle management
 - ✅ Rejection/resubmission workflow
 - ✅ Flat file structure for issues
 - ✅ State synchronization (with helper function)
 - ✅ Dashboard support for issue tracking
+- ✅ **NEW**: Integrated Dashboard (served from port 3000/dashboard)
+
+#### V6.0.1: Dashboard Integration (NEW)
+- ✅ Dashboard consolidated into Orchestrator Server
+- ✅ Served at `/dashboard` route on port 3000
+- ✅ Removed separate dashboard service (was port 3001)
+- ✅ Static file serving with MIME type support
+- ✅ Directory traversal protection
 
 #### V6.0: Agent Helpers (ACTIVE)
 - ✅ QA Helper v6.0 (Issue creation, assignment, verification)
@@ -589,8 +597,8 @@ When user asks you to do something:
 ---
 
 *Last Updated: 2025-10-24*
-*Version: 6.0*
-*Status: Production Ready (with Pattern 1 helper function critical)*
+*Version: 6.0.1*
+*Status: Production Ready (Dashboard Consolidated, Pattern 1 helper critical)*
 
 ---
 
