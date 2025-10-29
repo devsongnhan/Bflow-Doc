@@ -443,9 +443,9 @@
                         <label for="type" class="form-label">Type <span class="required">*</span></label>
                         <select class="form-select" id="type" required>
                             <option value="">-- Select type --</option>
-                            <option>Thu tiền khách hàng (Customer payment)</option>
-                            <option>Thu tiền hoàn ứng của nhân viên (Employee advance repayment)</option>
-                            <option>Thu tiền khác (Other payment)</option>
+                            <option value="customer">Thu tiền khách hàng (Customer payment)</option>
+                            <option value="employee">Thu tiền hoàn ứng của nhân viên (Employee advance repayment)</option>
+                            <option value="other">Thu tiền khác (Other payment)</option>
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
@@ -1192,7 +1192,7 @@
             typeSelect.addEventListener('change', function() {
                 const selectedValue = this.value;
 
-                if (selectedValue === 'Thu tiền khách hàng (Customer payment)') {
+                if (selectedValue === 'customer') {
                 // Show field 1.5 and set to Customer mode
                 customerEmployeeRow.style.display = '';
                 customerEmployeeLabel.innerHTML = 'Customer <span class="required">*</span>';
@@ -1212,7 +1212,7 @@
                 // Hide Section 6
                 hideSection6();
                 selectedEmployeeId = '';
-            } else if (selectedValue === 'Thu tiền hoàn ứng của nhân viên (Employee advance repayment)') {
+            } else if (selectedValue === 'employee') {
                 // Show field 1.5 and set to Employee mode
                 customerEmployeeRow.style.display = '';
                 customerEmployeeLabel.innerHTML = 'Employee <span class="required">*</span>';
@@ -1244,7 +1244,7 @@
                 // Hide Section 6 (will show when employee is selected)
                 hideSection6();
                 selectedEmployeeId = '';
-            } else if (selectedValue === 'Thu tiền khác (Other payment)') {
+            } else if (selectedValue === 'other') {
                 // Hide field 1.5
                 customerEmployeeRow.style.display = 'none';
                 customerEmployeeInput.value = '';
@@ -1363,7 +1363,7 @@
 
                 // Show Section 6 when employee is selected (only for employee advance type)
                 const typeSelect = document.getElementById('type');
-                if (typeSelect && typeSelect.value === 'Thu tiền hoàn ứng của nhân viên (Employee advance repayment)') {
+                if (typeSelect && typeSelect.value === 'employee') {
                     showSection6ForEmployee(employeeId);
                 }
 
