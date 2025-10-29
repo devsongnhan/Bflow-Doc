@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khởi Tạo Số Dư Đầu Kỳ - Prototype</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #218838;
+        }
+
+        .btn-submit {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-submit:disabled {
+            background-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            z-index: 900;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+        }
+
+        .sidebar-link.active {
+            background-color: #e3f2fd;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+
+        .form-container {
+            background-color: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 30px;
+            width: 100%;
+        }
+
+        .form-heading {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        /* TAB Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 0;
+        }
+
+        .tab-button {
+            padding: 12px 18px;
+            border: none;
+            background-color: #f8f9fa;
+            color: #333;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-button:hover {
+            background-color: #e9ecef;
+        }
+
+        .tab-button.active {
+            background-color: white;
+            color: #2196f3;
+            border-bottom-color: #2196f3;
+        }
+
+        /* Tab Panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Money Type Selection */
+        .money-type-section {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-left: 4px solid #2196f3;
+            border-radius: 0.375rem;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .money-type-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .radio-option input[type="radio"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            margin: 0;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Section Containers */
+        #section1Container,
+        #section2Container,
+        #section3Container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        #section2Container {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        #section3Container {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 16px;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        /* Table Styling */
+        .table {
+            background-color: white;
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+
+        .table thead {
+            background-color: #f8f9fa;
+        }
+
+        .table th {
+            padding: 12px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .table tbody tr:last-child {
+            background-color: #fff3e0;
+            font-weight: 600;
+            border-top: 2px solid #ff9800;
+        }
+
+        /* Alert */
+        .alert-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .alert-info h6 {
+            margin-bottom: 10px;
+            color: #004085;
+        }
+
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .alert-info li {
+            color: #004085;
+        }
+
+        /* Balance Status Badge */
+        .balance-status {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .balance-balanced {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .balance-unbalanced {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-delete {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        .btn-add {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-add:hover:not(:disabled) {
+            background-color: #0b5ed7;
+        }
+
+        .btn-add:disabled {
+            background-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            height: 36px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+            outline: none;
+        }
+
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .form-error {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+            .form-container {
+                padding: 20px;
+            }
+            .radio-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-title">📊 Khởi Tạo Số Dư Đầu Kỳ</div>
+        <div class="header-buttons">
+            <button class="btn-save" onclick="saveDraft()">Lưu Nháp</button>
+            <button class="btn-submit" id="submitBtn" onclick="submitForm()" disabled>Gửi Duyệt</button>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">🏠 Home</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link active">📊 Opening Balance</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">📈 Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="#" class="sidebar-link">⚙️ Settings</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="form-container">
+            <h1 class="form-heading">📊 Khởi Tạo Số Dư Đầu Kỳ</h1>
+
+            <!-- TAB Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" onclick="switchTab('tab1')">💰 Tiền (Cash/Money)</button>
+                <button class="tab-button" onclick="switchTab('tab2')">📦 Hàng Hóa Vật Tư</button>
+                <button class="tab-button" onclick="switchTab('tab3')">👥 Phải Thu Khách Hàng</button>
+                <button class="tab-button" onclick="switchTab('tab4')">🏭 Phải Trả Nhà Cung Cấp</button>
+                <button class="tab-button" onclick="switchTab('tab5')">👔 Phải Thu Nhân Viên</button>
+                <button class="tab-button" onclick="switchTab('tab6')">🏢 Tài Sản Công Cụ</button>
+                <button class="tab-button" onclick="switchTab('tab7')">🔧 Chi Phí Dở Dang</button>
+            </div>
+
+            <!-- TAB 1: Tiền (Cash/Money) -->
+            <div id="tab1" class="tab-panel active">
+                <!-- SUBSECTION 1.1: Money Type Selection -->
+                <div class="money-type-section">
+                    <div class="money-type-title">💱 Lựa Chọn Loại Tiền (Money Type Selection)</div>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="cashRadio" name="moneyType" value="cash" checked onchange="onMoneyTypeChange()">
+                            <label for="cashRadio">💵 Tiền Mặt (Cash)</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="bankRadio" name="moneyType" value="bank" onchange="onMoneyTypeChange()">
+                            <label for="bankRadio">🏦 Tiền Ngân Hàng (Bank)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBSECTION 1.2: Currency Selection -->
+                <div id="section1Container">
+                    <h5 class="section-title">🪙 Chọn Loại Tiền Tệ (Currency Selection)</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="currency" class="form-label">
+                                Loại Tiền Tệ (Currency) <span class="required">*</span>
+                            </label>
+                            <select id="currency" class="form-control" required>
+                                <option value="">-- Select Currency --</option>
+                                <option value="VND" selected>VND - Vietnamese Dong (₫)</option>
+                                <option value="USD">USD - US Dollar ($)</option>
+                                <option value="EUR">EUR - Euro (€)</option>
+                                <option value="JPY">JPY - Japanese Yen (¥)</option>
+                                <option value="GBP">GBP - British Pound (£)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBSECTION 1.3: Input Form -->
+                <div id="section1bContainer">
+                    <h5 class="section-title">📝 Nhập Số Dư Tài Khoản (Input Form)</h5>
+
+                    <!-- For Cash -->
+                    <div id="cashInputDiv" style="display: block;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="accountCash" class="form-label">
+                                    Account <span class="required">*</span>
+                                </label>
+                                <input type="text" id="accountCash" class="form-control" value="111 - Tiền Mặt (Cash)" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- For Bank -->
+                    <div id="bankInputDiv" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="accountBank" class="form-label">
+                                    Account <span class="required">*</span>
+                                </label>
+                                <select id="accountBank" class="form-control" required>
+                                    <option value="">-- Select Account --</option>
+                                    <option value="112">112 - Tiền Gửi Ngân Hàng (Bank Deposits)</option>
+                                    <option value="113">113 - Tiền Gửi Có Kỳ Hạn (Fixed Deposits)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount Field -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="amount" class="form-label">
+                                Opening Balance Amount <span class="required">*</span>
+                            </label>
+                            <input type="text" id="amount" class="form-control" placeholder="e.g., 50,000,000" required>
+                            <small class="form-text text-muted">Format: 1,000,000 (with thousand separator)</small>
+                        </div>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="description" class="form-label">
+                                Description (Mô Tả)
+                            </label>
+                            <input type="text" id="description" class="form-control" placeholder="e.g., Opening cash from last period">
+                        </div>
+                    </div>
+
+                    <!-- Add Button -->
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <button class="btn-add" id="addBtn" onclick="addRow()">+ Add Account</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBSECTION 1.4: Account Summary Table -->
+                <div id="section2Container">
+                    <h5 class="section-title">📋 Bảng Tổng Hợp Tài Khoản (Account Summary Table)</h5>
+                    <div style="overflow-x: auto;">
+                        <table class="table table-striped" id="accountTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 15%;">Account Code</th>
+                                    <th style="width: 25%;">Account Name</th>
+                                    <th style="width: 20%;">Amount</th>
+                                    <th style="width: 15%;">Currency</th>
+                                    <th style="width: 15%;">Description</th>
+                                    <th style="width: 8%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                            </tbody>
+                            <tbody id="totalRow">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SUBSECTION 1.5: Summary & Status -->
+                <div id="section3Container">
+                    <h5 class="section-title">📊 Tóm Tắt & Trạng Thái (Summary & Status)</h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Total Opening Balance</label>
+                            <input type="text" id="totalBalance" class="form-control" readonly value="0 ₫">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Currency</label>
+                            <input type="text" id="currencyDisplay" class="form-control" readonly value="VND">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Number of Accounts</label>
+                            <input type="text" id="accountCount" class="form-control" readonly value="0">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Status</label>
+                            <div id="statusDisplay" class="balance-status balance-balanced">✅ Ready</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2-7: Placeholder (same structure) -->
+            <div id="tab2" class="tab-panel">
+                <h5 class="section-title">📦 Hàng Hóa Vật Tư (Goods & Materials)</h5>
+                <p>TAB 2 content coming soon...</p>
+            </div>
+            <div id="tab3" class="tab-panel">
+                <h5 class="section-title">👥 Phải Thu Khách Hàng (Customer Receivables)</h5>
+                <p>TAB 3 content coming soon...</p>
+            </div>
+            <div id="tab4" class="tab-panel">
+                <h5 class="section-title">🏭 Phải Trả Nhà Cung Cấp (Supplier Payables)</h5>
+                <p>TAB 4 content coming soon...</p>
+            </div>
+            <div id="tab5" class="tab-panel">
+                <h5 class="section-title">👔 Phải Thu Nhân Viên (Employee Receivables)</h5>
+                <p>TAB 5 content coming soon...</p>
+            </div>
+            <div id="tab6" class="tab-panel">
+                <h5 class="section-title">🏢 Tài Sản Công Cụ (Fixed Assets)</h5>
+                <p>TAB 6 content coming soon...</p>
+            </div>
+            <div id="tab7" class="tab-panel">
+                <h5 class="section-title">🔧 Chi Phí Dở Dang (Work in Progress)</h5>
+                <p>TAB 7 content coming soon...</p>
+            </div>
+
+            <!-- Alert Box -->
+            <div class="alert-info">
+                <h6>💡 Quy Tắc Kiểm Tra:</h6>
+                <ul>
+                    <li>Các trường có dấu <code>*</code> là bắt buộc</li>
+                    <li>Loại tiền tệ sẽ ảnh hưởng tới định dạng hiển thị số</li>
+                    <li>Mỗi tài khoản chỉ được thêm một lần</li>
+                    <li>Không thể sửa được sau khi Xác Nhận</li>
+                    <li>Khi nhấn "Gửi Duyệt", dữ liệu sẽ chuyển sang trạng thái chờ phê duyệt</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Data structure to hold account rows
+        let accountData = [];
+        let editingIndex = -1;
+
+        // Account mapping
+        const accountMap = {
+            '111': 'Tiền Mặt (Cash)',
+            '112': 'Tiền Gửi Ngân Hàng (Bank Deposits)',
+            '113': 'Tiền Gửi Có Kỳ Hạn (Fixed Deposits)'
+        };
+
+        // Currency symbols
+        const currencySymbols = {
+            'VND': '₫',
+            'USD': '$',
+            'EUR': '€',
+            'JPY': '¥',
+            'GBP': '£'
+        };
+
+        // Switch tabs
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+
+            // Add active class to clicked button
+            event.target.classList.add('active');
+
+            // Reset form when switching tabs
+            if (tabId !== 'tab1') {
+                resetForm();
+            }
+        }
+
+        // Money type change handler
+        function onMoneyTypeChange() {
+            const moneyType = document.querySelector('input[name="moneyType"]:checked').value;
+
+            if (moneyType === 'cash') {
+                document.getElementById('cashInputDiv').style.display = 'block';
+                document.getElementById('bankInputDiv').style.display = 'none';
+            } else {
+                document.getElementById('cashInputDiv').style.display = 'none';
+                document.getElementById('bankInputDiv').style.display = 'block';
+            }
+
+            resetForm();
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            if (!value || isNaN(value)) return '0';
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // Parse currency input
+        function parseCurrency(value) {
+            return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+        }
+
+        // Add account to table
+        function addRow() {
+            const moneyType = document.querySelector('input[name="moneyType"]:checked').value;
+            const currency = document.getElementById('currency').value;
+            const amountInput = document.getElementById('amount').value;
+            const description = document.getElementById('description').value;
+
+            // Validate inputs
+            if (!currency) {
+                alert('Please select a currency');
+                return;
+            }
+
+            if (!amountInput) {
+                alert('Please enter amount');
+                return;
+            }
+
+            const amount = parseCurrency(amountInput);
+            if (amount <= 0) {
+                alert('Amount must be greater than 0');
+                return;
+            }
+
+            let accountCode = '';
+            let accountName = '';
+
+            if (moneyType === 'cash') {
+                accountCode = '111';
+                accountName = accountMap['111'];
+            } else {
+                accountCode = document.getElementById('accountBank').value;
+                if (!accountCode) {
+                    alert('Please select an account');
+                    return;
+                }
+                accountName = accountMap[accountCode];
+            }
+
+            // Check for duplicates
+            if (accountData.find(row => row.code === accountCode)) {
+                alert('This account has already been added');
+                return;
+            }
+
+            // Add to data array
+            accountData.push({
+                code: accountCode,
+                name: accountName,
+                amount: amount,
+                currency: currency,
+                description: description
+            });
+
+            resetForm();
+            renderTable();
+            updateSummary();
+        }
+
+        // Render table
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            const totalRow = document.getElementById('totalRow');
+            tableBody.innerHTML = '';
+            totalRow.innerHTML = '';
+
+            let total = 0;
+            accountData.forEach((row, index) => {
+                const currencySymbol = currencySymbols[row.currency] || row.currency;
+                total += row.amount;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${row.code}</strong></td>
+                    <td>${row.name}</td>
+                    <td class="text-end">${formatCurrency(row.amount)}</td>
+                    <td>${row.currency}</td>
+                    <td>${row.description || '-'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-edit" onclick="editRow(${index})">✏️</button>
+                            <button class="btn-delete" onclick="deleteRow(${index})">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // Render total row
+            if (accountData.length > 0) {
+                const currencySymbol = currencySymbols[document.getElementById('currency').value] || 'VND';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="3"><strong>TỔNG CỘNG (Total)</strong></td>
+                    <td class="text-end"><strong>${formatCurrency(total)}</strong></td>
+                    <td colspan="3"></td>
+                `;
+                totalRow.appendChild(tr);
+            }
+        }
+
+        // Edit row
+        function editRow(index) {
+            const row = accountData[index];
+            document.getElementById('amount').value = formatCurrency(row.amount);
+            document.getElementById('description').value = row.description;
+            document.getElementById('currency').value = row.currency;
+
+            if (row.code === '111') {
+                document.getElementById('cashRadio').checked = true;
+            } else {
+                document.getElementById('bankRadio').checked = true;
+                document.getElementById('accountBank').value = row.code;
+            }
+
+            onMoneyTypeChange();
+            deleteRow(index);
+        }
+
+        // Delete row
+        function deleteRow(index) {
+            if (!confirm('Xóa tài khoản này khỏi danh sách?')) {
+                return;
+            }
+            accountData.splice(index, 1);
+            renderTable();
+            updateSummary();
+        }
+
+        // Update summary
+        function updateSummary() {
+            const currency = document.getElementById('currency').value;
+            const currencySymbol = currencySymbols[currency] || currency;
+            const total = accountData.reduce((sum, row) => sum + row.amount, 0);
+
+            document.getElementById('totalBalance').textContent = `${formatCurrency(total)} ${currencySymbol}`;
+            document.getElementById('currencyDisplay').value = currency;
+            document.getElementById('accountCount').value = accountData.length;
+
+            if (accountData.length > 0) {
+                document.getElementById('statusDisplay').textContent = '✅ Ready';
+                document.getElementById('statusDisplay').className = 'balance-status balance-balanced';
+                document.getElementById('submitBtn').disabled = false;
+            } else {
+                document.getElementById('statusDisplay').textContent = '⚠️ No data';
+                document.getElementById('statusDisplay').className = 'balance-status balance-unbalanced';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('amount').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('accountBank').value = '';
+        }
+
+        // Save draft
+        function saveDraft() {
+            alert('✅ Opening Balance saved as Draft!\n\nYou can continue editing or submit for approval.');
+        }
+
+        // Submit form
+        function submitForm() {
+            if (accountData.length === 0) {
+                alert('❌ Please add at least one account');
+                return;
+            }
+
+            const total = accountData.reduce((sum, row) => sum + row.amount, 0);
+            const currency = document.getElementById('currency').value;
+            const currencySymbol = currencySymbols[currency] || currency;
+
+            alert(`✅ Opening Balance submitted!\n\nTotal Amount: ${formatCurrency(total)} ${currencySymbol}\nNumber of Accounts: ${accountData.length}\n\nStatus: PENDING APPROVAL`);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSummary();
+        });
+    </script>
+</body>
+</html>
