@@ -555,11 +555,7 @@
                                 <label for="accountBank" class="form-label">
                                     Account <span class="required">*</span>
                                 </label>
-                                <select id="accountBank" class="form-control" required>
-                                    <option value="">-- Select Account --</option>
-                                    <option value="112">112 - Tiền Gửi Ngân Hàng (Bank Deposits)</option>
-                                    <option value="113">113 - Tiền Gửi Có Kỳ Hạn (Fixed Deposits)</option>
-                                </select>
+                                <input type="text" id="accountBank" class="form-control" readonly>
                             </div>
                         </div>
                     </div>
@@ -693,6 +689,8 @@
             '1111': 'Tiền Việt Nam (VND)',
             '1112': 'Ngoại tệ (Foreign Currency)',
             '112': 'Tiền Gửi Ngân Hàng (Bank Deposits)',
+            '1121': 'Tiền Việt Nam (VND)',
+            '1122': 'Ngoại tệ (Foreign Currency)',
             '113': 'Tiền Gửi Có Kỳ Hạn (Fixed Deposits)'
         };
 
@@ -748,26 +746,37 @@
         // Currency change handler
         function onCurrencyChange() {
             const moneyType = document.querySelector('input[name="moneyType"]:checked').value;
-            if (moneyType === 'cash') {
+            if (moneyType === 'cash' || moneyType === 'bank') {
                 updateAccountDisplay();
             }
         }
 
         // Update account display based on currency
         function updateAccountDisplay() {
+            const moneyType = document.querySelector('input[name="moneyType"]:checked').value;
             const currency = document.getElementById('currency').value;
             let accountCode = '';
             let accountName = '';
 
-            if (currency === 'VND') {
-                accountCode = '1111';
-                accountName = accountMap['1111'];
-            } else if (currency && currency !== '') {
-                accountCode = '1112';
-                accountName = accountMap['1112'];
+            if (moneyType === 'cash') {
+                if (currency === 'VND') {
+                    accountCode = '1111';
+                    accountName = accountMap['1111'];
+                } else if (currency && currency !== '') {
+                    accountCode = '1112';
+                    accountName = accountMap['1112'];
+                }
+                document.getElementById('accountCash').value = accountCode ? `${accountCode} - ${accountName}` : '';
+            } else if (moneyType === 'bank') {
+                if (currency === 'VND') {
+                    accountCode = '1121';
+                    accountName = accountMap['1121'];
+                } else if (currency && currency !== '') {
+                    accountCode = '1122';
+                    accountName = accountMap['1122'];
+                }
+                document.getElementById('accountBank').value = accountCode ? `${accountCode} - ${accountName}` : '';
             }
-
-            document.getElementById('accountCash').value = accountCode ? `${accountCode} - ${accountName}` : '';
         }
 
         // Format currency
@@ -816,10 +825,11 @@
                     return;
                 }
                 accountName = accountMap[accountCode];
-            } else {
-                accountCode = document.getElementById('accountBank').value;
+            } else if (moneyType === 'bank') {
+                const accountBankField = document.getElementById('accountBank').value;
+                accountCode = accountBankField.split(' - ')[0]; // Extract code from "1121 - Tiền Việt Nam (VND)"
                 if (!accountCode) {
-                    alert('Please select an account');
+                    alert('Please select a currency');
                     return;
                 }
                 accountName = accountMap[accountCode];
@@ -897,9 +907,8 @@
 
             if (row.code === '1111' || row.code === '1112') {
                 document.getElementById('cashRadio').checked = true;
-            } else {
+            } else if (row.code === '1121' || row.code === '1122') {
                 document.getElementById('bankRadio').checked = true;
-                document.getElementById('accountBank').value = row.code;
             }
 
             onMoneyTypeChange();
