@@ -15,15 +15,33 @@
         body {
             background-color: #f8f9fa;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+            display: grid;
+            grid-template-rows: 65px 1fr;
+            grid-template-columns: 250px 1fr 320px;
+            grid-template-areas:
+                "header header header"
+                "sidebar main-area widget-area";
+            min-height: 100vh;
+        }
+
+        /* Ensure all containers respect parent width */
+        .main-content,
+        .form-container,
+        .form-container > *,
+        .form-container > * > * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Prevent any element from overflowing */
+        .main-content * {
+            box-sizing: border-box;
         }
 
         /* Top Header */
         .top-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 65px;
+            grid-area: header;
             background-color: #2c3e50;
             color: white;
             display: flex;
@@ -78,17 +96,113 @@
             cursor: not-allowed;
         }
 
+        /* Widget Area Background */
+        .widget-container {
+            grid-area: widget-area;
+            background-color: #f1f3f5;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        /* Balance Summary Widget - NEW */
+        .balance-summary-widget {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: 2px solid #dee2e6;
+            position: sticky;
+            top: 15px;
+        }
+
+        .balance-summary-widget h6 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .summary-row span:first-child {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .summary-row .amount {
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .summary-row .amount.positive {
+            color: #28a745;
+        }
+
+        .summary-row .amount.negative {
+            color: #dc3545;
+        }
+
+        .summary-row.total {
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px solid #2c3e50;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .balance-status-badge {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .balance-status-badge.balanced {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .balance-status-badge.unbalanced {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+
+        .balance-hint {
+            margin-top: 12px;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #004085;
+        }
+
+        .balance-hint ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .balance-hint li {
+            margin: 3px 0;
+        }
+
         /* Sidebar */
         .sidebar {
-            position: fixed;
-            left: 0;
-            top: 65px;
-            width: 250px;
-            height: calc(100vh - 65px);
+            grid-area: sidebar;
             background-color: #f8f9fa;
             border-right: 1px solid #ddd;
             overflow-y: auto;
-            z-index: 900;
             padding: 20px 0;
         }
 
@@ -125,10 +239,10 @@
 
         /* Main Content */
         .main-content {
-            margin-left: 250px;
-            margin-top: 65px;
+            grid-area: main-area;
             padding: 30px;
-            min-height: calc(100vh - 65px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .form-container {
@@ -136,7 +250,7 @@
             border-radius: 0;
             box-shadow: none;
             padding: 30px;
-            width: 100%;
+            /* Don't set width - let it fill parent naturally */
         }
 
         .form-heading {
@@ -179,6 +293,11 @@
             border-bottom-color: #2196f3;
         }
 
+        .tab-button.pending {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Tab Panels */
         .tab-panel {
             display: none;
@@ -188,70 +307,7 @@
             display: block;
         }
 
-        /* Money Type Selection */
-        .money-type-section {
-            background-color: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-left: 4px solid #2196f3;
-            border-radius: 0.375rem;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        .money-type-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .radio-option input[type="radio"] {
-            cursor: pointer;
-            width: 18px;
-            height: 18px;
-        }
-
-        .radio-option label {
-            cursor: pointer;
-            margin: 0;
-            font-size: 15px;
-            color: #333;
-            font-weight: 500;
-        }
-
         /* Section Containers */
-        #section1Container,
-        #section2Container,
-        #section3Container {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 0.375rem;
-            padding: 20px;
-            margin: 15px 0;
-        }
-
-        #section2Container {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-        }
-
-        #section3Container {
-            background-color: #fff3e0;
-            border-left: 4px solid #ff9800;
-        }
-
         .section-title {
             font-weight: 600;
             color: #2c3e50;
@@ -271,10 +327,26 @@
             background-color: white;
             margin-bottom: 0;
             font-size: 14px;
+            table-layout: auto;
         }
 
         .table thead {
             background-color: #f8f9fa;
+        }
+
+        .tab-panel {
+            max-width: 100%;
+            overflow: visible;
+        }
+
+        .tab-panel > div[style*="overflow-x"] {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .tab-panel .table {
+            width: 100%;
+            max-width: 100%;
         }
 
         .table th {
@@ -292,111 +364,6 @@
 
         .table tbody tr:hover {
             background-color: #f8f9fa;
-        }
-
-        .table tbody tr:last-child {
-            background-color: #fff3e0;
-            font-weight: 600;
-            border-top: 2px solid #ff9800;
-        }
-
-        /* Alert */
-        .alert-info {
-            background-color: #e7f3ff;
-            border: 1px solid #b3d9ff;
-            border-radius: 4px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .alert-info h6 {
-            margin-bottom: 10px;
-            color: #004085;
-        }
-
-        .alert-info ul {
-            margin-bottom: 0;
-            padding-left: 20px;
-        }
-
-        .alert-info li {
-            color: #004085;
-        }
-
-        /* Balance Status Badge */
-        .balance-status {
-            font-size: 16px;
-            font-weight: 600;
-            padding: 10px 12px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .balance-balanced {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .balance-unbalanced {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-edit {
-            padding: 4px 8px;
-            font-size: 12px;
-            background-color: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-edit:hover {
-            background-color: #0b5ed7;
-        }
-
-        .btn-delete {
-            padding: 4px 8px;
-            font-size: 12px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-delete:hover {
-            background-color: #c82333;
-        }
-
-        .btn-add {
-            padding: 10px 20px;
-            font-size: 14px;
-            background-color: #0d6efd;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-        }
-
-        .btn-add:hover:not(:disabled) {
-            background-color: #0b5ed7;
-        }
-
-        .btn-add:disabled {
-            background-color: #ddd;
-            color: #999;
-            cursor: not-allowed;
         }
 
         .form-label {
@@ -427,26 +394,136 @@
             cursor: not-allowed;
         }
 
-        .form-error {
-            color: #dc3545;
-            font-size: 0.85rem;
-            margin-top: 5px;
+        .btn-add {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-add:hover:not(:disabled) {
+            background-color: #0b5ed7;
+        }
+
+        .btn-add:disabled {
+            background-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-delete {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+
+        /* Alert */
+        .alert-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .alert-info h6 {
+            margin-bottom: 10px;
+            color: #004085;
+        }
+
+        .alert-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .alert-info li {
+            color: #004085;
+        }
+
+        /* Opening Info Section */
+        .opening-info-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            border-left: 4px solid #0d6efd;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .opening-info-section h6 {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        /* CRITICAL: Override Bootstrap row negative margins */
+        .opening-info-section .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        .opening-info-section .col-md-4,
+        .opening-info-section .col-md-12 {
+            padding-left: 0;
+            padding-right: 15px;
+        }
+
+        /* Fix all rows in tab panels */
+        .tab-panel .row {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+
+        /* Responsive Grid Layout */
+        @media (max-width: 1600px) {
+            body {
+                grid-template-columns: 250px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            body {
+                grid-template-columns: 250px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            body {
+                grid-template-columns: 250px 1fr 260px;
+            }
         }
 
         @media (max-width: 767px) {
-            .sidebar {
+            body {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "main-area";
+            }
+            .sidebar,
+            .widget-container {
                 display: none;
             }
             .main-content {
-                margin-left: 0;
                 padding: 15px;
             }
             .form-container {
                 padding: 20px;
-            }
-            .radio-group {
-                flex-direction: column;
-                gap: 15px;
             }
         }
     </style>
@@ -457,7 +534,7 @@
         <div class="header-title">📊 Khởi Tạo Số Dư Đầu Kỳ</div>
         <div class="header-buttons">
             <button class="btn-save" onclick="saveDraft()">Lưu Nháp</button>
-            <button class="btn-submit" id="submitBtn" onclick="submitForm()" disabled>Gửi Duyệt</button>
+            <button class="btn-submit" id="submitBtn" onclick="submitForm()">Gửi Duyệt</button>
         </div>
     </div>
 
@@ -484,20 +561,70 @@
         <div class="form-container">
             <h1 class="form-heading">📊 Khởi Tạo Số Dư Đầu Kỳ</h1>
 
+            <!-- Opening Info Section -->
+            <div class="opening-info-section">
+                <h6>📅 Thông Tin Cơ Bản</h6>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="openingDate" class="form-label">
+                            Ngày Khởi Tạo Số Dư <span class="required">*</span>
+                        </label>
+                        <input type="date"
+                               id="openingDate"
+                               class="form-control"
+                               value="2024-01-01"
+                               required>
+                        <small class="text-muted">Thường là ngày đầu năm tài chính</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Năm Tài Chính</label>
+                        <input type="text"
+                               id="fiscalYear"
+                               class="form-control"
+                               value="2024"
+                               readonly
+                               style="background-color: #e9ecef;">
+                        <small class="text-muted">Tự động từ ngày khởi tạo</small>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Kỳ Kế Toán</label>
+                        <input type="text"
+                               id="accountingPeriod"
+                               class="form-control"
+                               value="Tháng 01/2024"
+                               readonly
+                               style="background-color: #e9ecef;">
+                        <small class="text-muted">Tự động từ ngày khởi tạo</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="description" class="form-label">Mô Tả (Optional)</label>
+                        <input type="text"
+                               id="description"
+                               class="form-control"
+                               placeholder="VD: Số dư đầu kỳ năm 2024, hoặc Số dư chuyển từ hệ thống cũ..."
+                               maxlength="200">
+                        <small class="text-muted">Ghi chú để dễ nhận biết</small>
+                    </div>
+                </div>
+            </div>
+
             <!-- TAB Navigation -->
             <div class="tab-navigation">
-                <button class="tab-button active" onclick="switchTab('tab1')">💰 Tiền (Cash/Money)</button>
-                <button class="tab-button" onclick="switchTab('tab2')">📦 Hàng Hóa Vật Tư</button>
-                <button class="tab-button" onclick="switchTab('tab3')">👥 Phải Thu Khách Hàng</button>
-                <button class="tab-button" onclick="switchTab('tab4')">🏭 Phải Trả Nhà Cung Cấp</button>
-                <button class="tab-button" onclick="switchTab('tab5')">👔 Phải Thu Nhân Viên</button>
-                <button class="tab-button" onclick="switchTab('tab6')">🏢 Tài Sản Công Cụ</button>
-                <button class="tab-button" onclick="switchTab('tab7')">🔧 Chi Phí Dở Dang</button>
+                <button class="tab-button active" onclick="switchTab('tab1')">💰 Tiền</button>
+                <button class="tab-button" onclick="switchTab('tab2')">📦 Hàng Hóa</button>
+                <button class="tab-button" onclick="switchTab('tab3')">👥 Phải Thu KH</button>
+                <button class="tab-button" onclick="switchTab('tab4')">🏭 Phải Trả NCC</button>
+                <button class="tab-button" onclick="switchTab('tab5')">👔 Phải Thu NV</button>
+                <button class="tab-button" onclick="switchTab('tab6')">🏢 Tài Sản</button>
+                <button class="tab-button pending" title="Chức năng đang phát triển">🔧 Chi Phí (Pending)</button>
+                <button class="tab-button" onclick="switchTab('tab8')">💼 Vốn</button>
             </div>
 
             <!-- TAB 1: Tiền (Cash/Money) -->
             <div id="tab1" class="tab-panel active">
-                <h5 class="section-title">📊 Bảng Nhập Số Dư (Input Form Table)</h5>
+                <h5 class="section-title">💰 Tiền (Cash/Money)</h5>
                 <div style="overflow-x: auto;">
                     <table class="table table-striped" id="accountTable">
                         <thead>
@@ -520,359 +647,243 @@
                 </div>
             </div>
 
-            <!-- TAB 2: Hàng Hóa Vật Tư (Goods & Materials) -->
+            <!-- TAB 2-6: Keep existing structure -->
             <div id="tab2" class="tab-panel">
-                <h5 class="section-title">📦 Hàng Hóa Vật Tư (Goods & Materials)</h5>
-                <div id="section2bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account2" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account2" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="121">121 - Hàng Hóa (Goods)</option>
-                                <option value="122">122 - Vật Tư (Materials)</option>
-                                <option value="123">123 - Công Cụ Dụng Cụ (Tools)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="section-title">📦 Hàng Hóa Vật Tư</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="amount2" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount2" class="form-control" placeholder="e.g., 500,000,000">
+                        <label for="account2" class="form-label">Account <span class="required">*</span></label>
+                        <select id="account2" class="form-control">
+                            <option value="">-- Select Account --</option>
+                            <option value="121">121 - Hàng Hóa</option>
+                            <option value="122">122 - Vật Tư</option>
+                        </select>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="description2" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description2" class="form-control" placeholder="e.g., Opening inventory">
+                        <label for="amount2" class="form-label">Amount <span class="required">*</span></label>
+                        <input type="text" id="amount2" class="form-control" placeholder="0">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" id="addBtn2" onclick="addRow2()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section2cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable2">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody2"></tbody>
-                            <tbody id="totalRow2"></tbody>
-                        </table>
-                    </div>
+                <button class="btn-add" onclick="addRow2()">+ Add</button>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody2"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- TAB 3: Phải Thu Khách Hàng (Customer Receivables) -->
             <div id="tab3" class="tab-panel">
-                <h5 class="section-title">👥 Phải Thu Khách Hàng (Customer Receivables)</h5>
-                <div id="section3bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account3" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account3" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="131">131 - Phải Thu Khách Hàng (Customer AR)</option>
-                                <option value="132">132 - Trích Dự Phòng (Reserve)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="section-title">👥 Phải Thu Khách Hàng</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="amount3" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount3" class="form-control" placeholder="e.g., 100,000,000">
+                        <label for="account3" class="form-label">Account <span class="required">*</span></label>
+                        <select id="account3" class="form-control">
+                            <option value="">-- Select Account --</option>
+                            <option value="131">131 - Phải Thu KH</option>
+                        </select>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="description3" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description3" class="form-control" placeholder="e.g., Opening balance from customers">
+                        <label for="amount3" class="form-label">Amount <span class="required">*</span></label>
+                        <input type="text" id="amount3" class="form-control" placeholder="0">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" onclick="addRow3()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section3cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable3">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody3"></tbody>
-                            <tbody id="totalRow3"></tbody>
-                        </table>
-                    </div>
+                <button class="btn-add" onclick="addRow3()">+ Add</button>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody3"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- TAB 4: Phải Trả Nhà Cung Cấp (Supplier Payables) -->
             <div id="tab4" class="tab-panel">
-                <h5 class="section-title">🏭 Phải Trả Nhà Cung Cấp (Supplier Payables)</h5>
-                <div id="section4bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account4" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account4" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="331">331 - Phải Trả Nhà Cung Cấp (Supplier AP)</option>
-                                <option value="332">332 - Xác Định Giá Mua (Accrual)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="section-title">🏭 Phải Trả Nhà Cung Cấp</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="amount4" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount4" class="form-control" placeholder="e.g., 200,000,000">
+                        <label for="account4" class="form-label">Account <span class="required">*</span></label>
+                        <select id="account4" class="form-control">
+                            <option value="">-- Select Account --</option>
+                            <option value="331">331 - Phải Trả NCC</option>
+                        </select>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="description4" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description4" class="form-control" placeholder="e.g., Opening payables">
+                        <label for="amount4" class="form-label">Amount <span class="required">*</span></label>
+                        <input type="text" id="amount4" class="form-control" placeholder="0">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" onclick="addRow4()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section4cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable4">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody4"></tbody>
-                            <tbody id="totalRow4"></tbody>
-                        </table>
-                    </div>
+                <button class="btn-add" onclick="addRow4()">+ Add</button>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody4"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- TAB 5: Phải Thu Nhân Viên (Employee Receivables) -->
             <div id="tab5" class="tab-panel">
-                <h5 class="section-title">👔 Phải Thu Nhân Viên (Employee Receivables)</h5>
-                <div id="section5bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account5" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account5" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="141">141 - Phải Thu Nhân Viên (Employee AR)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="section-title">👔 Phải Thu Nhân Viên</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="amount5" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount5" class="form-control" placeholder="e.g., 50,000,000">
+                        <label for="account5" class="form-label">Account <span class="required">*</span></label>
+                        <select id="account5" class="form-control">
+                            <option value="">-- Select Account --</option>
+                            <option value="141">141 - Phải Thu NV</option>
+                        </select>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="description5" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description5" class="form-control" placeholder="e.g., Employee loans/advances">
+                        <label for="amount5" class="form-label">Amount <span class="required">*</span></label>
+                        <input type="text" id="amount5" class="form-control" placeholder="0">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" onclick="addRow5()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section5cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable5">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody5"></tbody>
-                            <tbody id="totalRow5"></tbody>
-                        </table>
-                    </div>
+                <button class="btn-add" onclick="addRow5()">+ Add</button>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody5"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- TAB 6: Tài Sản Công Cụ (Fixed Assets) -->
             <div id="tab6" class="tab-panel">
-                <h5 class="section-title">🏢 Tài Sản Công Cụ (Fixed Assets)</h5>
-                <div id="section6bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account6" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account6" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="151">151 - Công Cụ (Equipment)</option>
-                                <option value="152">152 - Phương Tiện Vận Tải (Vehicles)</option>
-                                <option value="153">153 - Tài Sản Khác (Other Assets)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <h5 class="section-title">🏢 Tài Sản Công Cụ</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="amount6" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount6" class="form-control" placeholder="e.g., 1,000,000,000">
+                        <label for="account6" class="form-label">Account <span class="required">*</span></label>
+                        <select id="account6" class="form-control">
+                            <option value="">-- Select Account --</option>
+                            <option value="151">151 - Công Cụ</option>
+                            <option value="152">152 - Phương Tiện</option>
+                        </select>
                     </div>
-                </div>
-                <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="description6" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description6" class="form-control" placeholder="e.g., Fixed assets at opening">
+                        <label for="amount6" class="form-label">Amount <span class="required">*</span></label>
+                        <input type="text" id="amount6" class="form-control" placeholder="0">
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" onclick="addRow6()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section6cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable6">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody6"></tbody>
-                            <tbody id="totalRow6"></tbody>
-                        </table>
-                    </div>
+                <button class="btn-add" onclick="addRow6()">+ Add</button>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody6"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- TAB 7: Chi Phí Dở Dang (Work in Progress) -->
-            <div id="tab7" class="tab-panel">
-                <h5 class="section-title">🔧 Chi Phí Dở Dang (Work in Progress)</h5>
-                <div id="section7bContainer">
-                    <h6 class="section-title">Chọn Tài Khoản (Select Account)</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="account7" class="form-label">
-                                Account <span class="required">*</span>
-                            </label>
-                            <select id="account7" class="form-control" required>
-                                <option value="">-- Select Account --</option>
-                                <option value="154">154 - Chi Phí Xây Dựng (Construction Cost)</option>
-                                <option value="155">155 - Chi Phí Lắp Đặt (Installation Cost)</option>
-                                <option value="156">156 - Chi Phí Sản Xuất (Production Cost)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="amount7" class="form-label">
-                            Opening Balance Amount <span class="required">*</span>
-                        </label>
-                        <input type="text" id="amount7" class="form-control" placeholder="e.g., 300,000,000">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="description7" class="form-label">Description (Mô Tả)</label>
-                        <input type="text" id="description7" class="form-control" placeholder="e.g., Work in progress at opening">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <button class="btn-add" onclick="addRow7()">+ Add Account</button>
-                    </div>
-                </div>
-                <div id="section7cContainer">
-                    <h6 class="section-title">📋 Account Summary</h6>
-                    <div style="overflow-x: auto;">
-                        <table class="table table-striped" id="accountTable7">
-                            <thead>
-                                <tr>
-                                    <th style="width: 5%;">#</th>
-                                    <th style="width: 20%;">Account Code</th>
-                                    <th style="width: 35%;">Account Name</th>
-                                    <th style="width: 25%;">Amount</th>
-                                    <th style="width: 15%;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody7"></tbody>
-                            <tbody id="totalRow7"></tbody>
-                        </table>
-                    </div>
+            <!-- TAB 8: Vốn Chủ Sở Hữu (NEW) -->
+            <div id="tab8" class="tab-panel">
+                <h5 class="section-title">💼 Vốn Chủ Sở Hữu (Owner's Equity)</h5>
+                <div style="overflow-x: auto;">
+                    <table class="table table-striped" id="accountTable8">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Account Code</th>
+                                <th style="width: 30%;">Account Name</th>
+                                <th style="width: 20%;">Amount (VND)</th>
+                                <th style="width: 15%;">Debit/Credit</th>
+                                <th style="width: 12%;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody8">
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Alert Box -->
             <div class="alert-info">
-                <h6>💡 Quy Tắc Kiểm Tra:</h6>
+                <h6>💡 Hướng Dẫn:</h6>
                 <ul>
-                    <li>Các trường có dấu <code>*</code> là bắt buộc</li>
-                    <li>Loại tiền tệ sẽ ảnh hưởng tới định dạng hiển thị số</li>
-                    <li>Mỗi tài khoản chỉ được thêm một lần</li>
-                    <li>Không thể sửa được sau khi Xác Nhận</li>
-                    <li>Khi nhấn "Gửi Duyệt", dữ liệu sẽ chuyển sang trạng thái chờ phê duyệt</li>
+                    <li>Nhập dữ liệu vào từng tab tương ứng với loại tài khoản</li>
+                    <li>Widget bên phải hiển thị tổng balance real-time</li>
+                    <li>Balance phải = 0 (cân bằng) trước khi Submit</li>
+                    <li>TAB 8 (Vốn) thường dùng để cân bằng với các tài khoản khác</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Widget Container (Grid Area) -->
+    <div class="widget-container">
+        <!-- Balance Summary Widget -->
+        <div class="balance-summary-widget">
+            <h6>📊 Balance Summary</h6>
+            <div class="summary-row">
+                <span>TAB 1: Tiền</span>
+                <span class="amount" id="balanceTab1">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 2: Hàng hóa</span>
+                <span class="amount" id="balanceTab2">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 3: Phải thu KH</span>
+                <span class="amount" id="balanceTab3">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 4: Phải trả NCC</span>
+                <span class="amount" id="balanceTab4">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 5: Phải thu NV</span>
+                <span class="amount" id="balanceTab5">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 6: Tài sản</span>
+                <span class="amount" id="balanceTab6">0</span>
+            </div>
+            <div class="summary-row">
+                <span>TAB 8: Vốn</span>
+                <span class="amount" id="balanceTab8">0</span>
+            </div>
+            <div class="summary-row total">
+                <span>TỔNG BALANCE:</span>
+                <span class="amount" id="grandTotal">0</span>
+            </div>
+            <div class="balance-status-badge unbalanced" id="balanceStatus">
+                ⚠️ Chưa cân bằng
+            </div>
+            <div class="balance-hint" id="balanceHint">
+                <strong>💡 Lưu ý:</strong>
+                <ul>
+                    <li>Có thể Lưu Nháp và làm việc tiếp</li>
+                    <li>Cân bằng trước khi báo cáo thuế</li>
+                    <li>Nhập thêm TAB 8 để balance</li>
                 </ul>
             </div>
         </div>
@@ -901,7 +912,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Ghi Chú</label>
-                        <textarea class="form-control" id="detailNote" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                        <textarea class="form-control" id="detailNote" rows="2" placeholder="Ghi chú..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -912,34 +923,92 @@
         </div>
     </div>
 
+    <!-- Cross-tab Validation Modal (NEW) -->
+    <div class="modal fade" id="validationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">⚠️ Cảnh Báo - Balance Chưa Cân Bằng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <strong>Chú ý:</strong> Tổng Debit và Credit chưa bằng nhau. Bạn có thể Submit để làm việc tiếp và sửa sau.
+                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Tab</th>
+                                <th class="text-end">Debit (VND)</th>
+                                <th class="text-end">Credit (VND)</th>
+                                <th class="text-end">Net</th>
+                            </tr>
+                        </thead>
+                        <tbody id="validationTableBody">
+                        </tbody>
+                        <tfoot class="table-secondary">
+                            <tr>
+                                <th>TỔNG</th>
+                                <th class="text-end" id="validationTotalDebit">0</th>
+                                <th class="text-end" id="validationTotalCredit">0</th>
+                                <th class="text-end" id="validationTotalNet">0</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="alert alert-info" id="validationHint">
+                        <strong>💡 Gợi ý:</strong> <span id="validationHintText"></span>
+                    </div>
+                    <div class="alert alert-success" style="background-color: #d1e7dd; border-color: #badbcc; color: #0f5132;">
+                        <strong>✅ Bạn có thể:</strong>
+                        <ul style="margin-bottom: 0; padding-left: 20px;">
+                            <li><strong>Submit Anyway:</strong> Lưu dữ liệu, làm việc tiếp, sửa balance sau</li>
+                            <li><strong>Quay lại:</strong> Chỉnh sửa ngay để cân bằng trước khi Submit</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">⬅️ Quay Lại Chỉnh Sửa</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAnyway()">✅ Submit Anyway (Sửa Sau)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Data structure to hold account rows
-        let accountData = [];
+        // Global data structures
+        let accountData = [];  // TAB 1
+        let tabData2 = [];
+        let tabData3 = [];
+        let tabData4 = [];
+        let tabData5 = [];
+        let tabData6 = [];
+        let tabData8 = [];  // TAB 8 - Equity
+
         let editingRowIndex = -1;
+        let editingRowIndex8 = -1;
         let detailModalIndex = -1;
-        let inputRowDetail = {
-            bankName: '',
-            accountNumber: '',
-            accountOwner: '',
-            note: ''
-        };
+        let inputRowDetail = { bankName: '', accountNumber: '', accountOwner: '', note: '' };
 
         const accountMap = {
             '1111': 'Tiền Mặt VND',
             '1112': 'Tiền Mặt Ngoại Tệ',
             '1121': 'Tiền Ngân Hàng VND',
-            '1122': 'Tiền Ngân Hàng Ngoại Tệ'
+            '1122': 'Tiền Ngân Hàng Ngoại Tệ',
+            '121': 'Hàng Hóa',
+            '122': 'Vật Tư',
+            '131': 'Phải Thu Khách Hàng',
+            '331': 'Phải Trả Nhà Cung Cấp',
+            '141': 'Phải Thu Nhân Viên',
+            '151': 'Công Cụ',
+            '152': 'Phương Tiện Vận Tải',
+            '4111': 'Vốn Góp Của Chủ Sở Hữu',
+            '4112': 'Thặng Dư Vốn Cổ Phần',
+            '421': 'Lợi Nhuận Chưa Phân Phối',
+            '4211': 'Lợi Nhuận Năm Trước'
         };
 
-        const currencySymbols = {
-            'VND': '₫',
-            'USD': '$',
-            'EUR': '€',
-            'JPY': '¥',
-            'GBP': '£'
-        };
-
+        // TAB Switching
         function switchTab(tabId) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -947,6 +1016,7 @@
             event.target.classList.add('active');
         }
 
+        // Formatting functions
         function formatCurrency(value) {
             if (!value || isNaN(value)) return '0';
             return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -954,14 +1024,113 @@
 
         function formatCurrencyWithSuffix(value, currency) {
             if (!value || isNaN(value)) return '0 ' + currency;
-            const formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            return formatted + ' ' + currency;
+            return formatCurrency(value) + ' ' + currency;
         }
 
         function parseCurrency(value) {
-            return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+            return parseInt(String(value).replace(/[^0-9]/g, '')) || 0;
         }
 
+        // Date handling functions
+        function updateFiscalYearAndPeriod() {
+            const dateStr = document.getElementById('openingDate').value;
+            if (!dateStr) return;
+
+            const date = new Date(dateStr);
+
+            // Extract fiscal year
+            const fiscalYear = date.getFullYear();
+            document.getElementById('fiscalYear').value = fiscalYear;
+
+            // Extract period (month)
+            const month = date.getMonth() + 1; // 0-based
+            const monthNames = ['Tháng 01', 'Tháng 02', 'Tháng 03', 'Tháng 04',
+                                'Tháng 05', 'Tháng 06', 'Tháng 07', 'Tháng 08',
+                                'Tháng 09', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+            document.getElementById('accountingPeriod').value = monthNames[month - 1] + '/' + fiscalYear;
+        }
+
+        // Balance calculation
+        function calculateTabBalance(tabNum) {
+            let balance = 0;
+            const data = window[`tabData${tabNum}`] || [];
+
+            if (tabNum === 1) {
+                // TAB 1: All cash accounts are Debit (positive)
+                accountData.forEach(row => {
+                    balance += row.exchangedAmount || 0;
+                });
+            } else if (tabNum === 8) {
+                // TAB 8: Equity - usually Credit (negative)
+                tabData8.forEach(row => {
+                    if (row.balanceType === 'debit') {
+                        balance += row.amount;
+                    } else {
+                        balance -= row.amount;
+                    }
+                });
+            } else if (tabNum === 4) {
+                // TAB 4: Payables - Credit (negative)
+                data.forEach(row => {
+                    balance -= row.amount;
+                });
+            } else {
+                // TAB 2,3,5,6: Assets - Debit (positive)
+                data.forEach(row => {
+                    balance += row.amount;
+                });
+            }
+
+            return balance;
+        }
+
+        function updateBalanceSummary() {
+            const tabs = [1, 2, 3, 4, 5, 6, 8];
+            let grandTotal = 0;
+
+            tabs.forEach(tabNum => {
+                const balance = calculateTabBalance(tabNum);
+                grandTotal += balance;
+
+                const el = document.getElementById(`balanceTab${tabNum}`);
+                if (el) {
+                    el.textContent = formatCurrencyWithSuffix(Math.abs(balance), 'VND');
+                    el.className = 'amount ' + (balance >= 0 ? 'positive' : 'negative');
+                    if (balance >= 0) {
+                        el.textContent = '+' + el.textContent;
+                    } else {
+                        el.textContent = '-' + formatCurrencyWithSuffix(Math.abs(balance), 'VND');
+                    }
+                }
+            });
+
+            // Update grand total
+            const totalEl = document.getElementById('grandTotal');
+            const statusEl = document.getElementById('balanceStatus');
+
+            totalEl.textContent = formatCurrencyWithSuffix(Math.abs(grandTotal), 'VND');
+            if (grandTotal >= 0) {
+                totalEl.textContent = '+' + totalEl.textContent;
+                totalEl.className = 'amount positive';
+            } else {
+                totalEl.textContent = '-' + formatCurrencyWithSuffix(Math.abs(grandTotal), 'VND');
+                totalEl.className = 'amount negative';
+            }
+
+            const hintEl = document.getElementById('balanceHint');
+
+            if (Math.abs(grandTotal) < 1) {
+                statusEl.className = 'balance-status-badge balanced';
+                statusEl.textContent = '✓ Đã cân bằng!';
+                hintEl.style.display = 'none'; // Hide hint when balanced
+            } else {
+                statusEl.className = 'balance-status-badge unbalanced';
+                statusEl.textContent = '⚠️ Chưa cân bằng: ' + formatCurrencyWithSuffix(Math.abs(grandTotal), 'VND');
+                hintEl.style.display = 'block'; // Show hint when unbalanced
+            }
+        }
+
+        // ========== TAB 1 Functions (Cash/Money) ==========
         function updateAccountDisplay() {
             const moneyType = document.getElementById('inputMoneyType').value;
             const currency = document.getElementById('inputCurrency').value;
@@ -983,7 +1152,6 @@
             if (moneyType === 'cash') {
                 code = currency === 'VND' ? '1111' : '1112';
                 name = accountMap[code];
-                // Disable Detail button cho Cash
                 detailBtn.style.color = '#ccc';
                 detailBtn.style.cursor = 'not-allowed';
                 detailBtn.style.opacity = '0.5';
@@ -991,7 +1159,6 @@
             } else if (moneyType === 'bank') {
                 code = currency === 'VND' ? '1121' : '1122';
                 name = accountMap[code];
-                // Enable Detail button cho Bank
                 detailBtn.style.color = '#6c757d';
                 detailBtn.style.cursor = 'pointer';
                 detailBtn.style.opacity = '1';
@@ -1054,28 +1221,17 @@
             }
 
             accountData.push({
-                moneyType: moneyType,
-                currency: currency,
-                code: code,
-                name: name,
-                amount: amount,
-                exchangedAmount: exchangedAmount,
+                moneyType, currency, code, name, amount, exchangedAmount,
                 bankName: inputRowDetail.bankName,
                 accountNumber: inputRowDetail.accountNumber,
                 accountOwner: inputRowDetail.accountOwner,
                 note: inputRowDetail.note
             });
 
-            // Reset input row detail
-            inputRowDetail = {
-                bankName: '',
-                accountNumber: '',
-                accountOwner: '',
-                note: ''
-            };
-
+            inputRowDetail = { bankName: '', accountNumber: '', accountOwner: '', note: '' };
             renderInputTable();
             renderAddedAccounts();
+            updateBalanceSummary();
         }
 
         function renderInputTable() {
@@ -1095,17 +1251,15 @@
                     <option value="VND">VND</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
-                    <option value="JPY">JPY</option>
-                    <option value="GBP">GBP</option>
                 </select></td>
                 <td><input type="text" class="form-control form-control-sm" id="inputAccountCode" readonly></td>
                 <td><input type="text" class="form-control form-control-sm" id="inputAccountName" readonly></td>
                 <td><input type="text" class="form-control form-control-sm" id="inputAmount" placeholder="Amount" oninput="updateDebitCreditDisplay()"></td>
                 <td><input type="text" class="form-control form-control-sm" id="inputExchange" placeholder="Exchange" oninput="updateDebitCreditDisplay()"></td>
-                <td><span class="text-end" id="debitDisplay">-</span></td>
-                <td><span class="text-end" id="creditDisplay">-</span></td>
+                <td><span id="debitDisplay">-</span></td>
+                <td><span id="creditDisplay">-</span></td>
                 <td style="text-align: center;">
-                    <button class="btn btn-sm btn-link p-1" id="inputDetailBtn" onclick="openInputDetailModal()" style="color: #ccc; font-size: 14px; cursor: not-allowed; opacity: 0.5;">ℹ️</button>
+                    <button class="btn btn-sm btn-link p-1" id="inputDetailBtn" style="color: #ccc; font-size: 14px; cursor: not-allowed; opacity: 0.5;">ℹ️</button>
                 </td>
                 <td style="text-align: center;"><button class="btn btn-sm btn-primary" onclick="addRow()">Add</button></td>
             `;
@@ -1118,147 +1272,46 @@
             rows.slice(1).forEach(r => r.remove());
 
             accountData.forEach((row, idx) => {
-                const isEditing = editingRowIndex === idx;
                 const tr = document.createElement('tr');
+                const exVal = row.currency !== 'VND' ? formatCurrencyWithSuffix(row.exchangedAmount, 'VND') : '-';
+                const isCash = row.code.startsWith('1');
+                const debitVal = isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
+                const creditVal = !isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
 
-                if (isEditing) {
-                    tr.innerHTML = `
-                        <td><select class="form-control form-control-sm" id="edit_money_${idx}">
-                            <option value="cash" ${row.moneyType === 'cash' ? 'selected' : ''}>💵 Cash</option>
-                            <option value="bank" ${row.moneyType === 'bank' ? 'selected' : ''}>🏦 Bank</option>
-                        </select></td>
-                        <td><select class="form-control form-control-sm" id="edit_currency_${idx}" onchange="updateEditRowDisplay(${idx})">
-                            <option value="VND" ${row.currency === 'VND' ? 'selected' : ''}>VND</option>
-                            <option value="USD" ${row.currency === 'USD' ? 'selected' : ''}>USD</option>
-                            <option value="EUR" ${row.currency === 'EUR' ? 'selected' : ''}>EUR</option>
-                            <option value="JPY" ${row.currency === 'JPY' ? 'selected' : ''}>JPY</option>
-                            <option value="GBP" ${row.currency === 'GBP' ? 'selected' : ''}>GBP</option>
-                        </select></td>
-                        <td><input type="text" class="form-control form-control-sm" value="${row.code}" readonly></td>
-                        <td><input type="text" class="form-control form-control-sm" value="${row.name}" readonly></td>
-                        <td><input type="text" class="form-control form-control-sm" id="edit_amount_${idx}" value="${formatCurrency(row.amount)}" oninput="updateEditRowDisplay(${idx})"></td>
-                        <td><input type="text" class="form-control form-control-sm" id="edit_exchange_${idx}" value="${row.currency !== 'VND' ? formatCurrency(row.exchangedAmount) : ''}" oninput="updateEditRowDisplay(${idx})" ${row.currency === 'VND' ? 'disabled' : ''}></td>
-                        <td><span class="text-end" id="edit_debit_${idx}">-</span></td>
-                        <td><span class="text-end" id="edit_credit_${idx}">-</span></td>
-                        <td style="text-align: center;">
-                            <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${row.moneyType === 'bank' ? '#6c757d' : '#ccc'}; font-size: 14px; cursor: ${row.moneyType === 'bank' ? 'pointer' : 'not-allowed'}; opacity: ${row.moneyType === 'bank' ? '1' : '0.5'};">ℹ️</button>
-                        </td>
-                        <td style="text-align: center;">
-                            <button class="btn btn-sm btn-link p-1" onclick="saveEditRow(${idx})" style="color: #28a745; font-size: 18px;">✓</button>
-                            <button class="btn btn-sm btn-link p-1" onclick="cancelEditRow()" style="color: #dc3545; font-size: 18px;">✕</button>
-                        </td>
-                    `;
-                } else {
-                    const exVal = row.currency !== 'VND' ? formatCurrencyWithSuffix(row.exchangedAmount, 'VND') : '-';
-                    const isCash = row.code.startsWith('1');
-                    const debitVal = isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
-                    const creditVal = !isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
-
-                    const detailBtnColor = row.moneyType === 'bank' ? '#6c757d' : '#ccc';
-                    const detailBtnCursor = row.moneyType === 'bank' ? 'pointer' : 'not-allowed';
-                    const detailBtnOpacity = row.moneyType === 'bank' ? '1' : '0.5';
-
-                    tr.innerHTML = `
-                        <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
-                        <td><strong>${row.currency}</strong></td>
-                        <td><strong>${row.code}</strong></td>
-                        <td>${row.name}</td>
-                        <td class="text-end">${formatCurrencyWithSuffix(row.amount, row.currency)}</td>
-                        <td class="text-end">${exVal}</td>
-                        <td class="text-end">${debitVal}</td>
-                        <td class="text-end">${creditVal}</td>
-                        <td style="text-align: center;">
-                            <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${detailBtnColor}; font-size: 14px; cursor: ${detailBtnCursor}; opacity: ${detailBtnOpacity};">ℹ️</button>
-                        </td>
-                        <td style="text-align: center;">
-                            <button class="btn btn-sm btn-link p-1" onclick="startEditRow(${idx})" style="color: #ffc107; font-size: 18px;">✏</button>
-                            <button class="btn btn-sm btn-link p-1" onclick="deleteAddedAccount(${idx})" style="color: #dc3545; font-size: 18px;">🗑</button>
-                        </td>
-                    `;
-                }
+                tr.innerHTML = `
+                    <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
+                    <td><strong>${row.currency}</strong></td>
+                    <td><strong>${row.code}</strong></td>
+                    <td>${row.name}</td>
+                    <td class="text-end">${formatCurrencyWithSuffix(row.amount, row.currency)}</td>
+                    <td class="text-end">${exVal}</td>
+                    <td class="text-end">${debitVal}</td>
+                    <td class="text-end">${creditVal}</td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${row.moneyType === 'bank' ? '#6c757d' : '#ccc'}; font-size: 14px; cursor: ${row.moneyType === 'bank' ? 'pointer' : 'not-allowed'}; opacity: ${row.moneyType === 'bank' ? '1' : '0.5'};">ℹ️</button>
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-sm btn-link p-1" onclick="deleteAddedAccount(${idx})" style="color: #dc3545; font-size: 18px;">🗑</button>
+                    </td>
+                `;
                 tbody.appendChild(tr);
-
-                // Update display AFTER appending to DOM
-                if (isEditing) {
-                    updateEditRowDisplay(idx);
-                }
             });
-        }
-
-        function startEditRow(idx) {
-            editingRowIndex = idx;
-            renderAddedAccounts();
-        }
-
-        function updateEditRowDisplay(idx) {
-            const amount = parseCurrency(document.getElementById(`edit_amount_${idx}`).value);
-            const currency = document.getElementById(`edit_currency_${idx}`).value;
-            const code = accountData[idx].code;
-            const isCash = code.startsWith('1');
-
-            const exInput = document.getElementById(`edit_exchange_${idx}`);
-            let displayAmount = amount;
-            if (currency !== 'VND' && exInput && exInput.value) {
-                displayAmount = parseCurrency(exInput.value);
-            }
-
-            const debitDisplay = document.getElementById(`edit_debit_${idx}`);
-            const creditDisplay = document.getElementById(`edit_credit_${idx}`);
-            const suffix = currency !== 'VND' ? 'VND' : currency;
-
-            if (isCash) {
-                debitDisplay.textContent = displayAmount > 0 ? formatCurrencyWithSuffix(displayAmount, suffix) : '-';
-                creditDisplay.textContent = '-';
-            } else {
-                debitDisplay.textContent = '-';
-                creditDisplay.textContent = displayAmount > 0 ? formatCurrencyWithSuffix(displayAmount, suffix) : '-';
-            }
-        }
-
-        function saveEditRow(idx) {
-            const currency = document.getElementById(`edit_currency_${idx}`).value;
-            const amount = parseCurrency(document.getElementById(`edit_amount_${idx}`).value);
-            let exchangedAmount = amount;
-
-            if (currency !== 'VND') {
-                const exInput = document.getElementById(`edit_exchange_${idx}`);
-                if (!exInput.value) {
-                    alert('Please enter exchange rate');
-                    return;
-                }
-                exchangedAmount = parseCurrency(exInput.value);
-            }
-
-            accountData[idx].currency = currency;
-            accountData[idx].amount = amount;
-            accountData[idx].exchangedAmount = exchangedAmount;
-
-            editingRowIndex = -1;
-            renderAddedAccounts();
-        }
-
-        function cancelEditRow() {
-            editingRowIndex = -1;
-            renderAddedAccounts();
         }
 
         function deleteAddedAccount(idx) {
             if (confirm('Xóa tài khoản này?')) {
                 accountData.splice(idx, 1);
                 renderAddedAccounts();
+                updateBalanceSummary();
             }
         }
 
         function openInputDetailModal() {
-            detailModalIndex = -1; // Mark as input row detail
-
-            // Load data từ inputRowDetail vào modal
+            detailModalIndex = -1;
             document.getElementById('detailBankName').value = inputRowDetail.bankName || '';
             document.getElementById('detailAccountNumber').value = inputRowDetail.accountNumber || '';
             document.getElementById('detailAccountOwner').value = inputRowDetail.accountOwner || '';
             document.getElementById('detailNote').value = inputRowDetail.note || '';
-
-            // Mở modal
             const modal = new bootstrap.Modal(document.getElementById('detailModal'));
             modal.show();
         }
@@ -1266,204 +1319,397 @@
         function openDetailModal(idx) {
             detailModalIndex = idx;
             const row = accountData[idx];
-
-            // Load data vào modal
             document.getElementById('detailBankName').value = row.bankName || '';
             document.getElementById('detailAccountNumber').value = row.accountNumber || '';
             document.getElementById('detailAccountOwner').value = row.accountOwner || '';
             document.getElementById('detailNote').value = row.note || '';
-
-            // Mở modal
             const modal = new bootstrap.Modal(document.getElementById('detailModal'));
             modal.show();
         }
 
         function saveDetailModal() {
             if (detailModalIndex < 0) {
-                // Save to input row detail
                 inputRowDetail.bankName = document.getElementById('detailBankName').value;
                 inputRowDetail.accountNumber = document.getElementById('detailAccountNumber').value;
                 inputRowDetail.accountOwner = document.getElementById('detailAccountOwner').value;
                 inputRowDetail.note = document.getElementById('detailNote').value;
             } else {
-                // Save to added accounts
                 const row = accountData[detailModalIndex];
                 row.bankName = document.getElementById('detailBankName').value;
                 row.accountNumber = document.getElementById('detailAccountNumber').value;
                 row.accountOwner = document.getElementById('detailAccountOwner').value;
                 row.note = document.getElementById('detailNote').value;
-
                 renderAddedAccounts();
             }
-
-            // Đóng modal
             const modalEl = document.getElementById('detailModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) {
-                modal.hide();
-            }
-
+            if (modal) modal.hide();
             detailModalIndex = -1;
         }
 
-        function resetForm() {}
+        // ========== TAB 8 Functions (Equity) ==========
+        function renderInputTable8() {
+            const tbody = document.getElementById('tableBody8');
+            tbody.innerHTML = '';
 
-        function saveDraft() {
-            alert('✅ Saved as Draft!');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="form-control form-control-sm" id="input8AccountCode" onchange="update8AccountName()">
+                        <option value="">-- Chọn --</option>
+                        <option value="4111">4111</option>
+                        <option value="4112">4112</option>
+                        <option value="421">421</option>
+                        <option value="4211">4211</option>
+                    </select>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" id="input8AccountName" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" id="input8Amount" placeholder="0"></td>
+                <td>
+                    <select class="form-control form-control-sm" id="input8BalanceType">
+                        <option value="credit">Credit (Có)</option>
+                        <option value="debit">Debit (Nợ)</option>
+                    </select>
+                </td>
+                <td style="text-align: center;"><button class="btn btn-sm btn-primary" onclick="addRow8()">Add</button></td>
+            `;
+            tbody.appendChild(tr);
+
+            // Render existing rows
+            tabData8.forEach((row, idx) => {
+                const tr2 = document.createElement('tr');
+                tr2.innerHTML = `
+                    <td><strong>${row.code}</strong></td>
+                    <td>${row.name}</td>
+                    <td class="text-end">${formatCurrencyWithSuffix(row.amount, 'VND')}</td>
+                    <td>${row.balanceType === 'credit' ? 'Credit (Có)' : 'Debit (Nợ)'}</td>
+                    <td style="text-align: center;">
+                        <button class="btn btn-sm btn-link p-1" onclick="deleteRow8(${idx})" style="color: #dc3545; font-size: 18px;">🗑</button>
+                    </td>
+                `;
+                tbody.appendChild(tr2);
+            });
         }
 
-        function submitForm() {
-            if (accountData.length === 0) {
-                alert('Please add at least one account');
-                return;
-            }
-            alert('✅ Submitted! Status: PENDING APPROVAL');
+        function update8AccountName() {
+            const code = document.getElementById('input8AccountCode').value;
+            const nameInput = document.getElementById('input8AccountName');
+            nameInput.value = accountMap[code] || '';
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderInputTable();
-        });
+        function addRow8() {
+            const code = document.getElementById('input8AccountCode').value;
+            const name = document.getElementById('input8AccountName').value;
+            const amountStr = document.getElementById('input8Amount').value;
+            const balanceType = document.getElementById('input8BalanceType').value;
+            const amount = parseCurrency(amountStr);
 
-        // Generic function for adding rows to other tabs
-        function addRowToTab(tabNumber) {
-            const accountField = document.getElementById(`account${tabNumber}`);
-            const amountField = document.getElementById(`amount${tabNumber}`);
-            const descriptionField = document.getElementById(`description${tabNumber}`);
-
-            const accountCode = accountField.value;
-            const amountInput = amountField.value;
-            const description = descriptionField.value;
-
-            if (!accountCode) {
-                alert('Please select an account');
+            if (!code) {
+                alert('Vui lòng chọn tài khoản');
                 return;
             }
 
-            if (!amountInput) {
+            if (amount <= 0) {
+                alert('Vui lòng nhập số tiền');
+                return;
+            }
+
+            tabData8.push({ code, name, amount, balanceType });
+            renderInputTable8();
+            updateBalanceSummary();
+        }
+
+        function deleteRow8(idx) {
+            if (confirm('Xóa tài khoản này?')) {
+                tabData8.splice(idx, 1);
+                renderInputTable8();
+                updateBalanceSummary();
+            }
+        }
+
+        // ========== TAB 2-6 Functions ==========
+        function addRowToTab(tabNum) {
+            const accountField = document.getElementById(`account${tabNum}`);
+            const amountField = document.getElementById(`amount${tabNum}`);
+            const code = accountField.value;
+            const amountStr = amountField.value;
+
+            if (!code) {
+                alert('Please select account');
+                return;
+            }
+
+            const amount = parseCurrency(amountStr);
+            if (amount <= 0) {
                 alert('Please enter amount');
                 return;
             }
 
-            const amount = parseCurrency(amountInput);
-            if (amount <= 0) {
-                alert('Amount must be greater than 0');
+            const name = accountMap[code] || 'Unknown';
+            const tabData = window[`tabData${tabNum}`];
+
+            if (tabData.find(r => r.code === code)) {
+                alert('Account already added');
                 return;
             }
 
-            // Create account mapping for each tab
-            const accountMaps = {
-                2: {
-                    '121': 'Hàng Hóa (Goods)',
-                    '122': 'Vật Tư (Materials)',
-                    '123': 'Công Cụ Dụng Cụ (Tools)'
-                },
-                3: {
-                    '131': 'Phải Thu Khách Hàng (Customer AR)',
-                    '132': 'Trích Dự Phòng (Reserve)'
-                },
-                4: {
-                    '331': 'Phải Trả Nhà Cung Cấp (Supplier AP)',
-                    '332': 'Xác Định Giá Mua (Accrual)'
-                },
-                5: {
-                    '141': 'Phải Thu Nhân Viên (Employee AR)'
-                },
-                6: {
-                    '151': 'Công Cụ (Equipment)',
-                    '152': 'Phương Tiện Vận Tải (Vehicles)',
-                    '153': 'Tài Sản Khác (Other Assets)'
-                },
-                7: {
-                    '154': 'Chi Phí Xây Dựng (Construction Cost)',
-                    '155': 'Chi Phí Lắp Đặt (Installation Cost)',
-                    '156': 'Chi Phí Sản Xuất (Production Cost)'
-                }
-            };
-
-            const accountName = accountMaps[tabNumber][accountCode] || 'Unknown';
-
-            // Store data in global structure
-            const tabData = window[`tabData${tabNumber}`] = window[`tabData${tabNumber}`] || [];
-
-            // Check for duplicates
-            if (tabData.find(row => row.code === accountCode)) {
-                alert('This account has already been added');
-                return;
-            }
-
-            // Add to data array
-            tabData.push({
-                code: accountCode,
-                name: accountName,
-                amount: amount,
-                description: description
-            });
-
-            // Clear form
+            tabData.push({ code, name, amount });
             accountField.value = '';
             amountField.value = '';
-            descriptionField.value = '';
-
-            // Re-render table
-            renderTableForTab(tabNumber);
+            renderTableForTab(tabNum);
+            updateBalanceSummary();
         }
 
-        function renderTableForTab(tabNumber) {
-            const tabData = window[`tabData${tabNumber}`] || [];
-            const tableBody = document.getElementById(`tableBody${tabNumber}`);
-            const totalRow = document.getElementById(`totalRow${tabNumber}`);
+        function renderTableForTab(tabNum) {
+            const tbody = document.getElementById(`tableBody${tabNum}`);
+            tbody.innerHTML = '';
+            const tabData = window[`tabData${tabNum}`];
 
-            tableBody.innerHTML = '';
-            totalRow.innerHTML = '';
-
-            let total = 0;
-            tabData.forEach((row, index) => {
-                total += row.amount;
-
+            tabData.forEach((row, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td><strong>${row.code}</strong></td>
-                    <td>${row.name}</td>
-                    <td class="text-end">${formatCurrency(row.amount)}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteRowFromTab(${tabNumber}, ${index})">🗑️</button>
-                    </td>
+                    <td>${idx + 1}</td>
+                    <td><strong>${row.code}</strong> - ${row.name}</td>
+                    <td class="text-end">${formatCurrencyWithSuffix(row.amount, 'VND')}</td>
+                    <td><button class="btn-delete" onclick="deleteRowFromTab(${tabNum}, ${idx})">🗑️</button></td>
                 `;
-                tableBody.appendChild(tr);
+                tbody.appendChild(tr);
             });
+        }
 
-            if (tabData.length > 0) {
-                const totalTr = document.createElement('tr');
-                totalTr.innerHTML = `
-                    <td colspan="3"><strong>Total</strong></td>
-                    <td class="text-end"><strong>${formatCurrency(total)}</strong></td>
-                    <td></td>
-                `;
-                totalRow.appendChild(totalTr);
+        function deleteRowFromTab(tabNum, idx) {
+            if (confirm('Xóa tài khoản này?')) {
+                window[`tabData${tabNum}`].splice(idx, 1);
+                renderTableForTab(tabNum);
+                updateBalanceSummary();
             }
         }
 
-        function deleteRowFromTab(tabNumber, index) {
-            if (!confirm('Xóa tài khoản này khỏi danh sách?')) {
-                return;
-            }
-            const tabData = window[`tabData${tabNumber}`] || [];
-            tabData.splice(index, 1);
-            renderTableForTab(tabNumber);
-        }
-
-        // Add row functions for each tab
         function addRow2() { addRowToTab(2); }
         function addRow3() { addRowToTab(3); }
         function addRow4() { addRowToTab(4); }
         function addRow5() { addRowToTab(5); }
         function addRow6() { addRowToTab(6); }
-        function addRow7() { addRowToTab(7); }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            updateSummary();
+        // ========== Submit & Validation ==========
+        function submitForm() {
+            // Validate opening date
+            const openingDate = document.getElementById('openingDate').value;
+            if (!openingDate) {
+                alert('❌ Vui lòng chọn Ngày Khởi Tạo Số Dư!');
+                document.getElementById('openingDate').focus();
+                return;
+            }
+
+            // Optional: Warn if date is in future
+            const selectedDate = new Date(openingDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset time for comparison
+            if (selectedDate > today) {
+                const confirmFuture = confirm('⚠️ Ngày khởi tạo ở tương lai (' + openingDate + ').\n\nBạn có chắc muốn tiếp tục?');
+                if (!confirmFuture) return;
+            }
+
+            // Check balance
+            const grandTotal = calculateTabBalance(1) + calculateTabBalance(2) +
+                               calculateTabBalance(3) + calculateTabBalance(4) +
+                               calculateTabBalance(5) + calculateTabBalance(6) +
+                               calculateTabBalance(8);
+
+            if (Math.abs(grandTotal) > 0.01) {
+                // Show warning modal - NOT blocking
+                showValidationModal(grandTotal);
+                return;
+            }
+
+            // Balanced - submit normally
+            submitToBackend({
+                balance_status: 'balanced',
+                needs_review: false
+            });
+        }
+
+        function submitAnyway() {
+            // Close validation modal
+            const modalEl = document.getElementById('validationModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            // Submit with unbalanced flag
+            const grandTotal = calculateTabBalance(1) + calculateTabBalance(2) +
+                               calculateTabBalance(3) + calculateTabBalance(4) +
+                               calculateTabBalance(5) + calculateTabBalance(6) +
+                               calculateTabBalance(8);
+
+            submitToBackend({
+                balance_status: 'unbalanced',
+                needs_review: true,
+                unbalanced_amount: grandTotal
+            });
+        }
+
+        function submitToBackend(flags) {
+            // Get opening date info
+            const openingDate = document.getElementById('openingDate').value;
+            const fiscalYear = parseInt(document.getElementById('fiscalYear').value);
+            const description = document.getElementById('description').value;
+
+            // Extract period from date
+            const date = new Date(openingDate);
+            const period = date.getMonth() + 1; // 0-based
+
+            // Collect all data from tabs
+            const data = {
+                // Basic info
+                opening_date: openingDate,
+                fiscal_year: fiscalYear,
+                period: period,
+                description: description,
+
+                // Account data
+                tab1: accountData,
+                tab2: tabData2,
+                tab3: tabData3,
+                tab4: tabData4,
+                tab5: tabData5,
+                tab6: tabData6,
+                tab8: tabData8,
+
+                // Status flags
+                ...flags,
+
+                // Audit
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('Submitting data:', data);
+
+            // Show success message based on status
+            if (flags.balance_status === 'balanced') {
+                alert('✅ Submit thành công! Balance đã cân bằng.\n\nDữ liệu đã được lưu.');
+            } else {
+                alert('✅ Submit thành công!\n\n⚠️ Lưu ý: Balance chưa cân bằng (' +
+                      formatCurrencyWithSuffix(Math.abs(flags.unbalanced_amount), 'VND') +
+                      ').\n\nBạn có thể Edit sau để cân bằng trước khi báo cáo thuế.');
+            }
+
+            // TODO: Replace with actual API call
+            // fetch('/api/opening-balance/submit', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(data)
+            // }).then(response => response.json())
+            //   .then(result => { ... });
+        }
+
+        function showValidationModal(grandTotal) {
+            const tbody = document.getElementById('validationTableBody');
+            tbody.innerHTML = '';
+
+            const tabs = [
+                { num: 1, name: 'Tiền' },
+                { num: 2, name: 'Hàng hóa' },
+                { num: 3, name: 'Phải thu KH' },
+                { num: 4, name: 'Phải trả NCC' },
+                { num: 5, name: 'Phải thu NV' },
+                { num: 6, name: 'Tài sản' },
+                { num: 8, name: 'Vốn' }
+            ];
+
+            let totalDebit = 0, totalCredit = 0;
+
+            tabs.forEach(tab => {
+                const balance = calculateTabBalance(tab.num);
+                const debit = balance > 0 ? balance : 0;
+                const credit = balance < 0 ? Math.abs(balance) : 0;
+                totalDebit += debit;
+                totalCredit += credit;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>TAB ${tab.num}: ${tab.name}</td>
+                    <td class="text-end">${formatCurrency(debit)}</td>
+                    <td class="text-end">${formatCurrency(credit)}</td>
+                    <td class="text-end ${balance >= 0 ? 'text-success' : 'text-danger'}">${formatCurrencyWithSuffix(balance, 'VND')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('validationTotalDebit').textContent = formatCurrency(totalDebit);
+            document.getElementById('validationTotalCredit').textContent = formatCurrency(totalCredit);
+            document.getElementById('validationTotalNet').textContent = formatCurrencyWithSuffix(grandTotal, 'VND');
+
+            const hint = grandTotal > 0
+                ? `Bạn cần thêm ${formatCurrencyWithSuffix(grandTotal, 'VND')} vào TAB 8 (Vốn) bên Credit để cân bằng.`
+                : `Bạn cần thêm ${formatCurrencyWithSuffix(Math.abs(grandTotal), 'VND')} vào TAB 8 (Vốn) bên Debit để cân bằng.`;
+            document.getElementById('validationHintText').textContent = hint;
+
+            const modal = new bootstrap.Modal(document.getElementById('validationModal'));
+            modal.show();
+        }
+
+        function saveDraft() {
+            const grandTotal = calculateTabBalance(1) + calculateTabBalance(2) +
+                               calculateTabBalance(3) + calculateTabBalance(4) +
+                               calculateTabBalance(5) + calculateTabBalance(6) +
+                               calculateTabBalance(8);
+
+            // Get opening date info
+            const openingDate = document.getElementById('openingDate').value;
+            const fiscalYear = parseInt(document.getElementById('fiscalYear').value);
+            const description = document.getElementById('description').value;
+            const date = new Date(openingDate);
+            const period = date.getMonth() + 1;
+
+            const data = {
+                // Basic info
+                opening_date: openingDate,
+                fiscal_year: fiscalYear,
+                period: period,
+                description: description,
+
+                // Account data
+                tab1: accountData,
+                tab2: tabData2,
+                tab3: tabData3,
+                tab4: tabData4,
+                tab5: tabData5,
+                tab6: tabData6,
+                tab8: tabData8,
+
+                // Status
+                status: 'draft',
+                balance_status: Math.abs(grandTotal) < 1 ? 'balanced' : 'unbalanced',
+                unbalanced_amount: grandTotal,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('Saving draft:', data);
+
+            if (Math.abs(grandTotal) < 1) {
+                alert('✅ Đã lưu nháp!\n\n✓ Balance đã cân bằng.');
+            } else {
+                alert('✅ Đã lưu nháp!\n\n⚠️ Balance chưa cân bằng (' +
+                      formatCurrencyWithSuffix(Math.abs(grandTotal), 'VND') +
+                      ').\n\nBạn có thể tiếp tục chỉnh sửa.');
+            }
+
+            // TODO: Replace with actual API call
+            // localStorage.setItem('opening_balance_draft', JSON.stringify(data));
+        }
+
+        // ========== Initialization ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize tables
+            renderInputTable();
+            renderInputTable8();
+            updateBalanceSummary();
+
+            // Initialize date fields
+            updateFiscalYearAndPeriod();
+
+            // Add event listener for date change
+            document.getElementById('openingDate').addEventListener('change', updateFiscalYearAndPeriod);
         });
     </script>
 </body>
