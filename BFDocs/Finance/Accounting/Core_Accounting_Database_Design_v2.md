@@ -409,7 +409,108 @@ WHERE dimension_id IN (SELECT id FROM dimensions WHERE dimension_code = 'PROJECT
 
 ---
 
-## 3. Complete ERD
+## 3. System Architecture & Features
+
+### 3.1 Feature Map - Accounting System
+
+```mermaid
+graph LR
+    subgraph SETUP["🔧 SYSTEM SETUP<br/>(One-time)"]
+        A1[Tenant<br/>Onboarding]
+        A2[Dimension Template<br/>Selection]
+        A3[Chart of Accounts<br/>Setup]
+        A4[Fiscal Year<br/>Creation]
+        A5[Initial Balance<br/>Import]
+        A1 --> A2 --> A3 --> A4 --> A5
+    end
+
+    subgraph MASTER["📋 MASTER DATA<br/>(Ongoing)"]
+        B1[Chart of Accounts<br/>Management]
+        B2[Dimension<br/>Definition]
+        B3[Dimension Values<br/>Management]
+        B4[Fiscal Period<br/>Management]
+    end
+
+    subgraph SOURCES["📝 SOURCE DOCUMENTS<br/>(Daily Operations)"]
+        direction TB
+        C1[Cash In/Out]
+        C2[Purchase Invoice]
+        C3[Goods Receipt]
+        C4[Sales Invoice]
+        C5[Delivery Order]
+        C6[Payroll Calc]
+        C7[Payroll Payment]
+        C8[Depreciation]
+        C9[Inventory Adj]
+        C10[Bank Recon]
+        C11[Manual JE]
+    end
+
+    subgraph CORE["⚙️ CORE ENGINE<br/>(Backend Processing)"]
+        D1[Journal Entry<br/>Generator]
+        D2[Dimension<br/>Assignment]
+        D3[Posting<br/>Validation]
+        D4[General<br/>Ledger]
+        D1 --> D2 --> D3 --> D4
+    end
+
+    subgraph REPORTS["📊 REPORTS & ANALYTICS<br/>(User Consumption)"]
+        direction TB
+        E1[Trial Balance]
+        E2[GL Report]
+        E3[Financial<br/>Statements]
+        E4[Dimension<br/>Analysis]
+        E5[Cost Center<br/>P&L]
+        E6[Multi-dimension<br/>Reports]
+        E4 --> E5
+        E4 --> E6
+    end
+
+    subgraph CLOSING["🔒 PERIOD CLOSING<br/>(End of Period)"]
+        F1[Period<br/>Close]
+        F2[Closing<br/>Entries]
+        F3[Year-end<br/>Closing]
+        F1 --> F2 --> F3
+    end
+
+    %% Main flow
+    SETUP --> MASTER
+    MASTER --> CORE
+    SOURCES --> CORE
+    CORE --> REPORTS
+    CORE --> CLOSING
+
+    %% Detailed connections
+    B1 -.-> D1
+    B2 -.-> D2
+    B3 -.-> D2
+    B4 -.-> D3
+
+    C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 & C10 & C11 -.-> D1
+
+    D4 -.-> E1 & E2 & E3 & E4
+    B4 -.-> F1
+    D4 -.-> F1
+
+    style SETUP fill:#e1f5ff
+    style MASTER fill:#fff4e1
+    style SOURCES fill:#f0e1ff
+    style CORE fill:#ffe1e1
+    style REPORTS fill:#e1ffe1
+    style CLOSING fill:#ffe1f5
+```
+
+**Legend:**
+- 🔧 **Setup**: Chạy 1 lần khi onboard tenant mới
+- 📋 **Master Data**: Maintain định kỳ (ít thay đổi)
+- 📝 **Source Documents**: Operations hàng ngày (volume cao)
+- ⚙️ **Core Engine**: Automated processing (backend)
+- 📊 **Reports**: User consumption (read-heavy)
+- 🔒 **Closing**: End of period activities
+
+---
+
+### 3.2 Data Model ERD
 
 ```mermaid
 erDiagram
