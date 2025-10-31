@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimension Management - Bflow ERP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-right .user-info {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            z-index: 900;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu > li {
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+        }
+
+        .sidebar-link.active {
+            background-color: #e3f2fd;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .submenu-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px 20px;
+            color: #333;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .submenu-toggle:hover {
+            background-color: #e9ecef;
+        }
+
+        .submenu-toggle .arrow {
+            transition: transform 0.3s;
+        }
+
+        .submenu-toggle.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .submenu.show {
+            max-height: 500px;
+        }
+
+        .submenu .sidebar-link {
+            padding-left: 40px;
+            font-size: 13px;
+        }
+
+        /* Main Content */
+        .main-container {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+        .header-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-section h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .filter-section {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-box {
+            max-width: 350px;
+            flex: 1;
+        }
+        .stats-box {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stat-item strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        .table-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .data-table {
+            margin-top: 20px;
+        }
+        .data-table table {
+            font-size: 14px;
+        }
+        .data-table thead {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .data-table thead th {
+            font-weight: 600;
+            color: #495057;
+            padding: 12px 16px;
+            border: none;
+        }
+        .data-table tbody tr {
+            border-bottom: 1px solid #f1f3f5;
+            transition: background-color 0.15s;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .data-table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+        .row-inactive {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+        }
+        .row-inactive:hover {
+            background-color: #e9ecef !important;
+        }
+        .badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+        }
+        .badge-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-inactive {
+            background-color: #e2e3e5;
+            color: #6c757d;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .modal-title {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+        .form-text {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .required-field::after {
+            content: " *";
+            color: #dc3545;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        .empty-state h5 {
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .code-display {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #0d6efd;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        /* Hamburger Menu for Mobile */
+        .hamburger-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hamburger-menu {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-250px);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+
+            .main-container {
+                margin-left: 0;
+            }
+
+            .top-header h1 {
+                font-size: 16px;
+            }
+
+            .header-right .user-info {
+                display: none;
+            }
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 65px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 850;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
+            <h1>🏢 Bflow ERP - Finance Management</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-info">👤 Admin User</span>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Left Sidebar -->
+    <nav class="sidebar">
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="sidebar-link">
+                    📊 Dashboard
+                </a>
+            </li>
+
+            <li>
+                <div class="submenu-toggle open" onclick="toggleSubmenu(this)">
+                    <span>⚙️ Master Data</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu show">
+                    <li><a href="#" class="sidebar-link">Chart of Accounts</a></li>
+                    <li><a href="#" class="sidebar-link active">Dimension Definition</a></li>
+                    <li><a href="#" class="sidebar-link">Dimension Values</a></li>
+                    <li><a href="#" class="sidebar-link">Account-Dimension Mapping</a></li>
+                    <li><a href="#" class="sidebar-link">Fiscal Period Management</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                    <span>📝 Transactions</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu">
+                    <li><a href="#" class="sidebar-link">Cash In</a></li>
+                    <li><a href="#" class="sidebar-link">Cash Out</a></li>
+                    <li><a href="#" class="sidebar-link">Manual Journal Entry</a></li>
+                    <li><a href="#" class="sidebar-link">Initial Balance</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                    <span>📈 Reports</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu">
+                    <li><a href="#" class="sidebar-link">Trial Balance</a></li>
+                    <li><a href="#" class="sidebar-link">General Ledger</a></li>
+                    <li><a href="#" class="sidebar-link">Financial Statements</a></li>
+                    <li><a href="#" class="sidebar-link">Dimension Analysis</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#" class="sidebar-link">
+                    🔒 Period Closing
+                </a>
+            </li>
+
+            <li style="border-top: 1px solid #ddd; margin-top: 10px; padding-top: 10px;">
+                <a href="#" class="sidebar-link">
+                    ⚙️ Settings
+                </a>
+            </li>
+
+            <li>
+                <a href="#" class="sidebar-link">
+                    ❓ Help & Support
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <h3>📊 Dimension Management</h3>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <span style="font-size: 16px;">+</span> Add Dimension
+            </button>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="search-box">
+                <input type="text" class="form-control" id="searchInput" placeholder="🔍 Search by code or name..." onkeyup="filterDimensions()">
+            </div>
+            <div class="stats-box">
+                <div class="stat-item">
+                    <span>Total:</span>
+                    <strong id="statTotal">0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Active:</span>
+                    <strong id="statActive" style="color: #198754;">0</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Inactive:</span>
+                    <strong id="statInactive" style="color: #6c757d;">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="table-section">
+            <div class="data-table">
+                <table class="table table-hover" id="dimensionsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Dimension Code</th>
+                            <th style="width: 30%;">Dimension Name</th>
+                            <th style="width: 12%; text-align: center;">Display Order</th>
+                            <th style="width: 13%; text-align: center;">Status</th>
+                            <th style="width: 25%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dimensionsTableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📊</div>
+                    <h5>No Dimensions Found</h5>
+                    <p>Click "Add Dimension" to get started</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="dimensionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Add Dimension</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dimensionForm">
+                        <input type="hidden" id="dimensionId">
+
+                        <div class="mb-3">
+                            <label for="dimensionCode" class="form-label required-field">Dimension Code</label>
+                            <input type="text" class="form-control" id="dimensionCode"
+                                   placeholder="e.g., CAMPAIGN" maxlength="20"
+                                   style="text-transform: uppercase;">
+                            <div class="form-text">Uppercase, max 20 characters, alphanumeric and underscore only</div>
+                            <div class="invalid-feedback" id="codeError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dimensionName" class="form-label required-field">Dimension Name</label>
+                            <input type="text" class="form-control" id="dimensionName"
+                                   placeholder="e.g., Chiến dịch Marketing" maxlength="100">
+                            <div class="form-text">Max 100 characters</div>
+                            <div class="invalid-feedback" id="nameError"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="displayOrder" class="form-label required-field">Display Order</label>
+                            <input type="number" class="form-control" id="displayOrder"
+                                   placeholder="e.g., 1" min="1">
+                            <div class="form-text">Default: Next available number</div>
+                            <div class="invalid-feedback" id="orderError"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveDimension()">
+                        <span id="saveButtonText">Save Dimension</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate Confirmation Modal -->
+    <div class="modal fade" id="deactivateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Deactivation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to deactivate <strong id="deactivateDimName"></strong>?</p>
+                    <p class="text-muted mb-0">It will no longer appear in entry forms, but historical data will be preserved.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="confirmDeactivate()">Deactivate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Confirmation Modal -->
+    <div class="modal fade" id="activateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Activation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to activate <strong id="activateDimName"></strong>?</p>
+                    <p class="text-muted mb-0">It will become available in entry forms again.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="confirmActivate()">Activate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This will permanently delete:</p>
+                    <p class="fw-bold" id="deleteDimName"></p>
+                    <p class="text-danger mb-0">This action CANNOT be undone!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Error Modal (In Use) -->
+    <div class="modal fade" id="deleteErrorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">❌ Cannot Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This dimension is currently in use and cannot be deleted.</p>
+                    <p class="fw-bold">Referenced in:</p>
+                    <ul>
+                        <li id="usageJournals"></li>
+                        <li id="usageRules"></li>
+                    </ul>
+                    <p class="text-warning mb-0">Please deactivate instead.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" onclick="deactivateFromError()">Deactivate</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mock Data
+        let dimensions = [
+            {
+                id: 'dim-001',
+                code: 'COST_CENTER',
+                name: 'Cost Center',
+                displayOrder: 1,
+                isActive: true,
+                usageCount: { journals: 245, rules: 35 }
+            },
+            {
+                id: 'dim-002',
+                code: 'PRODUCT_LINE',
+                name: 'Dòng sản phẩm',
+                displayOrder: 2,
+                isActive: true,
+                usageCount: { journals: 198, rules: 28 }
+            },
+            {
+                id: 'dim-003',
+                code: 'FACTORY',
+                name: 'Nhà máy',
+                displayOrder: 3,
+                isActive: true,
+                usageCount: { journals: 156, rules: 22 }
+            },
+            {
+                id: 'dim-004',
+                code: 'SALES_CHANNEL',
+                name: 'Kênh bán hàng',
+                displayOrder: 4,
+                isActive: true,
+                usageCount: { journals: 89, rules: 15 }
+            },
+            {
+                id: 'dim-005',
+                code: 'REGION',
+                name: 'Khu vực',
+                displayOrder: 5,
+                isActive: true,
+                usageCount: { journals: 134, rules: 18 }
+            },
+            {
+                id: 'dim-006',
+                code: 'BRAND',
+                name: 'Thương hiệu',
+                displayOrder: 6,
+                isActive: true,
+                usageCount: { journals: 67, rules: 12 }
+            },
+            {
+                id: 'dim-007',
+                code: 'CAMPAIGN',
+                name: 'Chiến dịch',
+                displayOrder: 7,
+                isActive: false,
+                usageCount: { journals: 45, rules: 8 }
+            },
+            {
+                id: 'dim-008',
+                code: 'CUSTOMER_SEGMENT',
+                name: 'Phân khúc KH',
+                displayOrder: 8,
+                isActive: true,
+                usageCount: { journals: 0, rules: 0 }
+            }
+        ];
+
+        let editingDimensionId = null;
+        let actionDimensionId = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable();
+            updateStats();
+        });
+
+        // Render table
+        function renderTable() {
+            const tbody = document.getElementById('dimensionsTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter dimensions
+            let filteredDimensions = dimensions.filter(dim => {
+                if (!searchTerm) return true;
+                return dim.code.toLowerCase().includes(searchTerm) ||
+                       dim.name.toLowerCase().includes(searchTerm);
+            });
+
+            // Sort by display order
+            filteredDimensions.sort((a, b) => a.displayOrder - b.displayOrder);
+
+            if (filteredDimensions.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = '';
+
+            filteredDimensions.forEach(dim => {
+                const row = document.createElement('tr');
+                if (!dim.isActive) {
+                    row.classList.add('row-inactive');
+                }
+
+                const statusBadge = dim.isActive
+                    ? '<span class="badge badge-active">Active</span>'
+                    : '<span class="badge badge-inactive">Inactive</span>';
+
+                const canDelete = dim.usageCount.journals === 0 && dim.usageCount.rules === 0;
+
+                const deleteButton = canDelete
+                    ? `<button class="btn btn-sm btn-outline-danger" onclick="openDeleteModal('${dim.id}')">Delete</button>`
+                    : `<button class="btn btn-sm btn-outline-secondary" disabled title="Cannot delete (in use)">Delete</button>`;
+
+                const toggleButton = dim.isActive
+                    ? `<button class="btn btn-sm btn-outline-warning" onclick="openDeactivateModal('${dim.id}')">Deactivate</button>`
+                    : `<button class="btn btn-sm btn-outline-success" onclick="openActivateModal('${dim.id}')">Activate</button>`;
+
+                row.innerHTML = `
+                    <td><span class="code-display">${dim.code}</span></td>
+                    <td>${dim.name}</td>
+                    <td style="text-align: center;">${dim.displayOrder}</td>
+                    <td style="text-align: center;">${statusBadge}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('${dim.id}')">Edit</button>
+                            ${toggleButton}
+                            ${deleteButton}
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = dimensions.length;
+            const active = dimensions.filter(d => d.isActive).length;
+            const inactive = total - active;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statActive').textContent = active;
+            document.getElementById('statInactive').textContent = inactive;
+        }
+
+        // Filter dimensions
+        function filterDimensions() {
+            renderTable();
+        }
+
+        // Open Add Modal
+        function openAddModal() {
+            editingDimensionId = null;
+            document.getElementById('modalTitle').textContent = 'Add Dimension';
+            document.getElementById('saveButtonText').textContent = 'Save Dimension';
+            document.getElementById('dimensionForm').reset();
+
+            // Set default display order
+            const maxOrder = Math.max(...dimensions.map(d => d.displayOrder), 0);
+            document.getElementById('displayOrder').value = maxOrder + 1;
+
+            // Enable code field
+            document.getElementById('dimensionCode').disabled = false;
+
+            // Clear validation
+            clearValidation();
+
+            const modal = new bootstrap.Modal(document.getElementById('dimensionModal'));
+            modal.show();
+        }
+
+        // Open Edit Modal
+        function openEditModal(dimId) {
+            editingDimensionId = dimId;
+            const dimension = dimensions.find(d => d.id === dimId);
+
+            document.getElementById('modalTitle').textContent = 'Edit Dimension';
+            document.getElementById('saveButtonText').textContent = 'Update Dimension';
+
+            document.getElementById('dimensionId').value = dimension.id;
+            document.getElementById('dimensionCode').value = dimension.code;
+            document.getElementById('dimensionName').value = dimension.name;
+            document.getElementById('displayOrder').value = dimension.displayOrder;
+
+            // Disable code field (immutable)
+            document.getElementById('dimensionCode').disabled = true;
+
+            clearValidation();
+
+            const modal = new bootstrap.Modal(document.getElementById('dimensionModal'));
+            modal.show();
+        }
+
+        // Save Dimension
+        function saveDimension() {
+            const code = document.getElementById('dimensionCode').value.trim().toUpperCase();
+            const name = document.getElementById('dimensionName').value.trim();
+            const order = parseInt(document.getElementById('displayOrder').value);
+
+            // Validate
+            let hasError = false;
+
+            if (!code) {
+                showFieldError('dimensionCode', 'codeError', 'Code is required');
+                hasError = true;
+            } else if (!/^[A-Z0-9_]+$/.test(code)) {
+                showFieldError('dimensionCode', 'codeError', 'Invalid format. Use uppercase letters, numbers, and underscores only');
+                hasError = true;
+            } else if (!editingDimensionId && dimensions.some(d => d.code === code)) {
+                showFieldError('dimensionCode', 'codeError', 'Code already exists');
+                hasError = true;
+            } else {
+                clearFieldError('dimensionCode', 'codeError');
+            }
+
+            if (!name) {
+                showFieldError('dimensionName', 'nameError', 'Name is required');
+                hasError = true;
+            } else {
+                clearFieldError('dimensionName', 'nameError');
+            }
+
+            if (!order || order < 1) {
+                showFieldError('displayOrder', 'orderError', 'Must be a positive number');
+                hasError = true;
+            } else {
+                clearFieldError('displayOrder', 'orderError');
+            }
+
+            if (hasError) return;
+
+            // Save
+            if (editingDimensionId) {
+                // Update
+                const dimension = dimensions.find(d => d.id === editingDimensionId);
+                dimension.name = name;
+                dimension.displayOrder = order;
+                showToast('Dimension updated successfully', 'success');
+            } else {
+                // Add new
+                const newDim = {
+                    id: 'dim-' + Date.now(),
+                    code: code,
+                    name: name,
+                    displayOrder: order,
+                    isActive: true,
+                    usageCount: { journals: 0, rules: 0 }
+                };
+                dimensions.push(newDim);
+                showToast('Dimension created successfully', 'success');
+            }
+
+            renderTable();
+            updateStats();
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('dimensionModal'));
+            modal.hide();
+        }
+
+        // Open Deactivate Modal
+        function openDeactivateModal(dimId) {
+            actionDimensionId = dimId;
+            const dimension = dimensions.find(d => d.id === dimId);
+            document.getElementById('deactivateDimName').textContent = `${dimension.code} - ${dimension.name}`;
+
+            const modal = new bootstrap.Modal(document.getElementById('deactivateModal'));
+            modal.show();
+        }
+
+        // Confirm Deactivate
+        function confirmDeactivate() {
+            const dimension = dimensions.find(d => d.id === actionDimensionId);
+            dimension.isActive = false;
+
+            renderTable();
+            updateStats();
+            showToast('Dimension deactivated successfully', 'warning');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deactivateModal'));
+            modal.hide();
+        }
+
+        // Open Activate Modal
+        function openActivateModal(dimId) {
+            actionDimensionId = dimId;
+            const dimension = dimensions.find(d => d.id === dimId);
+            document.getElementById('activateDimName').textContent = `${dimension.code} - ${dimension.name}`;
+
+            const modal = new bootstrap.Modal(document.getElementById('activateModal'));
+            modal.show();
+        }
+
+        // Confirm Activate
+        function confirmActivate() {
+            const dimension = dimensions.find(d => d.id === actionDimensionId);
+            dimension.isActive = true;
+
+            renderTable();
+            updateStats();
+            showToast('Dimension activated successfully', 'success');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('activateModal'));
+            modal.hide();
+        }
+
+        // Open Delete Modal
+        function openDeleteModal(dimId) {
+            const dimension = dimensions.find(d => d.id === dimId);
+
+            // Check if in use
+            if (dimension.usageCount.journals > 0 || dimension.usageCount.rules > 0) {
+                actionDimensionId = dimId;
+                document.getElementById('usageJournals').textContent = `${dimension.usageCount.journals} journal entries`;
+                document.getElementById('usageRules').textContent = `${dimension.usageCount.rules} account dimension rules`;
+
+                const modal = new bootstrap.Modal(document.getElementById('deleteErrorModal'));
+                modal.show();
+                return;
+            }
+
+            actionDimensionId = dimId;
+            document.getElementById('deleteDimName').textContent = `${dimension.code} - ${dimension.name}`;
+
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+
+        // Confirm Delete
+        function confirmDelete() {
+            dimensions = dimensions.filter(d => d.id !== actionDimensionId);
+
+            renderTable();
+            updateStats();
+            showToast('Dimension deleted successfully', 'success');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+            modal.hide();
+        }
+
+        // Deactivate from error modal
+        function deactivateFromError() {
+            const dimension = dimensions.find(d => d.id === actionDimensionId);
+            dimension.isActive = false;
+
+            renderTable();
+            updateStats();
+            showToast('Dimension deactivated successfully', 'warning');
+
+            const errorModal = bootstrap.Modal.getInstance(document.getElementById('deleteErrorModal'));
+            errorModal.hide();
+        }
+
+        // Validation helpers
+        function showFieldError(fieldId, errorId, message) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(errorId);
+            field.classList.add('is-invalid');
+            error.textContent = message;
+        }
+
+        function clearFieldError(fieldId, errorId) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(errorId);
+            field.classList.remove('is-invalid');
+            error.textContent = '';
+        }
+
+        function clearValidation() {
+            clearFieldError('dimensionCode', 'codeError');
+            clearFieldError('dimensionName', 'nameError');
+            clearFieldError('displayOrder', 'orderError');
+        }
+
+        // Toast notification
+        function showToast(message, type) {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        // Auto-uppercase for code field
+        document.getElementById('dimensionCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Toggle submenu
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            const arrow = element.querySelector('.arrow');
+
+            if (submenu.classList.contains('show')) {
+                submenu.classList.remove('show');
+                element.classList.remove('open');
+            } else {
+                submenu.classList.add('show');
+                element.classList.add('open');
+            }
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            sidebar.classList.toggle('show-mobile');
+            overlay.classList.toggle('show');
+        }
+
+        // Close sidebar when clicking on a link (mobile only)
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    toggleSidebar();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,11 +1,12 @@
 # Core Accounting - Database Design
 ## Pure Flexible Dimension Model with Account-Specific Rules
 
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2025-10-31
 **Approach:** Journal Line Mode - Pure Flexible Dimensions + Materialized Views + Account-Specific Dimension Rules
 **Target:** Enterprise customers với độ trưởng thành cao về quản trị
-**New in v2.1:** Account-dimension rules (whitelist approach) - inspired by Microsoft Dynamics 365
+**New in v2.2:** Dimension values hierarchy với posting control (SAP-inspired `allow_posting` flag)
+**v2.1:** Account-dimension rules (whitelist approach) - inspired by Microsoft Dynamics 365
 
 ---
 
@@ -339,42 +340,100 @@ INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, display_order
 ---
 
 #### Table: `dimension_values`
-Values cho từng dimension
+Values cho từng dimension - **Support hierarchy với posting control**
 
 ```sql
 CREATE TABLE dimension_values (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id       UUID NOT NULL,
     dimension_id    UUID NOT NULL REFERENCES dimensions(id) ON DELETE CASCADE,
-    value_code      VARCHAR(50) NOT NULL,
+    value_code      VARCHAR(30) NOT NULL,
     value_name      VARCHAR(200) NOT NULL,
-    parent_id       UUID REFERENCES dimension_values(id),
+    parent_value_id UUID REFERENCES dimension_values(id) ON DELETE CASCADE,
+    display_order   INTEGER NOT NULL DEFAULT 0,
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Posting Control (SAP-inspired)
+    allow_posting   BOOLEAN NOT NULL DEFAULT TRUE,
+    -- TRUE: Value có thể sử dụng trong journal entries
+    -- FALSE: Chỉ dùng làm parent (grouping), không được post
+    -- Default: TRUE cho leaf nodes, FALSE cho parent nodes (can be overridden)
+
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by      UUID,
 
     CONSTRAINT uq_dimension_value UNIQUE (dimension_id, value_code)
 );
 
 CREATE INDEX idx_dimension_values_dimension ON dimension_values(dimension_id);
-CREATE INDEX idx_dimension_values_parent ON dimension_values(parent_id);
+CREATE INDEX idx_dimension_values_parent ON dimension_values(parent_value_id);
+CREATE INDEX idx_dimension_values_tenant ON dimension_values(tenant_id);
+CREATE INDEX idx_dimension_values_postable ON dimension_values(dimension_id, is_active, allow_posting);
 ```
 
-**Sample data:**
-```sql
--- Tenant A: Cost Center values
-INSERT INTO dimension_values (dimension_id, value_code, value_name)
-SELECT id, 'PROD', 'Production Department' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'COST_CENTER'
-UNION ALL
-SELECT id, 'SALE', 'Sales Department' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'COST_CENTER'
-UNION ALL
-SELECT id, 'MKT', 'Marketing Department' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'COST_CENTER';
+**Business Rule - Posting Control:**
+- **Leaf nodes** (không có children): `allow_posting = TRUE` (always)
+- **Parent nodes** (có children): `allow_posting = FALSE` (default)
+  - Finance Manager có thể override thành `TRUE` nếu cần (e.g., migration data, aggregate transactions)
+- **Use case**: Force users nhập đúng level chi tiết, tránh mix data ở nhiều levels
 
--- Tenant A: Product Line values
-INSERT INTO dimension_values (dimension_id, value_code, value_name)
-SELECT id, 'FRESH_MILK', 'Fresh Milk' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'PRODUCT_LINE'
-UNION ALL
-SELECT id, 'YOGURT', 'Yogurt' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'PRODUCT_LINE'
-UNION ALL
-SELECT id, 'POWDER_MILK', 'Powder Milk' FROM dimensions WHERE tenant_id = 'tenant-a' AND dimension_code = 'PRODUCT_LINE';
+**Sample data with hierarchy:**
+```sql
+-- Tenant A: Cost Center values với 4-level hierarchy
+DO $$
+DECLARE
+    v_dim_id UUID;
+    v_company_id UUID;
+    v_commercial_id UUID;
+    v_sales_id UUID;
+BEGIN
+    -- Get dimension ID
+    SELECT id INTO v_dim_id FROM dimensions
+    WHERE tenant_id = 'tenant-a' AND dimension_code = 'COST_CENTER';
+
+    -- Level 0: Company (parent - not postable)
+    INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+    VALUES ('tenant-a', v_dim_id, 'CC_COMPANY', 'Company', NULL, 1, FALSE)
+    RETURNING id INTO v_company_id;
+
+    -- Level 1: Commercial Division (parent - not postable)
+    INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+    VALUES ('tenant-a', v_dim_id, 'CC_COMMERCIAL', 'Commercial Division', v_company_id, 1, FALSE)
+    RETURNING id INTO v_commercial_id;
+
+    -- Level 2: Sales Department (parent - postable for special cases)
+    INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+    VALUES ('tenant-a', v_dim_id, 'CC_SALES', 'Sales Department', v_commercial_id, 1, TRUE)  -- ⚠️ Enabled by Finance Manager
+    RETURNING id INTO v_sales_id;
+
+    -- Level 3: Regions (leaf - always postable)
+    INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+    VALUES
+        ('tenant-a', v_dim_id, 'CC_NORTH', 'North Region', v_sales_id, 1, TRUE),  -- ✅ Leaf
+        ('tenant-a', v_dim_id, 'CC_SOUTH', 'South Region', v_sales_id, 2, TRUE);  -- ✅ Leaf
+
+    -- Level 2: Marketing Department (leaf - always postable)
+    INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+    VALUES ('tenant-a', v_dim_id, 'CC_MARKETING', 'Marketing Department', v_commercial_id, 2, TRUE);  -- ✅ Leaf
+END $$;
+
+-- Tenant A: Product Line values (flat structure - all postable)
+INSERT INTO dimension_values (tenant_id, dimension_id, value_code, value_name, parent_value_id, display_order, allow_posting)
+SELECT
+    'tenant-a',
+    id,
+    value_code,
+    value_name,
+    NULL,  -- No parent
+    display_order,
+    TRUE   -- All flat values postable
+FROM (VALUES
+    ('FRESH_MILK', 'Fresh Milk', 1),
+    ('YOGURT', 'Yogurt', 2),
+    ('POWDER_MILK', 'Powder Milk', 3)
+) AS t(value_code, value_name, display_order)
+CROSS JOIN dimensions
+WHERE tenant_id = 'tenant-a' AND dimension_code = 'PRODUCT_LINE';
 ```
 
 ---
@@ -1259,12 +1318,68 @@ INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_va
 
 ---
 
+#### Example 6: ❌ Invalid - Parent dimension value không có allow_posting
+
+```sql
+-- Debit line: Account 641 (Marketing)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 100000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions với parent value
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-cc-commercial'),    -- ❌ "Commercial Division" - parent node, allow_posting=FALSE
+(@line_id, 'dim-product-line', 'val-fresh-milk');      -- ✅ OK
+
+-- Trigger validation sẽ reject:
+-- ERROR: Cannot use parent dimension value "Commercial Division" (CC_COMMERCIAL).
+--        Please select a more specific value (leaf node).
+--        If you need to post to parent nodes, ask Finance Manager to enable "Allow Posting" for this value.
+```
+
+#### Example 7: ✅ Valid - Parent dimension value với allow_posting=TRUE
+
+```sql
+-- Debit line: Account 641 (Marketing) - Import data migration
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 500000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions với parent value (đã được Finance Manager enable)
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-cc-sales'),         -- ✅ "Sales Department" - parent but allow_posting=TRUE
+(@line_id, 'dim-product-line', 'val-fresh-milk');      -- ✅ OK
+
+-- ✅ SUCCESS - Parent "Sales Department" đã được enable posting cho special cases
+-- Use case: Import aggregate data từ legacy system, chưa biết chi tiết North/South
+```
+
+#### Example 8: ✅ Valid - Leaf node (always allowed)
+
+```sql
+-- Debit line: Account 641 (Marketing) - Normal transaction
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 50000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions với leaf node
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-cc-north'),         -- ✅ "North Region" - leaf node, allow_posting=TRUE (always)
+(@line_id, 'dim-product-line', 'val-fresh-milk');      -- ✅ OK
+
+-- ✅ SUCCESS - Best practice: Use leaf nodes for granular data
+```
+
+---
+
 **Key Takeaways:**
 1. Mỗi account có **independent dimension rules**
 2. Required dimensions **phải** được provide (Rule 1)
 3. Dimensions không trong whitelist **sẽ bị reject** (Rule 2)
 4. Optional dimensions **có thể** skip (không bắt buộc)
 5. Bank accounts và balance sheet accounts **thường không cần** dimensions
+6. **Leaf nodes** (không có children): Always postable (allow_posting=TRUE)
+7. **Parent nodes** (có children): Default not postable (allow_posting=FALSE), Finance Manager có thể enable
 
 ---
 
@@ -1343,31 +1458,79 @@ EXECUTE FUNCTION validate_account_dimensions();
 
 ### 7.2 Dimension Value Validation
 
-```sql
--- Already enforced by foreign key constraint on journal_line_dimensions
--- But additional check for inactive values:
+**Validation checks:**
+1. Value must be active (`is_active = TRUE`)
+2. Value must allow posting (`allow_posting = TRUE`)
+3. Value exists (enforced by FK)
 
-CREATE OR REPLACE FUNCTION validate_active_dimension_value()
+```sql
+CREATE OR REPLACE FUNCTION validate_postable_dimension_value()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_is_active BOOLEAN;
+    v_value RECORD;
+    v_dimension_name VARCHAR(100);
 BEGIN
-    SELECT is_active INTO v_is_active
-    FROM dimension_values
-    WHERE id = NEW.dimension_value_id;
+    -- Get dimension value details with dimension name
+    SELECT
+        dv.value_code,
+        dv.value_name,
+        dv.is_active,
+        dv.allow_posting,
+        d.dimension_name,
+        EXISTS(SELECT 1 FROM dimension_values WHERE parent_value_id = dv.id) AS has_children
+    INTO v_value
+    FROM dimension_values dv
+    JOIN dimensions d ON dv.dimension_id = d.id
+    WHERE dv.id = NEW.dimension_value_id;
 
-    IF NOT v_is_active THEN
-        RAISE EXCEPTION 'Cannot use inactive dimension value';
+    -- Rule 1: Value must be active
+    IF NOT v_value.is_active THEN
+        RAISE EXCEPTION 'Dimension value "%" (%) is inactive. Please select an active value.',
+            v_value.value_name, v_value.value_code;
+    END IF;
+
+    -- Rule 2: Value must allow posting (Leaf-Only or Explicitly Enabled)
+    IF NOT v_value.allow_posting THEN
+        IF v_value.has_children THEN
+            RAISE EXCEPTION 'Cannot use parent dimension value "%" (%). Please select a more specific value (leaf node). '
+                'If you need to post to parent nodes, ask Finance Manager to enable "Allow Posting" for this value.',
+                v_value.value_name, v_value.value_code;
+        ELSE
+            RAISE EXCEPTION 'Dimension value "%" (%) does not allow posting. Contact Finance Manager.',
+                v_value.value_name, v_value.value_code;
+        END IF;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_validate_active_dimension_value
+CREATE TRIGGER trg_validate_postable_dimension_value
 BEFORE INSERT OR UPDATE ON journal_line_dimensions
 FOR EACH ROW
-EXECUTE FUNCTION validate_active_dimension_value();
+EXECUTE FUNCTION validate_postable_dimension_value();
+```
+
+**Error Examples:**
+
+```sql
+-- ❌ Error 1: Inactive value
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id)
+VALUES (@line_id, 'dim-cost-center', 'val-inactive-dept');
+-- ERROR: Dimension value "Old Department" (OLD_DEPT) is inactive. Please select an active value.
+
+-- ❌ Error 2: Parent node not allowed for posting
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id)
+VALUES (@line_id, 'dim-cost-center', 'val-commercial-division');
+-- ERROR: Cannot use parent dimension value "Commercial Division" (CC_COMMERCIAL).
+--        Please select a more specific value (leaf node).
+--        If you need to post to parent nodes, ask Finance Manager to enable "Allow Posting" for this value.
+
+-- ✅ Success: Leaf node or parent with allow_posting = TRUE
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id)
+VALUES (@line_id, 'dim-cost-center', 'val-north-region');  -- ✅ Leaf node
+-- OR
+VALUES (@line_id, 'dim-cost-center', 'val-sales-dept');    -- ✅ Parent but allow_posting = TRUE
 ```
 
 ---
@@ -1455,6 +1618,7 @@ Rows scanned: Pre-aggregated MV only
 ✅ **Materialized Views** - Performance tương đương fixed
 ✅ **Dimension Templates** - Onboarding nhanh
 ✅ **Unlimited Dimensions** - Phù hợp enterprise
+✅ **Hierarchy với Posting Control** - SAP-inspired, force data quality
 
 ### Tables count:
 - Core: 6 tables (accounts, fiscal_years, periods, journals, journal_lines, journal_line_dimensions)
@@ -1466,12 +1630,19 @@ Rows scanned: Pre-aggregated MV only
 ### Key features:
 ✅ Double-entry accounting compliance
 ✅ Unlimited flexible dimensions per tenant
-✅ **Account-specific dimension rules** (whitelist approach)
+✅ **Account-specific dimension rules** (whitelist approach - v2.1)
+✅ **Dimension value hierarchy** với posting control (leaf-only default - v2.2)
 ✅ High performance with materialized views
 ✅ Template-based onboarding
 ✅ Multi-tenant isolation
 ✅ Vietnam accounting standards (Thông tư 200)
 ✅ **Better than major ERPs** (Dynamics 365, Oracle, SAP, NetSuite)
+
+### Posting Control Rules (v2.2):
+- **Leaf nodes**: `allow_posting = TRUE` (always postable)
+- **Parent nodes**: `allow_posting = FALSE` (default, Finance Manager can override)
+- **Use case**: Ensure data granularity, prevent mix of aggregated & detailed data
+- **Flexibility**: Override for special cases (migration, aggregate transactions)
 
 ---
 

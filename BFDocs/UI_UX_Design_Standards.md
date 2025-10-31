@@ -727,6 +727,71 @@ All spacing follows a base 4px unit system for consistency:
 
 ---
 
+### Action Buttons for Data Tables & Lists
+
+**Pattern:** Bootstrap text buttons với color-coded actions
+
+**Usage:** Dimension management, master data lists, data tables
+
+#### Standard Action Button Set
+
+```html
+<div class="action-buttons">
+  <button class="btn btn-sm btn-outline-primary" onclick="editItem('id')">Edit</button>
+  <button class="btn btn-sm btn-outline-warning" onclick="deactivate('id')">Deactivate</button>
+  <button class="btn btn-sm btn-outline-danger" onclick="deleteItem('id')">Delete</button>
+</div>
+```
+
+**CSS:**
+```css
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+```
+
+**Button Variants:**
+
+| Action | Class | Color | Usage |
+|--------|-------|-------|-------|
+| **Edit** | `btn btn-sm btn-outline-primary` | Blue | Modify record |
+| **Deactivate** | `btn btn-sm btn-outline-warning` | Orange/Yellow | Set inactive (soft delete) |
+| **Activate** | `btn btn-sm btn-outline-success` | Green | Restore inactive record |
+| **Delete** | `btn btn-sm btn-outline-danger` | Red | Hard delete |
+| **Disabled** | `btn btn-sm btn-outline-secondary disabled` | Gray | Action not allowed |
+
+#### Toggle Active/Inactive Button Pattern
+
+```javascript
+// Dynamic button rendering based on state
+const toggleButton = item.isActive
+    ? `<button class="btn btn-sm btn-outline-warning" onclick="deactivate('${item.id}')">Deactivate</button>`
+    : `<button class="btn btn-sm btn-outline-success" onclick="activate('${item.id}')">Activate</button>`;
+```
+
+#### Disabled Delete Button (With Validation)
+
+```javascript
+// Delete button disabled if item is in use
+const canDelete = item.usageCount === 0;
+
+const deleteButton = canDelete
+    ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteItem('${item.id}')">Delete</button>`
+    : `<button class="btn btn-sm btn-outline-secondary" disabled title="Cannot delete (in use)">Delete</button>`;
+```
+
+**Best Practices:**
+- Use `btn-sm` size for table rows (compact)
+- Use `btn-outline-*` variants for secondary actions
+- Maintain consistent button order: Edit → Deactivate/Activate → Delete
+- Always provide `title` attribute for disabled buttons
+- Use `flex-wrap: wrap` for mobile responsiveness
+
+---
+
 ## 9. Tables & Data Display
 
 ### Table Structure
@@ -850,6 +915,125 @@ TOTAL | | | 28,000,000 VNĐ
   cursor: not-allowed;
 }
 ```
+
+---
+
+### Status Badges & Indicators
+
+**Pattern:** Bootstrap badge components for status display
+
+**Usage:** Active/Inactive states, posting control indicators, record status
+
+#### Active/Inactive Status Badges
+
+```html
+<!-- Active status -->
+<span class="badge bg-success">Active</span>
+
+<!-- Inactive status -->
+<span class="badge bg-secondary">Inactive</span>
+```
+
+**CSS:**
+```css
+.badge {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+.bg-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.bg-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+```
+
+**JavaScript Dynamic Rendering:**
+```javascript
+const statusBadge = item.isActive
+    ? '<span class="badge bg-success">Active</span>'
+    : '<span class="badge bg-secondary">Inactive</span>';
+```
+
+#### Custom Status Badges (Legacy Pattern - Deprecated)
+
+**Old pattern (DO NOT USE):**
+```css
+/* Deprecated - use Bootstrap badges instead */
+.badge-active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-inactive {
+  background-color: #e2e3e5;
+  color: #6c757d;
+}
+```
+
+**Migration:**
+- Replace `.badge-active` → `.badge.bg-success`
+- Replace `.badge-inactive` → `.badge.bg-secondary`
+
+#### Posting Control Indicators
+
+**Pattern:** Visual icons for posting control status (Dimension Values feature)
+
+**Usage:** Indicate whether dimension value can be used in journal entries
+
+```html
+<!-- Leaf node - always postable -->
+<span title="Can be used in journal entries (leaf node)" style="font-size: 16px;">✅</span>
+
+<!-- Parent node with posting enabled (special case) -->
+<span title="Parent node with posting enabled (special case)" style="font-size: 16px;">⚠️</span>
+
+<!-- Parent node not postable (default) -->
+<span title="Cannot be used in journal entries (parent node)" style="font-size: 16px;">❌</span>
+```
+
+**JavaScript Dynamic Rendering:**
+```javascript
+let postingIcon = '';
+let postingTitle = '';
+
+if (!node.hasChildren) {
+    // Leaf node - always postable
+    postingIcon = '✅';
+    postingTitle = 'Can be used in journal entries (leaf node)';
+} else if (node.allowPosting) {
+    // Parent with posting enabled (special case)
+    postingIcon = '⚠️';
+    postingTitle = 'Parent node with posting enabled (special case)';
+} else {
+    // Parent not postable
+    postingIcon = '❌';
+    postingTitle = 'Cannot be used in journal entries (parent node)';
+}
+
+const html = `<span class="tree-node-posting" title="${postingTitle}" style="font-size: 16px; margin-right: 8px;">${postingIcon}</span>`;
+```
+
+**Posting Control Indicators Legend:**
+
+| Icon | Meaning | Usage |
+|------|---------|-------|
+| ✅ | **Postable** (Leaf node) | Value has no children, always allowed in journal entries |
+| ⚠️ | **Special Case** (Parent with posting) | Parent node but Finance Manager enabled posting for special cases (e.g., data migration) |
+| ❌ | **Not Postable** (Parent default) | Parent node, cannot be used in journal entries (force users to select leaf nodes) |
+
+**Best Practices:**
+- Use Bootstrap `badge` classes for consistency
+- Prefer `bg-success` and `bg-secondary` over custom colors
+- Always provide `title` attribute for accessibility
+- Use emojis for posting control (✅ ⚠️ ❌) - universally recognizable
+- Ensure font-size is large enough for visibility (14px minimum, 16px recommended)
 
 ---
 
@@ -1419,6 +1603,235 @@ row.querySelector('input[type="checkbox"]').addEventListener('change', function(
 
 ---
 
+### Tree View Component
+
+**Pattern:** Hierarchical data display with expand/collapse functionality
+
+**Usage:** Dimension values hierarchy, org chart, product categories, cost center structure
+
+**Reference Implementation:** `BFDocs/Finance/Dimension/2_ThietKe/html-prototypes/2_dimension-values.html`
+
+#### Tree View Structure
+
+```html
+<ul class="tree-view" id="treeView">
+  <!-- Tree nodes rendered dynamically -->
+</ul>
+```
+
+**CSS:**
+```css
+.tree-view {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tree-node {
+  margin: 0;
+  padding: 0;
+}
+
+.tree-node.inactive {
+  opacity: 0.6;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tree-node-content:hover {
+  background-color: #f8f9fa;
+}
+
+.tree-indent {
+  display: inline-block;
+  /* Width calculated dynamically based on level */
+}
+
+.expand-icon {
+  width: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 8px;
+}
+
+.tree-node-name {
+  flex-grow: 1;
+  font-weight: 500;
+}
+
+.tree-node-code {
+  color: #666;
+  font-size: 13px;
+  margin-left: 10px;
+}
+
+.tree-node-posting {
+  font-size: 16px;
+  margin-right: 8px;
+}
+
+.tree-node-status {
+  margin-right: 10px;
+}
+
+.tree-node-actions {
+  display: flex;
+  gap: 6px;
+}
+```
+
+#### Tree Node Rendering Pattern
+
+```javascript
+function renderTreeNodes(nodes, level = 0, searchTerm = '') {
+  return nodes.map(node => {
+    const indent = level * 30; // 30px per level
+    const expandIcon = node.children.length > 0 ? '▼' : '−';
+    const statusBadge = node.isActive
+      ? '<span class="badge bg-success">Active</span>'
+      : '<span class="badge bg-secondary">Inactive</span>';
+
+    // Posting status icon (see Section 9.6)
+    let postingIcon = '';
+    let postingTitle = '';
+    if (!node.hasChildren) {
+      postingIcon = '✅';
+      postingTitle = 'Can be used in journal entries (leaf node)';
+    } else if (node.allowPosting) {
+      postingIcon = '⚠️';
+      postingTitle = 'Parent node with posting enabled (special case)';
+    } else {
+      postingIcon = '❌';
+      postingTitle = 'Cannot be used in journal entries (parent node)';
+    }
+
+    const inactiveClass = node.isActive ? '' : 'inactive';
+
+    return `
+      <li class="tree-node ${inactiveClass}" data-node-id="${node.id}">
+        <div class="tree-node-content">
+          <span class="tree-indent" style="width: ${indent}px;"></span>
+          <span class="expand-icon" onclick="toggleNode('${node.id}')">${expandIcon}</span>
+          <span class="tree-node-name">${node.name}</span>
+          <span class="tree-node-code">${node.code}</span>
+          <span class="tree-node-posting" title="${postingTitle}">${postingIcon}</span>
+          <span class="tree-node-status">${statusBadge}</span>
+          <span class="tree-node-actions">
+            <button class="btn btn-sm btn-outline-primary" onclick="editNode('${node.id}')">Edit</button>
+            ${node.isActive
+              ? `<button class="btn btn-sm btn-outline-warning" onclick="deactivateNode('${node.id}')">Deactivate</button>`
+              : `<button class="btn btn-sm btn-outline-success" onclick="activateNode('${node.id}')">Activate</button>`
+            }
+          </span>
+        </div>
+        ${node.children.length > 0
+          ? `<ul class="tree-children">${renderTreeNodes(node.children, level + 1, searchTerm)}</ul>`
+          : ''
+        }
+      </li>
+    `;
+  }).join('');
+}
+```
+
+#### Expand/Collapse Toggle Function
+
+```javascript
+function toggleNode(nodeId) {
+  const node = document.querySelector(`[data-node-id="${nodeId}"]`);
+  const children = node.querySelector('.tree-children');
+  const expandIcon = node.querySelector('.expand-icon');
+
+  if (children) {
+    if (children.style.display === 'none') {
+      children.style.display = 'block';
+      expandIcon.textContent = '▼';
+    } else {
+      children.style.display = 'none';
+      expandIcon.textContent = '▶';
+    }
+  }
+}
+```
+
+#### Build Tree from Flat Data
+
+```javascript
+function buildTree(flatList) {
+  const map = {};
+  const tree = [];
+
+  // Create map
+  flatList.forEach(item => {
+    map[item.id] = { ...item, children: [] };
+  });
+
+  // Build tree
+  flatList.forEach(item => {
+    if (item.parentId) {
+      if (map[item.parentId]) {
+        map[item.parentId].children.push(map[item.id]);
+      }
+    } else {
+      tree.push(map[item.id]);
+    }
+  });
+
+  return tree;
+}
+```
+
+#### Tree Search/Filter
+
+```javascript
+function filterTree(searchTerm) {
+  const nodes = document.querySelectorAll('.tree-node');
+  const lowerSearch = searchTerm.toLowerCase();
+
+  nodes.forEach(node => {
+    const name = node.querySelector('.tree-node-name').textContent.toLowerCase();
+    const code = node.querySelector('.tree-node-code').textContent.toLowerCase();
+
+    if (name.includes(lowerSearch) || code.includes(lowerSearch)) {
+      node.style.display = 'block';
+      // Expand parents to show matched node
+      let parent = node.closest('.tree-children');
+      while (parent) {
+        parent.style.display = 'block';
+        const parentNode = parent.closest('.tree-node');
+        if (parentNode) {
+          parentNode.querySelector('.expand-icon').textContent = '▼';
+        }
+        parent = parentNode?.closest('.tree-children');
+      }
+    } else if (searchTerm !== '') {
+      node.style.display = 'none';
+    }
+  });
+}
+```
+
+**Tree View Best Practices:**
+- Use 30px indent per level (max 4-5 levels recommended)
+- Provide expand/collapse icons (▶ collapsed, ▼ expanded, − leaf node)
+- Show visual hierarchy with indentation
+- Include search/filter for large trees (100+ nodes)
+- Support keyboard navigation (arrow keys, Enter to expand)
+- Highlight parent path when node is selected
+- Lazy-load children for very large trees (1000+ nodes)
+- Display status indicators (active/inactive, posting control)
+- Mobile: Reduce indent to 20px per level
+
+---
+
 ## 16. Bootstrap 5.3 Utilities Reference
 
 ### Display & Visibility
@@ -1861,18 +2274,36 @@ row.querySelector('input[type="checkbox"]').addEventListener('change', function(
 
 ## Document Maintenance
 
-**Last Updated:** 2024-10-29
-**Version:** 1.0
+**Last Updated:** 2025-10-31
+**Version:** 1.1
 **Maintainer:** Design & Documentation Team
 
 ### Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2025-10-31 | **Added Dimension Management design patterns:**<br>- Section 8: Action Buttons for Data Tables & Lists<br>- Section 9.6: Status Badges & Indicators (Active/Inactive, Posting Control)<br>- Section 15: Tree View Component with hierarchy support<br>- Reference implementations from Dimension Definition & Dimension Values prototypes |
 | 1.0 | 2024-10-29 | Initial creation based on Cashin-out prototype |
+
+---
+
+## Reference Implementations
+
+### Cashin-out Module
+- **Location:** `BFDocs/Finance/Cashin-out/2_ThietKe/html-prototypes/`
+- **Patterns:** Form sections, conditional visibility, payment reconciliation, modal patterns
+
+### Dimension Management Module
+- **Location:** `BFDocs/Finance/Dimension/2_ThietKe/html-prototypes/`
+- **Files:**
+  - `1_dimension-definition.html` - Action buttons, status badges, CRUD operations
+  - `2_dimension-values.html` - Tree view, hierarchy, posting control indicators
+- **Patterns:** Master data management, tree view, action buttons, status indicators
 
 ---
 
 *Reference this document when creating HTML prototypes in BFDocs/Finance modules.*
 
-*For questions about specific design patterns, refer to BFDocs/Finance/Cashin-out/2_ThietKe/html-prototypes/ for working examples.*
+*For working examples, see:*
+- *Forms & Payments: BFDocs/Finance/Cashin-out/2_ThietKe/html-prototypes/*
+- *Master Data & Tree View: BFDocs/Finance/Dimension/2_ThietKe/html-prototypes/*

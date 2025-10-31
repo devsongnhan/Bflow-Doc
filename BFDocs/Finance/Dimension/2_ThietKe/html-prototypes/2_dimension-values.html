@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimension Values Management - Bflow ERP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .hamburger-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            z-index: 999;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu > li {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #495057;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+
+        .sidebar-link.active {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-left: 3px solid #1976d2;
+            font-weight: 500;
+        }
+
+        .submenu-toggle {
+            padding: 12px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .submenu-toggle:hover {
+            background-color: #e9ecef;
+        }
+
+        .submenu-toggle .arrow {
+            transition: transform 0.3s;
+            font-size: 12px;
+        }
+
+        .submenu-toggle.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .submenu.show {
+            max-height: 500px;
+        }
+
+        .submenu .sidebar-link {
+            padding-left: 40px;
+            font-size: 14px;
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 20px;
+            min-height: calc(100vh - 65px);
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        /* Control Bar */
+        .control-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .dimension-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .dimension-selector {
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            width: 300px;
+        }
+
+        .stats {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        /* Tree View Container */
+        .tree-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tree-view {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tree-node {
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+
+        .tree-node:hover {
+            background-color: #f8f9fa;
+        }
+
+        .tree-node.inactive {
+            background-color: #f8f9fa;
+            color: #999;
+        }
+
+        .tree-node-content {
+            display: flex;
+            align-items: center;
+            padding: 12px 8px;
+            cursor: pointer;
+        }
+
+        .tree-node-children {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: none;
+        }
+
+        .tree-node-children.show {
+            display: block;
+        }
+
+        .tree-indent {
+            display: inline-block;
+        }
+
+        .expand-icon {
+            width: 20px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            margin-right: 8px;
+            color: #6c757d;
+        }
+
+        .tree-node-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .tree-node-code {
+            width: 200px;
+            color: #6c757d;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tree-node-status {
+            width: 100px;
+            text-align: center;
+        }
+
+        .tree-node-actions {
+            width: 150px;
+            text-align: right;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .tree-node:hover .tree-node-actions {
+            opacity: 1;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Modal Custom Styles */
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-text {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .parent-selector-tree {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .parent-option {
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .parent-option:hover {
+            background-color: #e9ecef;
+        }
+
+        .parent-option.selected {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .parent-option.disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 85px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hamburger-menu {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-250px);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+
+            .main-container {
+                margin-left: 0;
+            }
+
+            .control-bar,
+            .filter-bar {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .dimension-selector {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .action-buttons {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .action-buttons button {
+                flex: 1;
+            }
+
+            .tree-node-content {
+                flex-wrap: wrap;
+            }
+
+            .tree-node-code {
+                width: 100%;
+                margin-top: 4px;
+            }
+
+            .tree-node-actions {
+                opacity: 1;
+                width: 100%;
+                margin-top: 8px;
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Header -->
+<header class="top-header">
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
+        <h1>🏢 Bflow ERP - Finance Management</h1>
+    </div>
+    <div class="header-right">
+        <span class="user-info">👤 Admin User</span>
+    </div>
+</header>
+
+<!-- Left Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <ul class="sidebar-menu">
+        <li>
+            <a href="#" class="sidebar-link">📊 Dashboard</a>
+        </li>
+        <li>
+            <div class="submenu-toggle open" onclick="toggleSubmenu(this)">
+                <span>⚙️ Master Data</span>
+                <span class="arrow">▶</span>
+            </div>
+            <ul class="submenu show">
+                <li><a href="#" class="sidebar-link">Chart of Accounts</a></li>
+                <li><a href="1_dimension-definition.html" class="sidebar-link">Dimension Definition</a></li>
+                <li><a href="2_dimension-values.html" class="sidebar-link active">Dimension Values</a></li>
+                <li><a href="#" class="sidebar-link">Account-Dimension Mapping</a></li>
+                <li><a href="#" class="sidebar-link">Fiscal Period Management</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span>📝 Transactions</span>
+                <span class="arrow">▶</span>
+            </div>
+            <ul class="submenu">
+                <li><a href="#" class="sidebar-link">Manual Journal Entry</a></li>
+                <li><a href="#" class="sidebar-link">Recurring Journals</a></li>
+                <li><a href="#" class="sidebar-link">Journal Approval</a></li>
+            </ul>
+        </li>
+        <li>
+            <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span>📊 Reports</span>
+                <span class="arrow">▶</span>
+            </div>
+            <ul class="submenu">
+                <li><a href="#" class="sidebar-link">General Ledger</a></li>
+                <li><a href="#" class="sidebar-link">Trial Balance</a></li>
+                <li><a href="#" class="sidebar-link">Financial Statements</a></li>
+                <li><a href="#" class="sidebar-link">Dimension Analysis</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">🔒 Period Closing</a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">⚙️ Settings</a>
+        </li>
+        <li>
+            <a href="#" class="sidebar-link">❓ Help & Support</a>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main Content -->
+<div class="main-container">
+    <div class="page-header">
+        <h1 class="page-title">📊 Dimension Values Management</h1>
+    </div>
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+        <div class="dimension-selector-container">
+            <label style="font-weight: 600; white-space: nowrap;">Select Dimension:</label>
+            <select class="form-select dimension-selector" id="dimensionSelector" onchange="loadDimensionValues()">
+                <!-- Populated by JavaScript -->
+            </select>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="openAddModal()">
+                ➕ Add Value
+            </button>
+            <button class="btn btn-primary" onclick="alert('Bulk import feature coming soon!')">
+                📤 Import from Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <input type="text" class="form-control search-box" id="searchInput" placeholder="🔍 Search by code or name..." oninput="filterTree()">
+        <div class="stats" id="statsDisplay">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Tree View Container -->
+    <div class="tree-container">
+        <ul class="tree-view" id="treeView">
+            <!-- Populated by JavaScript -->
+        </ul>
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">📊</div>
+            <div class="empty-state-title">No Values Found</div>
+            <div class="empty-state-text">Click "Add Value" to create the first value for this dimension</div>
+            <button class="btn btn-primary" onclick="openAddModal()">➕ Add Value</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Add/Edit Value Modal -->
+<div class="modal fade" id="valueModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Value</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="valueForm">
+                    <input type="hidden" id="valueId">
+                    <input type="hidden" id="dimensionId">
+
+                    <div class="mb-3">
+                        <label for="valueCode" class="form-label">Value Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="valueCode" maxlength="30" required>
+                        <div class="form-text">Uppercase, max 30 characters, unique within dimension</div>
+                        <div class="error-message" id="codeError"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="valueName" class="form-label">Value Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="valueName" maxlength="200" required>
+                        <div class="form-text">Max 200 characters</div>
+                        <div class="error-message" id="nameError"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Parent Value</label>
+                        <div class="form-text mb-2">Optional - leave unselected for root level</div>
+                        <div class="parent-selector-tree" id="parentSelector">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        <div class="error-message" id="parentError"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="displayOrder" class="form-label">Display Order <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="displayOrder" min="0" value="1" required>
+                        <div class="form-text">Order within siblings (same parent)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="allowPosting" checked>
+                            <label class="form-check-label" for="allowPosting">
+                                Allow Posting
+                            </label>
+                        </div>
+                        <div class="form-text">Can this value be used in journal entries?</div>
+                        <div class="form-text text-muted" id="postingHelpText" style="display: none;">
+                            <small>Auto-disabled for leaf nodes (always ON)</small>
+                        </div>
+                        <div class="alert alert-warning mt-2" id="postingWarning" style="display: none; padding: 8px;">
+                            <small>⚠️ Warning: Parent nodes default to OFF. Only enable if you need to post to aggregated levels (e.g., data migration)</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveValue()">Save Value</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmTitle">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmButton" onclick="executeConfirmedAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Mock Data
+const mockDimensions = [
+    { id: 'dim-001', code: 'COST_CENTER', name: 'Cost Center', valueCount: 13, activeCount: 12 },
+    { id: 'dim-002', code: 'PRODUCT_LINE', name: 'Product Line', valueCount: 4, activeCount: 4 },
+    { id: 'dim-003', code: 'SALES_CHANNEL', name: 'Sales Channel', valueCount: 7, activeCount: 6 }
+];
+
+let currentDimension = null;
+let dimensionValuesData = {
+    'dim-001': [
+        { id: 'val-001', code: 'CC_COMPANY', name: 'Company', parentId: null, displayOrder: 1, isActive: true, allowPosting: false, hasChildren: true },
+        { id: 'val-002', code: 'CC_COMMERCIAL', name: 'Commercial Division', parentId: 'val-001', displayOrder: 1, isActive: true, allowPosting: false, hasChildren: true },
+        { id: 'val-003', code: 'CC_SALES', name: 'Sales Department', parentId: 'val-002', displayOrder: 1, isActive: true, allowPosting: true, hasChildren: true },
+        { id: 'val-004', code: 'CC_NORTH', name: 'North Region', parentId: 'val-003', displayOrder: 1, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-005', code: 'CC_SOUTH', name: 'South Region', parentId: 'val-003', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-006', code: 'CC_MARKETING', name: 'Marketing Department', parentId: 'val-002', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-007', code: 'CC_PRODUCTION', name: 'Production Division', parentId: 'val-001', displayOrder: 2, isActive: true, allowPosting: false, hasChildren: true },
+        { id: 'val-008', code: 'CC_FACTORY1', name: 'Factory 1', parentId: 'val-007', displayOrder: 1, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-009', code: 'CC_FACTORY2', name: 'Factory 2', parentId: 'val-007', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-010', code: 'CC_SUPPORT', name: 'Support Division', parentId: 'val-001', displayOrder: 3, isActive: false, allowPosting: false, hasChildren: true },
+        { id: 'val-011', code: 'CC_HR', name: 'Human Resources', parentId: 'val-010', displayOrder: 1, isActive: false, allowPosting: true, hasChildren: false },
+        { id: 'val-012', code: 'CC_IT', name: 'IT Department', parentId: 'val-010', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-013', code: 'CC_FINANCE', name: 'Finance Department', parentId: 'val-010', displayOrder: 3, isActive: true, allowPosting: true, hasChildren: false }
+    ],
+    'dim-002': [
+        { id: 'val-101', code: 'PL_MILK', name: 'Milk Products', parentId: null, displayOrder: 1, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-102', code: 'PL_YOGURT', name: 'Yogurt Products', parentId: null, displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-103', code: 'PL_CHEESE', name: 'Cheese Products', parentId: null, displayOrder: 3, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-104', code: 'PL_JUICE', name: 'Juice Products', parentId: null, displayOrder: 4, isActive: true, allowPosting: true, hasChildren: false }
+    ],
+    'dim-003': [
+        { id: 'val-201', code: 'CH_RETAIL', name: 'Retail', parentId: null, displayOrder: 1, isActive: true, allowPosting: false, hasChildren: true },
+        { id: 'val-202', code: 'CH_SUPERMARKET', name: 'Supermarket', parentId: 'val-201', displayOrder: 1, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-203', code: 'CH_CONVENIENCE', name: 'Convenience Store', parentId: 'val-201', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-204', code: 'CH_WHOLESALE', name: 'Wholesale', parentId: null, displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-205', code: 'CH_ECOMMERCE', name: 'E-Commerce', parentId: null, displayOrder: 3, isActive: false, allowPosting: false, hasChildren: true },
+        { id: 'val-206', code: 'CH_SHOPEE', name: 'Shopee', parentId: 'val-205', displayOrder: 1, isActive: true, allowPosting: true, hasChildren: false },
+        { id: 'val-207', code: 'CH_LAZADA', name: 'Lazada', parentId: 'val-205', displayOrder: 2, isActive: true, allowPosting: true, hasChildren: false }
+    ]
+};
+
+let editMode = false;
+let editingValueId = null;
+let selectedParentId = null;
+let confirmAction = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadDimensionSelector();
+    loadDimensionValues();
+
+    // Add event listener for posting checkbox
+    const allowPostingCheckbox = document.getElementById('allowPosting');
+    allowPostingCheckbox.addEventListener('change', function() {
+        const postingWarning = document.getElementById('postingWarning');
+        // Show warning only if checked and it's a parent node (not disabled)
+        if (this.checked && !this.disabled) {
+            postingWarning.style.display = 'block';
+        } else {
+            postingWarning.style.display = 'none';
+        }
+    });
+});
+
+function loadDimensionSelector() {
+    const selector = document.getElementById('dimensionSelector');
+    selector.innerHTML = mockDimensions.map(dim =>
+        `<option value="${dim.id}">${dim.name} - ${dim.valueCount} values (${dim.activeCount} active)</option>`
+    ).join('');
+    currentDimension = mockDimensions[0].id;
+}
+
+function loadDimensionValues() {
+    const dimensionId = document.getElementById('dimensionSelector').value;
+    currentDimension = dimensionId;
+
+    const values = dimensionValuesData[dimensionId] || [];
+    const tree = buildTree(values);
+
+    renderTree(tree);
+    updateStats();
+}
+
+function buildTree(flatList) {
+    const tree = [];
+    const lookup = {};
+
+    flatList.forEach(item => {
+        lookup[item.id] = { ...item, children: [] };
+    });
+
+    flatList.forEach(item => {
+        if (item.parentId === null) {
+            tree.push(lookup[item.id]);
+        } else {
+            if (lookup[item.parentId]) {
+                lookup[item.parentId].children.push(lookup[item.id]);
+            }
+        }
+    });
+
+    return tree;
+}
+
+function renderTree(tree, searchTerm = '') {
+    const treeView = document.getElementById('treeView');
+    const emptyState = document.getElementById('emptyState');
+
+    if (tree.length === 0) {
+        treeView.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    treeView.innerHTML = renderTreeNodes(tree, 0, searchTerm);
+}
+
+function renderTreeNodes(nodes, level, searchTerm = '') {
+    return nodes.map(node => {
+        const indent = level * 30;
+        const expandIcon = node.children.length > 0 ? '▼' : '−';
+        const statusBadge = node.isActive
+            ? '<span class="badge bg-success">Active</span>'
+            : '<span class="badge bg-secondary">Inactive</span>';
+
+        // Posting status icon
+        let postingIcon = '';
+        let postingTitle = '';
+        if (!node.hasChildren) {
+            // Leaf node - always postable
+            postingIcon = '✅';
+            postingTitle = 'Can be used in journal entries (leaf node)';
+        } else if (node.allowPosting) {
+            // Parent with posting enabled (special case)
+            postingIcon = '⚠️';
+            postingTitle = 'Parent node with posting enabled (special case)';
+        } else {
+            // Parent not postable
+            postingIcon = '❌';
+            postingTitle = 'Cannot be used in journal entries (parent node)';
+        }
+
+        const inactiveClass = node.isActive ? '' : 'inactive';
+        const matchesSearch = searchTerm === '' ||
+            node.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            node.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!matchesSearch && searchTerm !== '') return '';
+
+        return `
+            <li class="tree-node ${inactiveClass}" data-node-id="${node.id}">
+                <div class="tree-node-content">
+                    <span class="tree-indent" style="width: ${indent}px;"></span>
+                    <span class="expand-icon" onclick="toggleNode('${node.id}')">${expandIcon}</span>
+                    <span class="tree-node-name">${node.name}</span>
+                    <span class="tree-node-code">${node.code}</span>
+                    <span class="tree-node-posting" title="${postingTitle}" style="font-size: 16px; margin-right: 8px;">${postingIcon}</span>
+                    <span class="tree-node-status">${statusBadge}</span>
+                    <span class="tree-node-actions">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openEditModal('${node.id}')">Edit</button>
+                        ${node.isActive
+                            ? `<button class="btn btn-sm btn-outline-warning" onclick="confirmDeactivate('${node.id}')">Deactivate</button>`
+                            : `<button class="btn btn-sm btn-outline-success" onclick="activateValue('${node.id}')">Activate</button>`
+                        }
+                    </span>
+                </div>
+                ${node.children.length > 0 ? `
+                    <ul class="tree-node-children show" id="children-${node.id}">
+                        ${renderTreeNodes(node.children, level + 1, searchTerm)}
+                    </ul>
+                ` : ''}
+            </li>
+        `;
+    }).join('');
+}
+
+function toggleNode(nodeId) {
+    const childrenElement = document.getElementById(`children-${nodeId}`);
+    if (childrenElement) {
+        childrenElement.classList.toggle('show');
+
+        const node = document.querySelector(`[data-node-id="${nodeId}"]`);
+        const icon = node.querySelector('.expand-icon');
+        icon.textContent = childrenElement.classList.contains('show') ? '▼' : '▶';
+    }
+}
+
+function updateStats() {
+    const values = dimensionValuesData[currentDimension] || [];
+    const total = values.length;
+    const active = values.filter(v => v.isActive).length;
+    const inactive = total - active;
+
+    document.getElementById('statsDisplay').innerHTML =
+        `📊 Total: ${total} | Active: ${active} | Inactive: ${inactive}`;
+}
+
+function filterTree() {
+    const searchTerm = document.getElementById('searchInput').value;
+    const values = dimensionValuesData[currentDimension] || [];
+    const tree = buildTree(values);
+    renderTree(tree, searchTerm);
+}
+
+function openAddModal() {
+    editMode = false;
+    editingValueId = null;
+    selectedParentId = null;
+
+    document.getElementById('modalTitle').textContent = 'Add Value to: ' +
+        mockDimensions.find(d => d.id === currentDimension).name;
+    document.getElementById('valueId').value = '';
+    document.getElementById('dimensionId').value = currentDimension;
+    document.getElementById('valueCode').value = '';
+    document.getElementById('valueName').value = '';
+    document.getElementById('displayOrder').value = '1';
+    document.getElementById('valueCode').disabled = false;
+
+    // Posting control - default for new values (leaf node = TRUE)
+    document.getElementById('allowPosting').checked = true;
+    document.getElementById('allowPosting').disabled = false;
+    document.getElementById('postingHelpText').style.display = 'none';
+    document.getElementById('postingWarning').style.display = 'none';
+
+    clearErrors();
+    renderParentSelector();
+
+    const modal = new bootstrap.Modal(document.getElementById('valueModal'));
+    modal.show();
+}
+
+function openEditModal(valueId) {
+    editMode = true;
+    editingValueId = valueId;
+
+    const values = dimensionValuesData[currentDimension] || [];
+    const value = values.find(v => v.id === valueId);
+
+    if (!value) return;
+
+    selectedParentId = value.parentId;
+
+    document.getElementById('modalTitle').textContent = `Edit Value: ${value.name}`;
+    document.getElementById('valueId').value = value.id;
+    document.getElementById('dimensionId').value = currentDimension;
+    document.getElementById('valueCode').value = value.code;
+    document.getElementById('valueName').value = value.name;
+    document.getElementById('displayOrder').value = value.displayOrder;
+    document.getElementById('valueCode').disabled = true;
+
+    // Posting control - set based on current value
+    const allowPostingCheckbox = document.getElementById('allowPosting');
+    allowPostingCheckbox.checked = value.allowPosting;
+
+    if (!value.hasChildren) {
+        // Leaf node - always TRUE, disabled
+        allowPostingCheckbox.checked = true;
+        allowPostingCheckbox.disabled = true;
+        document.getElementById('postingHelpText').style.display = 'block';
+        document.getElementById('postingWarning').style.display = 'none';
+    } else {
+        // Parent node - can be toggled
+        allowPostingCheckbox.disabled = false;
+        document.getElementById('postingHelpText').style.display = 'none';
+        document.getElementById('postingWarning').style.display = value.allowPosting ? 'block' : 'none';
+    }
+
+    clearErrors();
+    renderParentSelector(valueId);
+
+    const modal = new bootstrap.Modal(document.getElementById('valueModal'));
+    modal.show();
+}
+
+function renderParentSelector(excludeValueId = null) {
+    const values = dimensionValuesData[currentDimension] || [];
+    const tree = buildTree(values);
+    const parentSelector = document.getElementById('parentSelector');
+
+    // Get all descendants to exclude
+    const excludedIds = excludeValueId ? getAllDescendants(excludeValueId, values) : [];
+    if (excludeValueId) excludedIds.push(excludeValueId);
+
+    let html = `
+        <div class="parent-option ${selectedParentId === null ? 'selected' : ''}"
+             onclick="selectParent(null)">
+            <strong>(Root Level - No Parent)</strong>
+        </div>
+    `;
+
+    html += renderParentOptions(tree, 0, excludedIds);
+    parentSelector.innerHTML = html;
+}
+
+function renderParentOptions(nodes, level, excludedIds) {
+    return nodes.map(node => {
+        const indent = level * 20;
+        const isDisabled = excludedIds.includes(node.id);
+        const isSelected = selectedParentId === node.id;
+        const disabledClass = isDisabled ? 'disabled' : '';
+        const selectedClass = isSelected ? 'selected' : '';
+
+        let html = `
+            <div class="parent-option ${disabledClass} ${selectedClass}"
+                 style="padding-left: ${indent + 8}px;"
+                 onclick="${isDisabled ? '' : `selectParent('${node.id}')`}">
+                ${node.name} <span style="color: #999;">(${node.code})</span>
+                ${isDisabled ? '<span style="color: #999;"> - Cannot select (circular)</span>' : ''}
+            </div>
+        `;
+
+        if (node.children.length > 0) {
+            html += renderParentOptions(node.children, level + 1, excludedIds);
+        }
+
+        return html;
+    }).join('');
+}
+
+function selectParent(parentId) {
+    selectedParentId = parentId;
+    renderParentSelector(editingValueId);
+}
+
+function getAllDescendants(valueId, allValues) {
+    const descendants = [];
+    const children = allValues.filter(v => v.parentId === valueId);
+
+    children.forEach(child => {
+        descendants.push(child.id);
+        descendants.push(...getAllDescendants(child.id, allValues));
+    });
+
+    return descendants;
+}
+
+function saveValue() {
+    clearErrors();
+
+    const code = document.getElementById('valueCode').value.trim().toUpperCase();
+    const name = document.getElementById('valueName').value.trim();
+    const displayOrder = parseInt(document.getElementById('displayOrder').value);
+    const allowPosting = document.getElementById('allowPosting').checked;
+
+    // Validation
+    let hasError = false;
+
+    if (!code) {
+        showError('codeError', 'Code is required');
+        hasError = true;
+    } else if (!/^[A-Z0-9_]+$/.test(code)) {
+        showError('codeError', 'Code must be uppercase alphanumeric with underscores only');
+        hasError = true;
+    } else {
+        const values = dimensionValuesData[currentDimension] || [];
+        const duplicate = values.find(v => v.code === code && v.id !== editingValueId);
+        if (duplicate) {
+            showError('codeError', 'Code already exists in this dimension');
+            hasError = true;
+        }
+    }
+
+    if (!name) {
+        showError('nameError', 'Name is required');
+        hasError = true;
+    }
+
+    if (displayOrder < 0) {
+        showError('displayOrder', 'Display order must be positive');
+        hasError = true;
+    }
+
+    if (hasError) return;
+
+    // Save value
+    if (editMode) {
+        const values = dimensionValuesData[currentDimension];
+        const index = values.findIndex(v => v.id === editingValueId);
+        values[index] = {
+            ...values[index],
+            name: name,
+            parentId: selectedParentId,
+            displayOrder: displayOrder,
+            allowPosting: allowPosting
+        };
+        showToast(`Value "${name}" updated successfully`, 'success');
+    } else {
+        const newValue = {
+            id: 'val-' + Date.now(),
+            code: code,
+            name: name,
+            parentId: selectedParentId,
+            displayOrder: displayOrder,
+            isActive: true,
+            allowPosting: allowPosting,
+            hasChildren: false
+        };
+
+        if (!dimensionValuesData[currentDimension]) {
+            dimensionValuesData[currentDimension] = [];
+        }
+        dimensionValuesData[currentDimension].push(newValue);
+
+        // Update parent's hasChildren flag
+        if (selectedParentId) {
+            const parent = dimensionValuesData[currentDimension].find(v => v.id === selectedParentId);
+            if (parent) parent.hasChildren = true;
+        }
+
+        showToast(`Value "${name}" created successfully`, 'success');
+    }
+
+    // Update dimension counts
+    const dim = mockDimensions.find(d => d.id === currentDimension);
+    const values = dimensionValuesData[currentDimension];
+    dim.valueCount = values.length;
+    dim.activeCount = values.filter(v => v.isActive).length;
+
+    // Close modal and refresh
+    bootstrap.Modal.getInstance(document.getElementById('valueModal')).hide();
+    loadDimensionSelector();
+    loadDimensionValues();
+}
+
+function confirmDeactivate(valueId) {
+    const values = dimensionValuesData[currentDimension];
+    const value = values.find(v => v.id === valueId);
+
+    confirmAction = () => deactivateValue(valueId);
+
+    document.getElementById('confirmTitle').textContent = 'Confirm Deactivation';
+    document.getElementById('confirmMessage').innerHTML = `
+        <p>Deactivate <strong>"${value.name}"</strong>?</p>
+        <p>It will no longer appear in entry forms, but historical data will be preserved.</p>
+    `;
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+function deactivateValue(valueId) {
+    const values = dimensionValuesData[currentDimension];
+    const value = values.find(v => v.id === valueId);
+    value.isActive = false;
+
+    // Update counts
+    const dim = mockDimensions.find(d => d.id === currentDimension);
+    dim.activeCount = values.filter(v => v.isActive).length;
+
+    showToast(`Value "${value.name}" deactivated`, 'warning');
+    bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    loadDimensionSelector();
+    loadDimensionValues();
+}
+
+function activateValue(valueId) {
+    const values = dimensionValuesData[currentDimension];
+    const value = values.find(v => v.id === valueId);
+    value.isActive = true;
+
+    // Update counts
+    const dim = mockDimensions.find(d => d.id === currentDimension);
+    dim.activeCount = values.filter(v => v.isActive).length;
+
+    showToast(`Value "${value.name}" activated`, 'success');
+    loadDimensionSelector();
+    loadDimensionValues();
+}
+
+function executeConfirmedAction() {
+    if (confirmAction) {
+        confirmAction();
+        confirmAction = null;
+    }
+}
+
+function clearErrors() {
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+    });
+    document.querySelectorAll('.form-control').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+}
+
+function showError(elementId, message) {
+    const errorEl = document.getElementById(elementId);
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+
+    const inputEl = errorEl.previousElementSibling;
+    if (inputEl && inputEl.classList.contains('form-control')) {
+        inputEl.classList.add('is-invalid');
+    }
+}
+
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toastId = 'toast-' + Date.now();
+
+    const bgClass = type === 'success' ? 'bg-success' : type === 'warning' ? 'bg-warning' : 'bg-info';
+
+    const toastHTML = `
+        <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+    });
+}
+
+function toggleSubmenu(element) {
+    const submenu = element.nextElementSibling;
+    const arrow = element.querySelector('.arrow');
+
+    submenu.classList.toggle('show');
+    element.classList.toggle('open');
+}
+
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show-mobile');
+}
+
+// Auto-uppercase code input
+document.addEventListener('DOMContentLoaded', function() {
+    const codeInput = document.getElementById('valueCode');
+    if (codeInput) {
+        codeInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+});
+</script>
+
+</body>
+</html>
