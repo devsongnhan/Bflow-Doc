@@ -23,10 +23,41 @@ This index provides a comprehensive overview of all documentation in the Finance
 | Metric | Count |
 |--------|-------|
 | **Total Sub-modules** | 5 |
-| **Total Documents** | 52 |
-| **Active Documents** | 52 |
+| **Total Documents** | 54 |
+| **Active Documents** | 54 |
 | **Completed Features** | 2 |
 | **In Progress Features** | 3 |
+| **Sprints Planned** | 12 |
+| **Current Sprint** | 0 (Planning) |
+
+---
+
+## 📅 Project Management
+
+### Sprint Planning & Tracking
+**Document:** [SPRINT_PLAN.md](Project/SPRINT_PLAN.md)
+**Timeline:** 6 months (12 sprints × 2 weeks)
+**Start Date:** Nov 4, 2024
+**Target Launch:** May 2, 2025
+
+**Current Sprint:** Sprint 0 (Planning Complete)
+**Next Sprint:** Sprint 1 (Foundation) - Nov 4, 2024
+
+**Quick Stats:**
+- ✅ Design Phase: 100% Complete
+- ⏳ Development: Not Started (0%)
+- 📊 Total Story Points: 280 points
+- 🎯 Team Velocity: 25 points/sprint (estimated)
+
+**Sprint Overview:**
+- Sprint 1-2: Foundation (Infrastructure, DB, CoA, Periods)
+- Sprint 3-4: Manual Journal Entry (Basic + Advanced)
+- Sprint 5-6: Dimensions & Rules
+- Sprint 7-8: Advanced Features (Reversal, Approval, Attachments)
+- Sprint 9-10: Integration & Testing
+- Sprint 11-12: UAT & Launch Prep
+
+[View Detailed Sprint Plan →](Project/SPRINT_PLAN.md)
 
 ---
 
@@ -340,7 +371,13 @@ This index provides a comprehensive overview of all documentation in the Finance
 
 ## 🔄 Recent Updates
 
-### 2025-10-31
+### 2024-10-31 (Latest)
+- ✅ **Sprint Plan Created:** 12 sprints, 6 months timeline (Nov 2024 - May 2025)
+- ✅ **Manual Journal Entry - Core Design Complete:** Full design with 15 functional requirements
+- ✅ **Manual Journal Entry - Advanced Features Document:** 14 advanced features documented (Reversal, Approval, etc.)
+- ✅ **Project Management Section Added:** Sprint tracking, progress monitoring
+
+### 2024-10-31 (Earlier)
 - ✅ **Core Accounting v2.2 Released:** Added Dimension Split Templates feature (2 new tables)
 - ✅ **Dimension Management v1.2:** Added Posting Control feature (FR-DIMVAL-008)
 - ✅ **UI/UX Standards v1.3:** Migrated to sidebar.js (fixed CORS issue)
