@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Created:** 2024-10-29
-**Last Updated:** 2024-10-29
+**Last Updated:** 2025-10-31
 **Purpose:** Master reference for creating HTML prototypes in BFDocs Finance modules
 
 ---
@@ -209,7 +209,150 @@ All spacing follows a base 4px unit system for consistency:
 
 ## 5. Sidebar Navigation
 
+### ⚠️ IMPORTANT FOR DEVELOPERS
+
+**Sidebar là OPTIONAL trong HTML prototypes.**
+
+- **Purpose**: Sidebar chỉ để demo navigation giữa các prototype screens, giúp BA/stakeholders dễ dàng xem các màn hình liên quan
+- **For Development**: Team có thể **GỠ BỎ** toàn bộ sidebar code vì application thực tế đã có sidebar riêng
+- **What to keep**: Chỉ giữ lại phần **MAIN CONTENT** bên trong `<div class="main-container">...</div>`
+
+### 🆕 Shared Sidebar Component
+
+**Location**: `BFDocs/Finance/sidebar.js`
+
+All Finance module prototypes now use a **shared sidebar JavaScript file** for easier maintenance.
+
+**How to Use Shared Sidebar in Your Prototype:**
+
+```html
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Prototype Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Your page-specific styles */
+        /* Note: Sidebar styles will be injected by sidebar.js */
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-title">Your Page Title</div>
+    </div>
+
+    <!-- Shared Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Your page content here -->
+    </div>
+
+    <!-- Load Shared Sidebar -->
+    <script src="../../../sidebar.js"></script>
+    <script>
+        // Set path to Finance folder (adjust based on your location)
+        window.SIDEBAR_BASE_PATH = '../../../'; // From: Finance/{Module}/2_ThietKe/html-prototypes/
+
+        // Render sidebar after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderSidebar);
+        } else {
+            renderSidebar();
+        }
+    </script>
+</body>
+</html>
+```
+
+**Benefits:**
+- ✅ Single source of truth for sidebar navigation
+- ✅ Update all prototypes by editing one file
+- ✅ Consistent navigation across Finance module
+- ✅ Automatic active page highlighting
+- ✅ Works with local file:// protocol (no CORS issues)
+- ✅ Easy to remove for production (just remove `<div>` and `<script>` blocks)
+
+### How to Remove Shared Sidebar from Prototype
+
+**For Prototypes Using Shared Sidebar (`sidebar.js`):**
+
+```html
+<!-- STEP 1: Remove sidebar container -->
+<div id="sidebar-container"></div>  <!-- DELETE THIS LINE -->
+
+<!-- STEP 2: Remove sidebar loading scripts -->
+<script src="../../../sidebar.js"></script>  <!-- DELETE THIS LINE -->
+<script>
+    window.SIDEBAR_BASE_PATH = '../../../';
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderSidebar);
+    } else {
+        renderSidebar();
+    }
+</script>
+<!-- DELETE THE ENTIRE SCRIPT BLOCK ABOVE -->
+
+<!-- STEP 3: Remove top header (optional) -->
+<div class="top-header">...</div>  <!-- DELETE THIS LINE -->
+
+<!-- STEP 4: Update Main Content CSS -->
+<style>
+    .main-content {
+        margin-left: 0;      /* Change from 250px to 0 */
+        margin-top: 0;       /* Change from 65px to 0 */
+        padding: 30px;
+    }
+</style>
+
+<!-- STEP 5: Keep your main content -->
+<div class="main-content">
+  <!-- Keep everything inside here -->
+</div>
+```
+
+**For Prototypes with Inline Sidebar (Old Style):**
+
+```html
+<!-- STEP 1: Remove these sections -->
+<!-- 1. Delete Top Header -->
+<header class="top-header">...</header>
+
+<!-- 2. Delete Sidebar Overlay -->
+<div class="sidebar-overlay">...</div>
+
+<!-- 3. Delete Left Sidebar -->
+<nav class="sidebar">...</nav>
+
+<!-- STEP 2: Remove CSS for sidebar -->
+/* Delete these CSS blocks:
+   - .top-header
+   - .sidebar
+   - .sidebar-menu
+   - .sidebar-link
+   - .submenu-toggle
+   - .submenu
+   - .hamburger-menu
+   - .sidebar-overlay
+   - toggleSidebar() and toggleSubmenu() JavaScript functions
+*/
+
+<!-- STEP 3: Update Main Content -->
+<div class="main-container">
+  <!-- Keep everything inside here -->
+  <!-- Remove margin-left: 250px from .main-container CSS -->
+  <!-- Remove margin-top: 65px from .main-container CSS -->
+</div>
+```
+
+---
+
 ### Sidebar Specifications
+
+**Use Case**: For BA/UX prototypes only - to demonstrate navigation between screens
 
 | Property | Value |
 |----------|-------|
@@ -2275,14 +2418,16 @@ function filterTree(searchTerm) {
 ## Document Maintenance
 
 **Last Updated:** 2025-10-31
-**Version:** 1.1
+**Version:** 1.3
 **Maintainer:** Design & Documentation Team
 
 ### Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.1 | 2025-10-31 | **Added Dimension Management design patterns:**<br>- Section 8: Action Buttons for Data Tables & Lists<br>- Section 9.6: Status Badges & Indicators (Active/Inactive, Posting Control)<br>- Section 15: Tree View Component with hierarchy support<br>- Reference implementations from Dimension Definition & Dimension Values prototypes |
+| 1.3 | 2025-10-31 | **Fixed CORS Issue - Migrated to sidebar.js:**<br>- Migrated shared sidebar from `sidebar.html` to `sidebar.js`<br>- Fixed CORS policy issue when opening prototypes with file:// protocol<br>- Sidebar now works when opening HTML files directly (no web server required)<br>- Updated Section 5 with new usage pattern using `<script src="sidebar.js">`<br>- Updated Cashin-out prototype (2_create-cashin.html) to use sidebar.js<br>- Benefits: No CORS issues, works locally, easier testing |
+| 1.2 | 2025-10-31 | **Introduced Shared Sidebar Component:**<br>- Created `BFDocs/Finance/sidebar.html` as shared sidebar component<br>- All Finance module prototypes now use shared sidebar via JavaScript fetch<br>- Updated Section 5 with "Shared Sidebar Component" usage guide<br>- Simplified prototype development - single source of truth for navigation<br>- Updated "How to Remove Sidebar" with instructions for both shared and inline sidebars<br>- Updated Cashin-out prototype (2_create-cashin.html) to use shared sidebar<br>- Benefits: Easier maintenance, consistent navigation, single point of update |
+| 1.1 | 2025-10-31 | **Added Dimension Management design patterns:**<br>- Section 5: Sidebar Navigation (ERP-style with submenu, added clarification that sidebar is optional for dev)<br>- Section 8: Action Buttons for Data Tables & Lists<br>- Section 9.6: Status Badges & Indicators (Active/Inactive, Posting Control)<br>- Section 15: Tree View Component with hierarchy support<br>- Reference implementations from Dimension Definition & Dimension Values prototypes<br>- **IMPORTANT**: Added developer guidance that sidebar can be removed - only main content is needed for implementation |
 | 1.0 | 2024-10-29 | Initial creation based on Cashin-out prototype |
 
 ---
@@ -2296,9 +2441,16 @@ function filterTree(searchTerm) {
 ### Dimension Management Module
 - **Location:** `BFDocs/Finance/Dimension/2_ThietKe/html-prototypes/`
 - **Files:**
-  - `1_dimension-definition.html` - Action buttons, status badges, CRUD operations
-  - `2_dimension-values.html` - Tree view, hierarchy, posting control indicators
-- **Patterns:** Master data management, tree view, action buttons, status indicators
+  - `1_dimension-definition.html` - Action buttons, status badges, CRUD operations, shared sidebar
+  - `2_dimension-values.html` - Tree view, hierarchy, posting control indicators, shared sidebar
+  - `3_account-dimension-mapping.html` - Account selector, dimension rules configuration, shared sidebar
+- **Patterns:** Master data management, tree view, action buttons, status indicators, **shared sidebar component**
+
+### Shared Components
+- **Location:** `BFDocs/Finance/sidebar.js`
+- **Usage:** Shared sidebar navigation for all Finance module prototypes
+- **Benefits:** Single source of truth, easy maintenance, consistent navigation, works with local file:// protocol
+- **Implementation:** Include JavaScript file and call renderSidebar() function
 
 ---
 

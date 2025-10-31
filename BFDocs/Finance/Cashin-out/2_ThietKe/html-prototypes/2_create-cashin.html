@@ -84,82 +84,7 @@
             color: white;
         }
 
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 65px;
-            width: 250px;
-            height: calc(100vh - 65px);
-            background-color: #f8f9fa;
-            border-right: 1px solid #ddd;
-            overflow-y: auto;
-            z-index: 900;
-            padding: 20px 0;
-        }
-
-        .sidebar-menu {
-            list-style: none;
-        }
-
-        .sidebar-item {
-            margin: 0;
-        }
-
-        .sidebar-link {
-            display: block;
-            padding: 12px 20px;
-            color: #333;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-link:hover {
-            background-color: #e9ecef;
-            border-left-color: #2c3e50;
-            color: #2c3e50;
-        }
-
-        .sidebar-link.active {
-            background-color: #e3f2fd;
-            border-left-color: #2c3e50;
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        .sidebar-toggle {
-            cursor: pointer;
-            font-weight: 600;
-            padding: 12px 20px;
-            color: #333;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .sidebar-toggle:hover {
-            background-color: #e9ecef;
-        }
-
-        .sidebar-submenu {
-            list-style: none;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .sidebar-submenu.show {
-            max-height: 500px;
-        }
-
-        .sidebar-submenu .sidebar-link {
-            padding-left: 40px;
-            font-size: 13px;
-        }
+        /* Sidebar styles will be loaded from sidebar.html */
 
         /* Main Content */
         .main-content {
@@ -390,33 +315,8 @@
         </div>
     </div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <ul class="sidebar-menu">
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">🏠 Home</a>
-            </li>
-            <li class="sidebar-item">
-                <div class="sidebar-toggle" onclick="toggleSubmenu(this)">
-                    💰 Cashflow <span>▼</span>
-                </div>
-                <ul class="sidebar-submenu show">
-                    <li class="sidebar-item">
-                        <a href="#" class="sidebar-link active">📥 Cash inflow</a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a href="#" class="sidebar-link">📤 Cash outflow</a>
-                    </li>
-                </ul>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">📊 Reports</a>
-            </li>
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link">⚙️ Settings</a>
-            </li>
-        </ul>
-    </div>
+    <!-- Shared Sidebar Container -->
+    <div id="sidebar-container"></div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -1300,19 +1200,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar submenu
-            function toggleSubmenu(element) {
-                const submenu = element.nextElementSibling;
-                const arrow = element.querySelector('span');
-
-                submenu.classList.toggle('show');
-
-                if (submenu.classList.contains('show')) {
-                    arrow.textContent = '▲';
-                } else {
-                    arrow.textContent = '▼';
-                }
-            }
+            // toggleSubmenu function is now provided by sidebar.html
 
             // Conditional Logic for Field 1.5 (Customer/Employee), Section 2, 3, and 4
             const typeSelect = document.getElementById('type');
@@ -2264,6 +2152,19 @@
             // Update Total Payment field
             const totalPaymentField = document.getElementById('totalPayment');
             totalPaymentField.value = formatNumberVN(grandTotal) + ' VNĐ';
+        }
+    </script>
+
+    <!-- Load Shared Sidebar -->
+    <script src="../../../sidebar.js"></script>
+    <script>
+        // Set base path to Finance folder from current location
+        window.SIDEBAR_BASE_PATH = '../../../';
+        // Render sidebar after DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderSidebar);
+        } else {
+            renderSidebar();
         }
     </script>
 </body>

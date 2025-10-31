@@ -1,8 +1,9 @@
 # Dimension Values Management - Design Specification
 
 **Feature:** Dimension Values Management
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2025-10-31
+**Last Updated:** 2025-10-31 - Clarified DELETE policy (not supported, use Deactivate only)
 
 ---
 
@@ -39,7 +40,7 @@
 2. Header Bar (Title + Action buttons)
 3. Filter Bar (Search + Stats)
 4. Tree View (Hierarchical values list)
-5. Action Buttons (Add Child, Edit, Delete, Deactivate)
+5. Action Buttons (Add Child, Edit, Deactivate/Activate)
 6. Modal Dialogs (Add/Edit form, Confirmation, Import)
 
 ---
@@ -77,7 +78,7 @@
 | Code | 20% | No | Value code (CC_SALES, etc.) |
 | Posting | 10% | No | Posting status icon (✅ ⚠️ ❌) |
 | Status | 15% | No | Active (green) / Inactive (gray) badge |
-| Actions | 15% | No | Edit, Delete, Deactivate |
+| Actions | 15% | No | Edit, Deactivate/Activate |
 
 **Posting Status Icons:**
 - **✅** (Green checkmark) - Leaf node, always postable (`allow_posting=TRUE`)
@@ -126,8 +127,10 @@ Name                           Code          Post  Status  Actions
 - Click icon → Expand/Collapse
 - Click name → Highlight row (optional select)
 - Hover → Show actions buttons
-- Right-click → Context menu (Add Child, Edit, Delete, Deactivate)
+- Right-click → Context menu (Add Child, Edit, Deactivate/Activate)
 - Inactive values: Gray text + gray background
+
+**Note:** Delete functionality is NOT available for Dimension Values (see section 4.4 for policy rationale)
 
 ---
 
@@ -237,38 +240,24 @@ Name                           Code          Post  Status  Actions
 └─────────────────────────────────────────────┘
 ```
 
-#### Delete Confirmation
+#### Activate Confirmation
 ```
 ┌─────────────────────────────────────────────┐
-│  ⚠️ Confirm Deletion                        │
+│  Confirm Activation                         │
 ├─────────────────────────────────────────────┤
 │                                              │
-│  Permanently delete:                        │
-│  North Region (CC_NORTH)                    │
+│  Activate "Sales Department"?               │
 │                                              │
-│  This action CANNOT be undone!              │
+│  It will become available in entry forms    │
+│  again.                                      │
 │                                              │
-│           [Cancel]  [Delete]                │
+│  ☐ Also activate all child values (3)      │
+│                                              │
+│           [Cancel]  [Activate]              │
 └─────────────────────────────────────────────┘
 ```
 
-#### Delete Error (In Use or Has Children)
-```
-┌─────────────────────────────────────────────┐
-│  ❌ Cannot Delete                           │
-├─────────────────────────────────────────────┤
-│                                              │
-│  Cannot delete "Sales Department" because:  │
-│                                              │
-│  • Has 3 child values                       │
-│  • Used in 150 journal entries              │
-│                                              │
-│  Please deactivate instead or delete        │
-│  children first.                            │
-│                                              │
-│           [Deactivate]  [Close]             │
-└─────────────────────────────────────────────┘
-```
+**Note:** Delete functionality is NOT available for Dimension Values. Only Deactivate/Activate operations are supported to preserve referential integrity and audit trail. See section 4.4 for policy details.
 
 ---
 
@@ -358,21 +347,27 @@ flowchart TD
     J --> K[Expand to show moved subtree]
 ```
 
-### 3.4 Delete Value Flow
+### 3.4 Deactivate Value Flow
 
 ```mermaid
 flowchart TD
-    A[Click Delete] --> B{Has children?}
-    B -->|Yes| C[Show error: Delete children first]
-    B -->|No| D{Check usage}
-    D -->|In use| E[Show error: In use, deactivate instead]
-    D -->|Not used| F[Show confirm dialog]
-    F --> G{User confirms?}
-    G -->|No| H[Cancel]
-    G -->|Yes| I[Delete from database]
-    I --> J[Reload tree]
-    J --> K[Show success message]
+    A[Click Deactivate/Activate] --> B{Is Active?}
+    B -->|Active| C[Show deactivate confirmation]
+    B -->|Inactive| D[Show activate confirmation]
+    C --> E{Include children?}
+    D --> F{Include children?}
+    E --> G{User confirms?}
+    F --> H{User confirms?}
+    G -->|No| I[Cancel]
+    H -->|No| I
+    G -->|Yes| J[Deactivate value + children if selected]
+    H -->|Yes| K[Activate value + children if selected]
+    J --> L[Reload tree]
+    K --> L
+    L --> M[Show success message]
 ```
+
+**Note:** Delete is NOT supported for Dimension Values (see section 4.4). Only Deactivate/Activate operations preserve referential integrity while hiding values from active use.
 
 ---
 
@@ -529,41 +524,41 @@ GET /api/dimension-values?dimension_id={uuid}&search={keyword}&status={active|in
 
 ### 4.4 DELETE /api/dimension-values/:id
 
-**Purpose:** Xóa value
+**⚠️ DELETE NOT SUPPORTED - Use DEACTIVATE Instead**
 
-**Response (Success):**
-```json
-{
-  "success": true,
-  "message": "Value deleted successfully"
-}
-```
+**Policy:** Dimension Values **CANNOT be deleted** - only deactivated.
 
-**Response (Error - Has Children):**
-```json
-{
-  "success": false,
-  "error": {
-    "code": "HAS_CHILDREN",
-    "message": "Cannot delete value that has children",
-    "children_count": 3
-  }
-}
-```
+**Rationale:**
+1. **Referential Integrity:** Dimension values are referenced in `journal_line_dimensions` table. Deleting would corrupt historical transactions.
+2. **Audit & Compliance:** Accounting standards require complete audit trail. Historical dimension values must be preserved.
+3. **Historical Data:** Past journal entries must remain viewable with their original dimension values for reporting and audit purposes.
+4. **ERP Best Practice:** Industry leaders (SAP, Microsoft Dynamics 365, Oracle Financials, NetSuite) all use soft delete (deactivate) for dimension values.
 
-**Response (Error - In Use):**
+**Implementation:**
+- **DELETE endpoint:** Should return `405 Method Not Allowed` or `403 Forbidden`
+- **Alternative:** Use `PATCH /api/dimension-values/:id/deactivate` (see section 4.5)
+- **UI:** Delete button should NOT be shown for Dimension Values (only Edit and Deactivate/Activate buttons)
+
+**Response (If DELETE attempted):**
 ```json
 {
   "success": false,
   "error": {
-    "code": "VALUE_IN_USE",
-    "message": "Cannot delete value that is in use",
-    "usage": {
-      "journal_entries": 150
-    }
+    "code": "OPERATION_NOT_SUPPORTED",
+    "message": "Dimension values cannot be deleted for data integrity and audit compliance. Use deactivate instead.",
+    "alternative_endpoint": "PATCH /api/dimension-values/:id/deactivate"
   }
 }
 ```
+
+**Comparison:**
+| Feature | Dimension Definition | Dimension Values |
+|---------|---------------------|------------------|
+| **Delete** | ✅ Can delete if not in use (no journals + no rules) | ❌ **CANNOT delete** (only deactivate) |
+| **Deactivate** | ✅ Yes (soft delete) | ✅ Yes (recommended approach) |
+| **Reason** | Metadata structure | Transaction data with referential integrity |
+
+**See also:** Section 4.5 for deactivation endpoint documentation.
 
 ---
 
@@ -955,8 +950,10 @@ function getAllDescendants(valueId, lookup) {
 - **Arrow Left:** Collapse node
 - **Arrow Up/Down:** Navigate tree nodes
 - **Enter:** Edit selected value
-- **Delete:** Delete selected value (with confirm)
+- **D:** Deactivate/Activate selected value (with confirm)
 - **Esc:** Close modal
+
+**Note:** Delete functionality is not available for Dimension Values (see section 4.4)
 
 ### Screen Reader:
 - Tree structure announced ("Level 1 of 4", "Has 3 children")

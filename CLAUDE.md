@@ -175,6 +175,78 @@ HRM/Payroll/
 - Maintain professional technical tone
 - Respect the established documentation structure
 
+## HTML Prototype Development - MANDATORY REQUIREMENTS
+
+### ALWAYS Read Design Standards BEFORE Creating HTML Prototypes
+
+**⚠️ CRITICAL RULE:** Before creating any HTML prototype, you MUST read and follow:
+
+1. **`BFDocs/UI_UX_Design_Standards.md`** - Master UI/UX design standards
+   - Layout patterns (sidebar navigation, main content structure)
+   - Color palette and visual identity
+   - Form patterns and validation
+   - Button styles and action patterns
+   - Status badges and indicators
+   - Table layouts and data display
+   - Modal patterns
+   - Responsive design guidelines
+
+2. **Key Requirements for HTML Prototypes:**
+   - ✅ **MUST** use Bootstrap 5.3
+   - ✅ **MUST** follow color palette from design standards
+   - ✅ **MUST** use standard layout (top header + sidebar navigation + main content)
+   - ✅ **MUST** implement action buttons with consistent styles (Edit, Deactivate, Delete)
+   - ✅ **MUST** use Bootstrap badge components for status indicators
+   - ⚠️ **Sidebar is OPTIONAL** - Dev can remove it (application already has sidebar)
+   - ⚠️ **Main Content** is what dev needs - keep it self-contained in `<div class="main-container">`
+
+3. **🆕 Shared Sidebar Component (RECOMMENDED):**
+   - **Location:** `BFDocs/Finance/sidebar.js`
+   - **Use shared sidebar JavaScript file** instead of copying sidebar code to each prototype
+   - **Benefits:** Single source of truth, easier maintenance, consistent navigation, works with local file:// protocol (no CORS issues)
+   - **How to use:**
+     ```html
+     <!-- Add sidebar container -->
+     <div id="sidebar-container"></div>
+
+     <!-- Load shared sidebar -->
+     <script src="../../../sidebar.js"></script>
+     <script>
+         window.SIDEBAR_BASE_PATH = '../../../'; // Adjust based on location
+         if (document.readyState === 'loading') {
+             document.addEventListener('DOMContentLoaded', renderSidebar);
+         } else {
+             renderSidebar();
+         }
+     </script>
+     ```
+   - Sidebar automatically highlights active page and opens parent submenu
+   - All navigation links work between prototypes
+   - Mobile-responsive with hamburger menu
+   - Works when opening HTML files directly (no web server required)
+
+4. **When Creating New Finance Module Prototypes:**
+   ```
+   Step 1: Read BFDocs/UI_UX_Design_Standards.md
+   Step 2: Use shared sidebar component (BFDocs/Finance/sidebar.js)
+   Step 3: Add sidebar container div + include sidebar.js + call renderSidebar()
+   Step 4: Create main content following design patterns
+   Step 5: Test responsive layout
+   Step 6: Verify sidebar navigation works correctly
+   Step 7: Test by opening HTML file directly in browser (file:// protocol)
+   ```
+
+5. **Reference Implementations:**
+   - **Shared Sidebar Component:** `BFDocs/Finance/sidebar.js` - Use this for all Finance prototypes
+   - **Good Examples:** `BFDocs/Finance/Dimension/2_ThietKe/html-prototypes/`
+     - `1_dimension-definition.html` - Full ERP layout with shared sidebar
+     - `2_dimension-values.html` - Tree view pattern with shared sidebar
+     - `3_account-dimension-mapping.html` - Configuration screen pattern with shared sidebar
+   - **Good Example:** `BFDocs/Finance/Cashin-out/2_ThietKe/html-prototypes/2_create-cashin.html` - Form with shared sidebar
+   - **Patterns to Follow:** Shared sidebar component, action buttons, status badges, modal patterns, form validation
+
+---
+
 ## Prototype Coding Standards (CashIn Form)
 
 ### NUMBER FORMAT RULES - MANDATORY
@@ -272,7 +344,8 @@ Inputs:
 **IMPORTANT:** Tất cả tài liệu liên quan đến tính lương PHẢI tuân thủ logic này.
 
 ---
-**Agent Version:** 1.1
-**Context Updated:** 2024-09-24
-**Scope:** Requirements → Design Transition Support Only
-**Compliance:** Vietnam Tax Law Mandatory
+**Agent Version:** 1.3.1
+**Context Updated:** 2025-10-31
+**Scope:** Requirements → Design Transition Support + HTML Prototype Development
+**Compliance:** Vietnam Tax Law Mandatory + UI/UX Design Standards Mandatory
+**New in 1.3.1:** Shared Sidebar Component migrated from `sidebar.html` to `sidebar.js` - Works with local file:// protocol, no CORS issues

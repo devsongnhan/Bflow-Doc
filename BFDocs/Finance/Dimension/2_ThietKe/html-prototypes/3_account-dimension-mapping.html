@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account-Dimension Mapping - Bflow ERP</title>
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-right .user-info {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 65px;
+            width: 250px;
+            height: calc(100vh - 65px);
+            background-color: #f8f9fa;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            z-index: 900;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu > li {
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover {
+            background-color: #e9ecef;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+        }
+
+        .sidebar-link.active {
+            background-color: #e3f2fd;
+            border-left-color: #2c3e50;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .submenu-toggle {
+            cursor: pointer;
+            font-weight: 600;
+            padding: 12px 20px;
+            color: #333;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .submenu-toggle:hover {
+            background-color: #e9ecef;
+        }
+
+        .submenu-toggle .arrow {
+            transition: transform 0.3s;
+        }
+
+        .submenu-toggle.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .submenu.show {
+            max-height: 500px;
+        }
+
+        .submenu .sidebar-link {
+            padding-left: 40px;
+            font-size: 13px;
+        }
+
+        /* Hamburger Menu for Mobile */
+        .hamburger-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        /* Main Content */
+        .main-container {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hamburger-menu {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-250px);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show-mobile {
+                transform: translateX(0);
+            }
+
+            .main-container {
+                margin-left: 0;
+            }
+
+            .top-header h1 {
+                font-size: 16px;
+            }
+
+            .header-right .user-info {
+                display: none;
+            }
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 65px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 850;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+        }
+
+        .content-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .account-selector-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .dimension-table {
+            margin-top: 20px;
+        }
+
+        .dimension-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .dimension-row {
+            transition: background-color 0.2s;
+        }
+
+        .dimension-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dimension-row.not-allowed {
+            opacity: 0.6;
+        }
+
+        .dimension-name {
+            font-weight: 500;
+        }
+
+        .dimension-code {
+            display: block;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .order-input {
+            width: 70px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .info-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #0d6efd;
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .info-box i {
+            color: #0d6efd;
+            margin-right: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h5 {
+            margin-bottom: 8px;
+        }
+
+        .config-summary {
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .config-summary h6 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .summary-item {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+        }
+
+        .form-label-required::after {
+            content: " *";
+            color: #dc3545;
+        }
+
+        .btn-save-config {
+            min-width: 150px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header -->
+    <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
+            <h1>🏢 Bflow ERP - Finance Management</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-info">👤 Admin User</span>
+        </div>
+    </header>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Left Sidebar -->
+    <nav class="sidebar">
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="sidebar-link">
+                    📊 Dashboard
+                </a>
+            </li>
+
+            <li>
+                <div class="submenu-toggle open" onclick="toggleSubmenu(this)">
+                    <span>⚙️ Master Data</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu show">
+                    <li><a href="#" class="sidebar-link">Chart of Accounts</a></li>
+                    <li><a href="1_dimension-definition.html" class="sidebar-link">Dimension Definition</a></li>
+                    <li><a href="2_dimension-values.html" class="sidebar-link">Dimension Values</a></li>
+                    <li><a href="3_account-dimension-mapping.html" class="sidebar-link active">Account-Dimension Mapping</a></li>
+                    <li><a href="#" class="sidebar-link">Fiscal Period Management</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                    <span>📝 Transactions</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu">
+                    <li><a href="../../../Cashin-out/2_ThietKe/html-prototypes/2_create-cashin.html" class="sidebar-link">Cash In</a></li>
+                    <li><a href="../../../Cashin-out/2_ThietKe/html-prototypes/3_create-cashout.html" class="sidebar-link">Cash Out</a></li>
+                    <li><a href="#" class="sidebar-link">Manual Journal Entry</a></li>
+                    <li><a href="#" class="sidebar-link">Initial Balance</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="submenu-toggle" onclick="toggleSubmenu(this)">
+                    <span>📈 Reports</span>
+                    <span class="arrow">▶</span>
+                </div>
+                <ul class="submenu">
+                    <li><a href="#" class="sidebar-link">Trial Balance</a></li>
+                    <li><a href="#" class="sidebar-link">General Ledger</a></li>
+                    <li><a href="#" class="sidebar-link">Financial Statements</a></li>
+                    <li><a href="#" class="sidebar-link">Dimension Analysis</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <a href="#" class="sidebar-link">
+                    🔒 Period Closing
+                </a>
+            </li>
+
+            <li style="border-top: 1px solid #ddd; margin-top: 10px; padding-top: 10px;">
+                <a href="#" class="sidebar-link">
+                    ⚙️ Settings
+                </a>
+            </li>
+
+            <li>
+                <a href="#" class="sidebar-link">
+                    ❓ Help & Support
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-diagram-3"></i>
+            Account-Dimension Mapping
+        </h1>
+        <p class="text-muted mb-0">Configure which dimensions are allowed/required for each account</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-card">
+        <!-- Account Selector Section -->
+        <div class="account-selector-section">
+            <div class="row align-items-end">
+                <div class="col-md-8">
+                    <label for="accountSelect" class="form-label">Select Account</label>
+                    <select class="form-select form-select-lg" id="accountSelect" onchange="loadAccountRules()">
+                        <option value="">-- Select an account to configure dimensions --</option>
+                        <optgroup label="Class 1 - Assets">
+                            <option value="acc-001">111 - Cash</option>
+                            <option value="acc-002">112 - Bank Account</option>
+                        </optgroup>
+                        <optgroup label="Class 6 - Expenses">
+                            <option value="acc-641">641 - Marketing Expense</option>
+                            <option value="acc-642">642 - Office Expense</option>
+                            <option value="acc-632">632 - Cost of Goods Sold</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-outline-secondary" onclick="resetConfiguration()" id="btnReset" disabled>
+                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Summary (Hidden initially) -->
+        <div class="config-summary" id="configSummary" style="display: none;">
+            <h6><i class="bi bi-info-circle"></i> Configuration Summary</h6>
+            <div>
+                <span class="summary-item">
+                    <span class="badge bg-success">●</span>
+                    <strong id="requiredCount">0</strong> Required
+                </span>
+                <span class="summary-item">
+                    <span class="badge bg-warning text-dark">●</span>
+                    <strong id="optionalCount">0</strong> Optional
+                </span>
+                <span class="summary-item">
+                    <span class="badge bg-secondary">●</span>
+                    <strong id="notAllowedCount">0</strong> Not Allowed
+                </span>
+            </div>
+        </div>
+
+        <!-- Empty State (When no account selected) -->
+        <div class="empty-state" id="emptyState">
+            <i class="bi bi-diagram-3"></i>
+            <h5>No Account Selected</h5>
+            <p>Please select an account from the dropdown to configure dimensions</p>
+        </div>
+
+        <!-- Dimension Configuration Table (Hidden initially) -->
+        <div id="dimensionConfigSection" style="display: none;">
+            <h5 id="configTitle">Configure Dimensions</h5>
+
+            <table class="table table-hover dimension-table">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Dimension</th>
+                        <th style="width: 25%;">Status</th>
+                        <th style="width: 15%;">Display Order</th>
+                        <th style="width: 25%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dimensionTableBody">
+                    <!-- Rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <!-- Info Box -->
+            <div class="info-box">
+                <i class="bi bi-info-circle-fill"></i>
+                <strong>Note:</strong> Only allowed dimensions (Required or Optional) will appear in journal entry forms.
+                Required dimensions must be filled by users.
+            </div>
+
+            <!-- Save Button -->
+            <div class="text-end mt-4">
+                <button class="btn btn-primary btn-lg btn-save-config" onclick="saveConfiguration()">
+                    <i class="bi bi-floppy"></i> Save Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Dimension -->
+    <div class="modal fade" id="addDimensionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle"></i> Add Dimension to Account
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="addAccountInfo" class="alert alert-info">
+                        <strong>Account:</strong> <span id="addAccountName"></span>
+                    </div>
+
+                    <form id="addDimensionForm">
+                        <div class="mb-3">
+                            <label for="addDimensionSelect" class="form-label form-label-required">Dimension</label>
+                            <select class="form-select" id="addDimensionSelect" required>
+                                <!-- Options populated by JavaScript -->
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label form-label-required">Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="addStatus" id="addStatusRequired" value="required" checked>
+                                <label class="form-check-label" for="addStatusRequired">
+                                    <span class="badge bg-success">Required</span> - User must fill this dimension
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="addStatus" id="addStatusOptional" value="optional">
+                                <label class="form-check-label" for="addStatusOptional">
+                                    <span class="badge bg-warning text-dark">Optional</span> - User can fill but not required
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="addDisplayOrder" class="form-label form-label-required">Display Order</label>
+                            <input type="number" class="form-control" id="addDisplayOrder" min="1" required>
+                            <small class="form-text text-muted">Order in which dimension appears in journal entry form</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="submitAddDimension()">
+                        <i class="bi bi-plus-circle"></i> Add Dimension
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Edit Dimension Rule -->
+    <div class="modal fade" id="editDimensionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil"></i> Edit Dimension Rule
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="editAccountInfo" class="alert alert-info">
+                        <strong>Account:</strong> <span id="editAccountName"></span>
+                    </div>
+
+                    <form id="editDimensionForm">
+                        <input type="hidden" id="editRuleId">
+                        <input type="hidden" id="editDimensionId">
+
+                        <div class="mb-3">
+                            <label class="form-label">Dimension</label>
+                            <div class="form-control" id="editDimensionDisplay" style="background-color: #e9ecef; cursor: not-allowed;">
+                                <!-- Read-only dimension name -->
+                            </div>
+                            <small class="form-text text-muted">Dimension cannot be changed</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label form-label-required">Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="editStatus" id="editStatusRequired" value="required">
+                                <label class="form-check-label" for="editStatusRequired">
+                                    <span class="badge bg-success">Required</span> - User must fill this dimension
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="editStatus" id="editStatusOptional" value="optional">
+                                <label class="form-check-label" for="editStatusOptional">
+                                    <span class="badge bg-warning text-dark">Optional</span> - User can fill but not required
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="editDisplayOrder" class="form-label form-label-required">Display Order</label>
+                            <input type="number" class="form-control" id="editDisplayOrder" min="1" required>
+                            <small class="form-text text-muted">Order in which dimension appears in journal entry form</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditDimension()">
+                        <i class="bi bi-check-circle"></i> Update Rule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Remove Confirmation -->
+    <div class="modal fade" id="removeConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle"></i> Confirm Remove
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="removeRuleId">
+
+                    <p>Remove <strong id="removeDimensionName"></strong> from <strong id="removeAccountName"></strong>?</p>
+
+                    <p class="text-muted">
+                        This dimension will no longer appear in journal entry forms for this account.
+                    </p>
+
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Warning:</strong> This does NOT delete existing journal entries with this dimension.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmRemoveDimension()">
+                        <i class="bi bi-trash"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Save Configuration Confirmation -->
+    <div class="modal fade" id="saveConfirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-floppy"></i> Save Configuration
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Save dimension rules for <strong id="saveAccountName"></strong>?</p>
+
+                    <div class="alert alert-info">
+                        <strong>Summary:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong id="saveRequiredCount">0</strong> Required dimensions</li>
+                            <li><strong id="saveOptionalCount">0</strong> Optional dimensions</li>
+                            <li><strong id="saveNotAllowedCount">0</strong> Not Allowed dimensions</li>
+                        </ul>
+                    </div>
+
+                    <p class="text-muted">
+                        These rules will apply to all new journal entries for this account.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmSaveConfiguration()">
+                        <i class="bi bi-check-circle"></i> Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ==================== MOCK DATA ====================
+
+        const mockAccounts = {
+            'acc-001': { id: 'acc-001', code: '111', name: 'Cash', type: 'ASSET' },
+            'acc-002': { id: 'acc-002', code: '112', name: 'Bank Account', type: 'ASSET' },
+            'acc-641': { id: 'acc-641', code: '641', name: 'Marketing Expense', type: 'EXPENSE' },
+            'acc-642': { id: 'acc-642', code: '642', name: 'Office Expense', type: 'EXPENSE' },
+            'acc-632': { id: 'acc-632', code: '632', name: 'Cost of Goods Sold', type: 'EXPENSE' }
+        };
+
+        const mockDimensions = [
+            { id: 'dim-001', code: 'COST_CENTER', name: 'Cost Center', isActive: true },
+            { id: 'dim-002', code: 'PRODUCT_LINE', name: 'Product Line', isActive: true },
+            { id: 'dim-003', code: 'CAMPAIGN', name: 'Campaign', isActive: true },
+            { id: 'dim-004', code: 'REGION', name: 'Region', isActive: true },
+            { id: 'dim-005', code: 'FACTORY', name: 'Factory', isActive: true },
+            { id: 'dim-006', code: 'SALES_CHANNEL', name: 'Sales Channel', isActive: true }
+        ];
+
+        const mockRules = {
+            'acc-641': [
+                { id: 'rule-001', accountId: 'acc-641', dimensionId: 'dim-001', isRequired: true, displayOrder: 1 },
+                { id: 'rule-002', accountId: 'acc-641', dimensionId: 'dim-002', isRequired: true, displayOrder: 2 },
+                { id: 'rule-003', accountId: 'acc-641', dimensionId: 'dim-003', isRequired: false, displayOrder: 3 },
+                { id: 'rule-004', accountId: 'acc-641', dimensionId: 'dim-004', isRequired: false, displayOrder: 4 }
+            ],
+            'acc-632': [
+                { id: 'rule-101', accountId: 'acc-632', dimensionId: 'dim-002', isRequired: true, displayOrder: 1 },
+                { id: 'rule-102', accountId: 'acc-632', dimensionId: 'dim-005', isRequired: true, displayOrder: 2 },
+                { id: 'rule-103', accountId: 'acc-632', dimensionId: 'dim-001', isRequired: false, displayOrder: 3 }
+            ],
+            'acc-002': [] // Bank Account - no dimensions
+        };
+
+        let currentAccountId = null;
+        let currentRules = [];
+
+        // ==================== MAIN FUNCTIONS ====================
+
+        function loadAccountRules() {
+            const select = document.getElementById('accountSelect');
+            const accountId = select.value;
+
+            if (!accountId) {
+                // No account selected - show empty state
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('dimensionConfigSection').style.display = 'none';
+                document.getElementById('configSummary').style.display = 'none';
+                document.getElementById('btnReset').disabled = true;
+                return;
+            }
+
+            currentAccountId = accountId;
+            currentRules = mockRules[accountId] || [];
+
+            // Hide empty state, show config section
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('dimensionConfigSection').style.display = 'block';
+            document.getElementById('configSummary').style.display = 'block';
+            document.getElementById('btnReset').disabled = false;
+
+            const account = mockAccounts[accountId];
+            document.getElementById('configTitle').textContent = `Configure Dimensions for: ${account.code} - ${account.name}`;
+
+            renderDimensionTable();
+            updateSummary();
+        }
+
+        function renderDimensionTable() {
+            const tbody = document.getElementById('dimensionTableBody');
+            tbody.innerHTML = '';
+
+            // Create a map of dimension rules
+            const rulesMap = {};
+            currentRules.forEach(rule => {
+                rulesMap[rule.dimensionId] = rule;
+            });
+
+            // Render all dimensions
+            mockDimensions.forEach(dimension => {
+                const rule = rulesMap[dimension.id];
+                const row = document.createElement('tr');
+
+                if (rule) {
+                    // Has rule - Required or Optional
+                    row.className = rule.isRequired ? 'dimension-row required' : 'dimension-row optional';
+                    row.innerHTML = `
+                        <td>
+                            <span class="dimension-name">${dimension.name}</span>
+                            <span class="dimension-code">${dimension.code}</span>
+                        </td>
+                        <td>
+                            ${rule.isRequired
+                                ? '<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Required</span>'
+                                : '<span class="badge bg-warning text-dark"><i class="bi bi-dash-circle-fill"></i> Optional</span>'
+                            }
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm order-input" value="${rule.displayOrder}" min="1"
+                                   onchange="updateDisplayOrder('${rule.id}', this.value)">
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editRule('${rule.id}')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeRule('${rule.id}')">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    // No rule - Not Allowed
+                    row.className = 'dimension-row not-allowed';
+                    row.innerHTML = `
+                        <td>
+                            <span class="dimension-name text-muted">${dimension.name}</span>
+                            <span class="dimension-code">${dimension.code}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary"><i class="bi bi-x-circle-fill"></i> Not Allowed</span>
+                        </td>
+                        <td>
+                            <span class="text-muted">-</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-success" onclick="addRule('${dimension.id}')">
+                                <i class="bi bi-plus-circle"></i> Add
+                            </button>
+                        </td>
+                    `;
+                }
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            const required = currentRules.filter(r => r.isRequired).length;
+            const optional = currentRules.filter(r => !r.isRequired).length;
+            const notAllowed = mockDimensions.length - currentRules.length;
+
+            document.getElementById('requiredCount').textContent = required;
+            document.getElementById('optionalCount').textContent = optional;
+            document.getElementById('notAllowedCount').textContent = notAllowed;
+        }
+
+        // ==================== ADD DIMENSION ====================
+
+        function addRule(dimensionId) {
+            const dimension = mockDimensions.find(d => d.id === dimensionId);
+            const account = mockAccounts[currentAccountId];
+
+            // Populate modal
+            document.getElementById('addAccountName').textContent = `${account.code} - ${account.name}`;
+            document.getElementById('addDimensionSelect').innerHTML = `<option value="${dimension.id}">${dimension.name} (${dimension.code})</option>`;
+
+            // Suggest next display order
+            const maxOrder = currentRules.length > 0 ? Math.max(...currentRules.map(r => r.displayOrder)) : 0;
+            document.getElementById('addDisplayOrder').value = maxOrder + 1;
+
+            // Reset status to Required
+            document.getElementById('addStatusRequired').checked = true;
+
+            // Store dimension ID for later use
+            document.getElementById('addDimensionSelect').dataset.dimensionId = dimensionId;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('addDimensionModal'));
+            modal.show();
+        }
+
+        function submitAddDimension() {
+            const dimensionId = document.getElementById('addDimensionSelect').dataset.dimensionId;
+            const isRequired = document.getElementById('addStatusRequired').checked;
+            const displayOrder = parseInt(document.getElementById('addDisplayOrder').value);
+
+            // Validation
+            if (displayOrder < 1) {
+                alert('Display order must be at least 1');
+                return;
+            }
+
+            // Check for duplicate display order
+            if (currentRules.some(r => r.displayOrder === displayOrder)) {
+                alert('Display order ' + displayOrder + ' is already used. Please choose a different order.');
+                return;
+            }
+
+            // Create new rule
+            const newRule = {
+                id: 'rule-' + Date.now(),
+                accountId: currentAccountId,
+                dimensionId: dimensionId,
+                isRequired: isRequired,
+                displayOrder: displayOrder
+            };
+
+            currentRules.push(newRule);
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('addDimensionModal')).hide();
+
+            // Refresh table
+            renderDimensionTable();
+            updateSummary();
+
+            // Show success message
+            showToast('Success', 'Dimension added successfully', 'success');
+        }
+
+        // ==================== EDIT DIMENSION ====================
+
+        function editRule(ruleId) {
+            const rule = currentRules.find(r => r.id === ruleId);
+            const dimension = mockDimensions.find(d => d.id === rule.dimensionId);
+            const account = mockAccounts[currentAccountId];
+
+            // Populate modal
+            document.getElementById('editAccountName').textContent = `${account.code} - ${account.name}`;
+            document.getElementById('editDimensionDisplay').textContent = `${dimension.name} (${dimension.code})`;
+            document.getElementById('editRuleId').value = ruleId;
+            document.getElementById('editDimensionId').value = rule.dimensionId;
+            document.getElementById('editDisplayOrder').value = rule.displayOrder;
+
+            // Set status radio
+            if (rule.isRequired) {
+                document.getElementById('editStatusRequired').checked = true;
+            } else {
+                document.getElementById('editStatusOptional').checked = true;
+            }
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('editDimensionModal'));
+            modal.show();
+        }
+
+        function submitEditDimension() {
+            const ruleId = document.getElementById('editRuleId').value;
+            const isRequired = document.getElementById('editStatusRequired').checked;
+            const displayOrder = parseInt(document.getElementById('editDisplayOrder').value);
+
+            // Validation
+            if (displayOrder < 1) {
+                alert('Display order must be at least 1');
+                return;
+            }
+
+            // Check for duplicate display order (excluding current rule)
+            if (currentRules.some(r => r.id !== ruleId && r.displayOrder === displayOrder)) {
+                alert('Display order ' + displayOrder + ' is already used. Please choose a different order.');
+                return;
+            }
+
+            // Update rule
+            const rule = currentRules.find(r => r.id === ruleId);
+            rule.isRequired = isRequired;
+            rule.displayOrder = displayOrder;
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('editDimensionModal')).hide();
+
+            // Refresh table
+            renderDimensionTable();
+            updateSummary();
+
+            // Show success message
+            showToast('Success', 'Dimension rule updated successfully', 'success');
+        }
+
+        function updateDisplayOrder(ruleId, newOrder) {
+            const order = parseInt(newOrder);
+
+            if (order < 1) {
+                alert('Display order must be at least 1');
+                renderDimensionTable(); // Reset to previous value
+                return;
+            }
+
+            // Check for duplicate
+            if (currentRules.some(r => r.id !== ruleId && r.displayOrder === order)) {
+                alert('Display order ' + order + ' is already used. Please choose a different order.');
+                renderDimensionTable(); // Reset to previous value
+                return;
+            }
+
+            // Update rule
+            const rule = currentRules.find(r => r.id === ruleId);
+            rule.displayOrder = order;
+
+            updateSummary();
+        }
+
+        // ==================== REMOVE DIMENSION ====================
+
+        function removeRule(ruleId) {
+            const rule = currentRules.find(r => r.id === ruleId);
+            const dimension = mockDimensions.find(d => d.id === rule.dimensionId);
+            const account = mockAccounts[currentAccountId];
+
+            // Populate modal
+            document.getElementById('removeRuleId').value = ruleId;
+            document.getElementById('removeDimensionName').textContent = dimension.name;
+            document.getElementById('removeAccountName').textContent = `${account.code} - ${account.name}`;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
+            modal.show();
+        }
+
+        function confirmRemoveDimension() {
+            const ruleId = document.getElementById('removeRuleId').value;
+
+            // Remove rule
+            currentRules = currentRules.filter(r => r.id !== ruleId);
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
+
+            // Refresh table
+            renderDimensionTable();
+            updateSummary();
+
+            // Show success message
+            showToast('Success', 'Dimension removed successfully', 'success');
+        }
+
+        // ==================== SAVE CONFIGURATION ====================
+
+        function saveConfiguration() {
+            const account = mockAccounts[currentAccountId];
+            const required = currentRules.filter(r => r.isRequired).length;
+            const optional = currentRules.filter(r => !r.isRequired).length;
+            const notAllowed = mockDimensions.length - currentRules.length;
+
+            // Populate modal
+            document.getElementById('saveAccountName').textContent = `${account.code} - ${account.name}`;
+            document.getElementById('saveRequiredCount').textContent = required;
+            document.getElementById('saveOptionalCount').textContent = optional;
+            document.getElementById('saveNotAllowedCount').textContent = notAllowed;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('saveConfirmModal'));
+            modal.show();
+        }
+
+        function confirmSaveConfiguration() {
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('saveConfirmModal')).hide();
+
+            // In real app, send data to API here
+            console.log('Saving configuration:', {
+                accountId: currentAccountId,
+                rules: currentRules
+            });
+
+            // Show success message
+            showToast('Success', 'Configuration saved successfully', 'success');
+        }
+
+        // ==================== RESET CONFIGURATION ====================
+
+        function resetConfiguration() {
+            if (!currentAccountId) return;
+
+            if (confirm('Reset to original configuration? All unsaved changes will be lost.')) {
+                // Reload rules from mock data
+                currentRules = [...(mockRules[currentAccountId] || [])];
+
+                renderDimensionTable();
+                updateSummary();
+
+                showToast('Info', 'Configuration reset', 'info');
+            }
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+
+        function showToast(title, message, type) {
+            // Simple alert for prototype - in real app, use Bootstrap Toast
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            alert(`${icon} ${title}\n\n${message}`);
+        }
+
+        // ==================== SIDEBAR NAVIGATION ====================
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('show-mobile');
+            overlay.classList.toggle('show');
+        }
+
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            element.classList.toggle('open');
+            submenu.classList.toggle('show');
+        }
+    </script>
+
+    </div> <!-- Close main-container -->
+
+</body>
+</html>
