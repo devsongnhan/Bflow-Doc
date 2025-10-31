@@ -155,6 +155,7 @@ function renderSidebar() {
                         <li><a href="${basePath}Dimension/2_ThietKe/html-prototypes/1_dimension-definition.html" class="sidebar-link" data-page="dimension-definition">Dimension Definition</a></li>
                         <li><a href="${basePath}Dimension/2_ThietKe/html-prototypes/2_dimension-values.html" class="sidebar-link" data-page="dimension-values">Dimension Values</a></li>
                         <li><a href="${basePath}Dimension/2_ThietKe/html-prototypes/3_account-dimension-mapping.html" class="sidebar-link" data-page="account-dimension-mapping">Account-Dimension Mapping</a></li>
+                        <li><a href="${basePath}Dimension/2_ThietKe/html-prototypes/4_dimension-split-templates.html" class="sidebar-link" data-page="dimension-split-templates">Dimension Split Templates</a></li>
                     </ul>
                 </li>
 

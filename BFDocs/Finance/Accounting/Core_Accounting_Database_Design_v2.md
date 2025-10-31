@@ -1,10 +1,11 @@
 # Core Accounting - Database Design
 ## Pure Flexible Dimension Model with Account-Specific Rules
 
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2025-10-31
 **Approach:** Journal Line Mode - Pure Flexible Dimensions + Materialized Views + Account-Specific Dimension Rules
 **Target:** Enterprise customers với độ trưởng thành cao về quản trị
+**New in v2.2:** Dimension Split Templates - Manual split dimension values when posting journal entries
 **New in v2.1:** Account-dimension rules (whitelist approach) - inspired by Microsoft Dynamics 365
 
 ---
@@ -557,6 +558,307 @@ WHERE d.tenant_id = 'tenant-vinamilk'
 
 ---
 
+### 2.6 Dimension Split Templates
+
+**📌 Feature Overview:**
+
+**Dimension Split** = Chia 1 posting amount vào nhiều dimension values theo tỷ lệ % khi post journal entry
+
+**Terminology:** Bflow sử dụng **"Split"** terminology (unique, không trùng với ERP khác)
+
+**Why "Split"?**
+- ✅ Phổ thông (split the bill, split payment - ai cũng hiểu)
+- ✅ IT-friendly (code splitting, split screen)
+- ✅ Ngắn gọn (5 chữ cái)
+- ✅ Natural English: "Split costs across departments"
+
+**📌 Business Use Cases:**
+
+| Use Case | Description | Example |
+|----------|-------------|---------|
+| **Shared Service Cost** | IT support, HR, Admin costs | IT cost 180M → Split to Cost Center: Sales 60%, Marketing 40% |
+| **Multi-project Cost** | Development cost across projects | Dev cost 200M → Split to Project: X 70%, Y 30% |
+| **Multi-location Revenue** | Sales from multiple locations | Sales 500M → Split to Location: Hanoi 40%, HCM 60% |
+| **Cross-department Expense** | Training cost for multiple depts | Training 150M → Split to Cost Center: HR 50%, IT 50% |
+
+**📌 Key Concept:**
+
+- **Split** chỉ liên quan đến **DIMENSION**, KHÔNG gắn với account
+- Khi account có dimension rules, user chọn split dimension values thay vì chọn 1 value duy nhất
+- User có thể chọn template (preset) hoặc nhập manual
+- Result: Nhiều journal_lines với same account, different dimension values
+
+---
+
+### 2.6.1 UI Flow Example
+
+**Scenario:** User post journal entry vào account có Cost Center dimension
+
+```
+┌─────────────────────────────────────────────────┐
+│  Journal Entry Form                             │
+├─────────────────────────────────────────────────┤
+│  Account: 68100 (IT Cost)                       │
+│  Amount: 180,000,000                            │
+│                                                  │
+│  Cost Center: [Choose ▼]                        │
+│     ┌─────────────────────────────────────┐    │
+│     │ ○ Sales                             │    │
+│     │ ○ Marketing                         │    │
+│     │ ● Split... 👈 User chọn             │    │
+│     └─────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
+```
+
+**Split Modal hiện ra:**
+
+```
+┌──────────────────────────────────────────────────┐
+│  Split Cost Center                         [X]   │
+├──────────────────────────────────────────────────┤
+│  Total Amount: 180,000,000                       │
+│                                                   │
+│  Choose method:                                  │
+│  ● Use Template   ○ Manual Input                 │
+│                                                   │
+│  Template: [Equal Split (50%-50%) ▼]             │
+│                                                   │
+│  ┌────────────────────────────────────────────┐ │
+│  │ Cost Center    │  %      │  Amount        │ │
+│  ├────────────────────────────────────────────┤ │
+│  │ Sales          │ 60%     │ 108,000,000   │ │
+│  │ Marketing      │ 40%     │  72,000,000   │ │
+│  ├────────────────────────────────────────────┤ │
+│  │ Total          │ 100%    │ 180,000,000   │ │
+│  └────────────────────────────────────────────┘ │
+│                                                   │
+│           [Cancel]  [Apply Split]                │
+└──────────────────────────────────────────────────┘
+```
+
+**Result:** 2 journal_lines created:
+
+```
+Line 1: Account 68100 | 108M | Cost Center=Sales
+Line 2: Account 68100 |  72M | Cost Center=Marketing
+```
+
+---
+
+#### Table: `dimension_split_templates`
+
+**Purpose:** Store reusable split patterns for dimensions (global templates)
+
+**📌 Data Source & Features:**
+
+**Feature**: **"Dimension Split Templates"** (Module: Finance Setup)
+- Create split templates for dimensions
+- Define fixed percentages for dimension values
+- Templates are global (tenant-wide)
+- **Access**: Finance Manager, System Admin
+
+```sql
+CREATE TABLE dimension_split_templates (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id           UUID NOT NULL,
+    template_code       VARCHAR(50) NOT NULL,
+    template_name       VARCHAR(255) NOT NULL,
+
+    -- Template gắn với DIMENSION (không gắn với account!)
+    dimension_id        UUID NOT NULL REFERENCES dimensions(id),
+
+    -- Status
+    is_active           BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Audit
+    created_by          UUID,
+    created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_by          UUID,
+    updated_at          TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_tenant_template_code UNIQUE (tenant_id, template_code)
+);
+
+CREATE INDEX idx_split_templates_tenant ON dimension_split_templates(tenant_id);
+CREATE INDEX idx_split_templates_dimension ON dimension_split_templates(dimension_id);
+CREATE INDEX idx_split_templates_active ON dimension_split_templates(is_active) WHERE is_active = TRUE;
+```
+
+**Sample data:**
+```sql
+-- Template 1: Equal Split for Cost Center (50-50)
+INSERT INTO dimension_split_templates (tenant_id, template_code, template_name, dimension_id, created_by)
+VALUES (
+    'tenant-vinamilk',
+    'CC_EQUAL_SPLIT',
+    'Equal Split (50%-50%)',
+    (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER' AND tenant_id = 'tenant-vinamilk'),
+    'admin-user'
+);
+
+-- Template 2: Revenue-based Split for Cost Center (60-40)
+INSERT INTO dimension_split_templates (tenant_id, template_code, template_name, dimension_id, created_by)
+VALUES (
+    'tenant-vinamilk',
+    'CC_REVENUE_SPLIT',
+    'Revenue-based Split (60%-40%)',
+    (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER' AND tenant_id = 'tenant-vinamilk'),
+    'admin-user'
+);
+
+-- Template 3: Project Split (70-30)
+INSERT INTO dimension_split_templates (tenant_id, template_code, template_name, dimension_id, created_by)
+VALUES (
+    'tenant-vinamilk',
+    'PRJ_MAJOR_MINOR',
+    'Major-Minor Project Split (70%-30%)',
+    (SELECT id FROM dimensions WHERE dimension_code = 'PROJECT' AND tenant_id = 'tenant-vinamilk'),
+    'admin-user'
+);
+```
+
+---
+
+#### Table: `dimension_split_template_lines`
+
+**Purpose:** Define split percentages for each dimension value in template
+
+```sql
+CREATE TABLE dimension_split_template_lines (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id         UUID NOT NULL REFERENCES dimension_split_templates(id) ON DELETE CASCADE,
+    line_number         INTEGER NOT NULL,
+
+    -- Dimension value và tỷ lệ %
+    dimension_value_id  UUID NOT NULL REFERENCES dimension_values(id),
+    percentage          DECIMAL(5,2) NOT NULL,
+    -- SUM(percentage) per template phải = 100.00
+
+    -- Audit
+    created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT uq_template_line_number UNIQUE (template_id, line_number),
+    CONSTRAINT uq_template_value UNIQUE (template_id, dimension_value_id),
+    CONSTRAINT chk_percentage CHECK (percentage > 0 AND percentage <= 100)
+);
+
+CREATE INDEX idx_split_template_lines_template ON dimension_split_template_lines(template_id);
+CREATE INDEX idx_split_template_lines_value ON dimension_split_template_lines(dimension_value_id);
+```
+
+**Sample data:**
+```sql
+-- Template "Equal Split" lines (50-50)
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'CC_EQUAL_SPLIT'),
+        1,
+        (SELECT id FROM dimension_values WHERE value_code = 'SALES' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER')),
+        50.00
+    ),
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'CC_EQUAL_SPLIT'),
+        2,
+        (SELECT id FROM dimension_values WHERE value_code = 'MARKETING' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER')),
+        50.00
+    );
+
+-- Template "Revenue-based Split" lines (60-40)
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'CC_REVENUE_SPLIT'),
+        1,
+        (SELECT id FROM dimension_values WHERE value_code = 'SALES' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER')),
+        60.00
+    ),
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'CC_REVENUE_SPLIT'),
+        2,
+        (SELECT id FROM dimension_values WHERE value_code = 'MARKETING' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'COST_CENTER')),
+        40.00
+    );
+
+-- Template "Major-Minor Project" lines (70-30)
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'PRJ_MAJOR_MINOR'),
+        1,
+        (SELECT id FROM dimension_values WHERE value_code = 'PROJECT_X' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'PROJECT')),
+        70.00
+    ),
+    (
+        (SELECT id FROM dimension_split_templates WHERE template_code = 'PRJ_MAJOR_MINOR'),
+        2,
+        (SELECT id FROM dimension_values WHERE value_code = 'PROJECT_Y' AND dimension_id =
+            (SELECT id FROM dimensions WHERE dimension_code = 'PROJECT')),
+        30.00
+    );
+```
+
+---
+
+### 2.6.2 Key Implementation Notes
+
+**1. Split Context:**
+- Split KHÔNG gắn với account, gắn với DIMENSION
+- Mỗi dimension có thể có nhiều templates
+- Templates are global (tenant-wide, created by Finance Manager/Admin)
+
+**2. Journal Entry Posting:**
+- User chọn account → System kiểm tra dimension rules
+- Với mỗi required dimension, user chọn:
+  - Single value (normal case) → 1 journal_line
+  - Split (template or manual) → Multiple journal_lines
+
+**3. Multi-dimensional Split (Cartesian Product):**
+- Nếu account có nhiều dimensions (Cost Center + Project)
+- User có thể split NHIỀU dimensions cùng lúc
+- Ví dụ: Split Cost Center (2 values) × Split Project (2 values) = 4 journal_lines
+- Amount phân bổ: Line Amount = Total Amount × Cost Center % × Project %
+
+**4. Manual Split:**
+- User không chọn template
+- Nhập manual cho từng dimension value (Amount or %)
+- Có thể save thành template mới
+
+**5. Validation Rules:**
+- SUM(percentage) per template = 100.00 (exactly)
+- SUM(percentage) per manual split = 100.00 (exactly)
+- Template chỉ chứa postable dimension values (leaf nodes or parent với posting enabled)
+- Dimension value phải thuộc cùng dimension với template
+
+---
+
+### 2.6.3 Example: Multi-Dimensional Split
+
+**Account 68100 có 2 dimensions: Cost Center + Project**
+
+**User Input:**
+- Amount: 180,000,000
+- Cost Center: Split (Sales 60%, Marketing 40%)
+- Project: Split (Project X 70%, Project Y 30%)
+
+**Result: 4 journal_lines (Cartesian Product)**
+
+```
+Line 1: 180M × 60% × 70% = 75,600,000 | Cost Center=Sales | Project=X
+Line 2: 180M × 60% × 30% = 32,400,000 | Cost Center=Sales | Project=Y
+Line 3: 180M × 40% × 70% = 50,400,000 | Cost Center=Marketing | Project=X
+Line 4: 180M × 40% × 30% = 21,600,000 | Cost Center=Marketing | Project=Y
+
+Total: 180,000,000 ✅
+```
+
+---
+
 ## 3. System Architecture & Features
 
 ### 3.1 Feature Map - Accounting System
@@ -677,6 +979,10 @@ erDiagram
     dimension_values ||--o{ journal_line_dimensions : "used in"
 
     dimension_templates ||--|{ dimension_template_items : "defines"
+
+    dimensions ||--o{ dimension_split_templates : "has split templates"
+    dimension_split_templates ||--|{ dimension_split_template_lines : "defines"
+    dimension_values ||--o{ dimension_split_template_lines : "used in"
 
     accounts ||--o{ accounts : "parent-child"
 
@@ -1266,6 +1572,69 @@ INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_va
 
 ---
 
+### 6.5 Insert Journal Entry với Dimension Split
+
+**Scenario:** Vinamilk - Chi phí marketing 180M, split cho 2 Cost Center (Sales 60%, Marketing 40%)
+
+```sql
+-- Step 1: Insert journal header
+INSERT INTO journals (tenant_id, journal_number, entry_date, period_id, description, total_debit, total_credit, status, created_by)
+VALUES ('tenant-vinamilk', 'JE-2025-00002', '2025-01-20', 'period-2025-01',
+        'Chi phí marketing - Split Sales & Marketing', 180000000, 180000000, 'DRAFT', 'user-1')
+RETURNING id INTO @journal_id;
+
+-- Step 2: Insert debit line 1 (Sales 60% = 108M)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 108000000)
+RETURNING id INTO @line_id_1;
+
+-- Add dimensions for Sales
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id_1, 'dim-cost-center', 'val-sales'),         -- Split dimension: Sales
+(@line_id_1, 'dim-product-line', 'val-fresh-milk'),   -- Other dimensions
+(@line_id_1, 'dim-campaign', 'val-tet-2025');
+
+-- Step 3: Insert debit line 2 (Marketing 40% = 72M)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 2, 'acc-641', 72000000)
+RETURNING id INTO @line_id_2;
+
+-- Add dimensions for Marketing
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id_2, 'dim-cost-center', 'val-marketing'),      -- Split dimension: Marketing
+(@line_id_2, 'dim-product-line', 'val-fresh-milk'),    -- Other dimensions (same)
+(@line_id_2, 'dim-campaign', 'val-tet-2025');
+
+-- Step 4: Insert credit line (bank account - no split needed)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, credit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 3, 'acc-112', 180000000);
+
+-- Step 5: Post journal
+UPDATE journals
+SET status = 'POSTED',
+    posted_by = 'user-1',
+    posted_at = NOW()
+WHERE id = @journal_id;
+```
+
+**Result:**
+- **2 journal_lines** cho account 641 (cùng account, khác Cost Center)
+- Total: 108M + 72M = 180M ✅
+- Reporting: P&L by Cost Center sẽ split đúng tỷ lệ 60%-40%
+
+**Multi-Dimensional Split Example:**
+Nếu user split 2 dimensions (Cost Center + Project):
+- Cost Center: Sales 60%, Marketing 40%
+- Project: Project X 70%, Project Y 30%
+
+→ Result: **4 journal_lines** (Cartesian product: 2 × 2)
+- Line 1: 180M × 60% × 70% = 75.6M | Sales + Project X
+- Line 2: 180M × 60% × 30% = 32.4M | Sales + Project Y
+- Line 3: 180M × 40% × 70% = 50.4M | Marketing + Project X
+- Line 4: 180M × 40% × 30% = 21.6M | Marketing + Project Y
+
+---
+
 ## 7. Business Rules & Validation
 
 ### 7.1 Account-Specific Dimension Validation
@@ -1370,6 +1739,167 @@ EXECUTE FUNCTION validate_active_dimension_value();
 
 ---
 
+### 7.3 Dimension Split Templates Validation
+
+**Business Rules:**
+1. Template phải có ít nhất 2 lines (không split thì không cần template)
+2. SUM(percentage) của tất cả lines phải = 100.00
+3. Dimension values phải cùng dimension với template
+4. Dimension values phải postable (leaf node hoặc parent với allow_posting=true)
+
+```sql
+-- Rule 1 & 2: Check total percentage = 100.00 và minimum 2 lines
+CREATE OR REPLACE FUNCTION validate_split_template_percentages()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_total_percentage DECIMAL(5,2);
+    v_line_count INTEGER;
+    v_template_name VARCHAR(255);
+BEGIN
+    -- Get template name for error messages
+    SELECT template_name INTO v_template_name
+    FROM dimension_split_templates
+    WHERE id = NEW.template_id;
+
+    -- Count lines and sum percentages
+    SELECT COUNT(*), SUM(percentage)
+    INTO v_line_count, v_total_percentage
+    FROM dimension_split_template_lines
+    WHERE template_id = NEW.template_id;
+
+    -- Check minimum 2 lines
+    IF v_line_count < 2 THEN
+        RAISE EXCEPTION 'Split template "%" must have at least 2 lines. Current: %',
+            v_template_name, v_line_count;
+    END IF;
+
+    -- Check total percentage = 100.00
+    IF v_total_percentage != 100.00 THEN
+        RAISE EXCEPTION 'Split template "%" total percentage must equal 100.00. Current: %',
+            v_template_name, v_total_percentage;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_split_template_percentages
+AFTER INSERT OR UPDATE OR DELETE ON dimension_split_template_lines
+FOR EACH ROW
+EXECUTE FUNCTION validate_split_template_percentages();
+
+-- Rule 3: Check dimension value belongs to same dimension as template
+CREATE OR REPLACE FUNCTION validate_split_template_dimension()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_template_dimension_id UUID;
+    v_value_dimension_id UUID;
+    v_template_name VARCHAR(255);
+    v_value_code VARCHAR(50);
+BEGIN
+    -- Get template's dimension
+    SELECT dst.dimension_id, dst.template_name
+    INTO v_template_dimension_id, v_template_name
+    FROM dimension_split_templates dst
+    WHERE dst.id = NEW.template_id;
+
+    -- Get dimension value's parent dimension
+    SELECT dv.dimension_id, dv.value_code
+    INTO v_value_dimension_id, v_value_code
+    FROM dimension_values dv
+    WHERE dv.id = NEW.dimension_value_id;
+
+    -- Check match
+    IF v_template_dimension_id != v_value_dimension_id THEN
+        RAISE EXCEPTION 'Split template "%" dimension mismatch. Value "%" does not belong to template dimension.',
+            v_template_name, v_value_code;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_split_template_dimension
+BEFORE INSERT OR UPDATE ON dimension_split_template_lines
+FOR EACH ROW
+EXECUTE FUNCTION validate_split_template_dimension();
+
+-- Rule 4: Check dimension value is postable
+CREATE OR REPLACE FUNCTION validate_split_template_postable()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_leaf BOOLEAN;
+    v_allow_posting BOOLEAN;
+    v_value_code VARCHAR(50);
+    v_template_name VARCHAR(255);
+BEGIN
+    -- Get value info
+    SELECT
+        (parent_id IS NULL) AS is_root_or_has_no_parent,
+        NOT EXISTS(SELECT 1 FROM dimension_values dv2 WHERE dv2.parent_id = dv.id) AS is_leaf,
+        dv.allow_posting,
+        dv.value_code
+    INTO v_is_leaf, v_allow_posting, v_value_code
+    FROM dimension_values dv
+    WHERE dv.id = NEW.dimension_value_id;
+
+    -- Get template name
+    SELECT template_name INTO v_template_name
+    FROM dimension_split_templates
+    WHERE id = NEW.template_id;
+
+    -- Check if postable
+    IF NOT (v_is_leaf OR v_allow_posting) THEN
+        RAISE EXCEPTION 'Split template "%" cannot use non-postable value "%". Only leaf nodes or parent nodes with allow_posting=true can be used.',
+            v_template_name, v_value_code;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_split_template_postable
+BEFORE INSERT OR UPDATE ON dimension_split_template_lines
+FOR EACH ROW
+EXECUTE FUNCTION validate_split_template_postable();
+```
+
+**Example Validation Scenarios:**
+
+```sql
+-- ❌ FAIL: Total percentage != 100
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES
+    (@template_id, 1, @val_sales, 60.00),
+    (@template_id, 2, @val_marketing, 30.00);  -- Total = 90% != 100%
+-- ERROR: Split template "Equal Split" total percentage must equal 100.00. Current: 90.00
+
+-- ❌ FAIL: Only 1 line
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES (@template_id, 1, @val_sales, 100.00);
+-- ERROR: Split template "Equal Split" must have at least 2 lines. Current: 1
+
+-- ❌ FAIL: Dimension mismatch
+-- Template is for Cost Center dimension
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES (@template_id, 1, @val_project_x, 50.00);  -- Project X belongs to Project dimension!
+-- ERROR: Split template "CC Split" dimension mismatch. Value "PROJECT_X" does not belong to template dimension.
+
+-- ❌ FAIL: Non-postable parent value
+-- Parent node "All Departments" has allow_posting = FALSE
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES (@template_id, 1, @val_all_departments, 50.00);
+-- ERROR: Split template "Dept Split" cannot use non-postable value "ALL_DEPARTMENTS".
+
+-- ✅ SUCCESS: Valid template
+INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
+VALUES
+    (@template_id, 1, @val_sales, 60.00),
+    (@template_id, 2, @val_marketing, 40.00);  -- Total = 100% ✅
+```
+
+---
+
 ## 8. Migration & Deployment
 
 ### 8.1 Initial Setup Script
@@ -1458,13 +1988,16 @@ Rows scanned: Pre-aggregated MV only
 - Core: 6 tables (accounts, fiscal_years, periods, journals, journal_lines, journal_line_dimensions)
 - Dimensions: 3 tables (dimensions, dimension_values, account_dimension_rules)
 - Templates: 2 tables (dimension_templates, dimension_template_items)
+- Account-Dimension Rules: 1 table (account_dimension_rules) - already counted in Dimensions
+- **Dimension Split: 2 tables** (dimension_split_templates, dimension_split_template_lines)
 - Views: 1 materialized view (mv_journal_analysis)
-- **Total: 12 tables/views**
+- **Total: 14 tables/views**
 
 ### Key features:
 ✅ Double-entry accounting compliance
 ✅ Unlimited flexible dimensions per tenant
 ✅ **Account-specific dimension rules** (whitelist approach)
+✅ **Dimension split templates** - Manual split dimension values when posting JE
 ✅ High performance with materialized views
 ✅ Template-based onboarding
 ✅ Multi-tenant isolation
