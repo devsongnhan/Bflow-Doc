@@ -832,8 +832,9 @@ VALUES
 **5. Validation Rules:**
 - SUM(percentage) per template = 100.00 (exactly)
 - SUM(percentage) per manual split = 100.00 (exactly)
-- Template chỉ chứa postable dimension values (leaf nodes or parent với posting enabled)
+- **Template chỉ chứa LEAF NODES (cấp lá) duy nhất - parent nodes NOT allowed**
 - Dimension value phải thuộc cùng dimension với template
+- **Why leaf-only?** Parent nodes cannot determine split % for child leaves, but leaf data can aggregate up to parents for reporting
 
 ---
 
@@ -843,19 +844,27 @@ VALUES
 
 **User Input:**
 - Amount: 180,000,000
-- Cost Center: Split (Sales 60%, Marketing 40%)
-- Project: Split (Project X 70%, Project Y 30%)
+- Cost Center: Split using template "North-South Split"
+  - 🍃 Sales North: 30% (leaf)
+  - 🍃 Sales South: 30% (leaf)
+- Project: Split using template "Major-Minor"
+  - 🍃 Project X: 70% (leaf)
+  - 🍃 Project Y: 30% (leaf)
 
-**Result: 4 journal_lines (Cartesian Product)**
+**Result: 4 journal_lines (Cartesian Product - all using LEAF nodes)**
 
 ```
-Line 1: 180M × 60% × 70% = 75,600,000 | Cost Center=Sales | Project=X
-Line 2: 180M × 60% × 30% = 32,400,000 | Cost Center=Sales | Project=Y
-Line 3: 180M × 40% × 70% = 50,400,000 | Cost Center=Marketing | Project=X
-Line 4: 180M × 40% × 30% = 21,600,000 | Cost Center=Marketing | Project=Y
+Line 1: 180M × 30% × 70% = 37,800,000 | Cost Center=Sales North | Project=X
+Line 2: 180M × 30% × 30% = 16,200,000 | Cost Center=Sales North | Project=Y
+Line 3: 180M × 30% × 70% = 37,800,000 | Cost Center=Sales South | Project=X
+Line 4: 180M × 30% × 30% = 16,200,000 | Cost Center=Sales South | Project=Y
 
 Total: 180,000,000 ✅
 ```
+
+**Reporting Aggregation:**
+When user views report by parent "Sales":
+- System auto-aggregates: Line 1 + Line 2 + Line 3 + Line 4 (where Cost Center starts with "Sales") = Sales total ✅
 
 ---
 
@@ -1745,7 +1754,12 @@ EXECUTE FUNCTION validate_active_dimension_value();
 1. Template phải có ít nhất 2 lines (không split thì không cần template)
 2. SUM(percentage) của tất cả lines phải = 100.00
 3. Dimension values phải cùng dimension với template
-4. Dimension values phải postable (leaf node hoặc parent với allow_posting=true)
+4. **Dimension values phải là LEAF NODES (cấp lá) duy nhất - KHÔNG cho phép parent nodes**
+
+**⚠️ Rule 4 Explanation:**
+- ❌ **Parent nodes NOT allowed:** Cannot determine split % for each child leaf
+- ✅ **Only leaf nodes allowed:** System can aggregate leaf data up to parent for reporting
+- **Example:** If hierarchy is Sales > Sales North, Sales South → Only allow "Sales North", "Sales South" in template
 
 ```sql
 -- Rule 1 & 2: Check total percentage = 100.00 và minimum 2 lines
@@ -1824,33 +1838,31 @@ BEFORE INSERT OR UPDATE ON dimension_split_template_lines
 FOR EACH ROW
 EXECUTE FUNCTION validate_split_template_dimension();
 
--- Rule 4: Check dimension value is postable
-CREATE OR REPLACE FUNCTION validate_split_template_postable()
+-- Rule 4: Check dimension value is LEAF NODE only
+CREATE OR REPLACE FUNCTION validate_split_template_leaf_only()
 RETURNS TRIGGER AS $$
 DECLARE
     v_is_leaf BOOLEAN;
-    v_allow_posting BOOLEAN;
     v_value_code VARCHAR(50);
     v_template_name VARCHAR(255);
 BEGIN
-    -- Get value info
+    -- Check if dimension value is a leaf node
+    -- A leaf node has no children (no other dimension_values with this value as parent)
     SELECT
-        (parent_id IS NULL) AS is_root_or_has_no_parent,
         NOT EXISTS(SELECT 1 FROM dimension_values dv2 WHERE dv2.parent_id = dv.id) AS is_leaf,
-        dv.allow_posting,
         dv.value_code
-    INTO v_is_leaf, v_allow_posting, v_value_code
+    INTO v_is_leaf, v_value_code
     FROM dimension_values dv
     WHERE dv.id = NEW.dimension_value_id;
 
-    -- Get template name
+    -- Get template name for error message
     SELECT template_name INTO v_template_name
     FROM dimension_split_templates
     WHERE id = NEW.template_id;
 
-    -- Check if postable
-    IF NOT (v_is_leaf OR v_allow_posting) THEN
-        RAISE EXCEPTION 'Split template "%" cannot use non-postable value "%". Only leaf nodes or parent nodes with allow_posting=true can be used.',
+    -- Only allow leaf nodes
+    IF NOT v_is_leaf THEN
+        RAISE EXCEPTION 'Split template "%" can only use LEAF NODES (cấp lá). Value "%" is a parent node and cannot be used. Reason: Cannot determine split %% for child leaves.',
             v_template_name, v_value_code;
     END IF;
 
@@ -1858,10 +1870,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_validate_split_template_postable
+CREATE TRIGGER trg_validate_split_template_leaf_only
 BEFORE INSERT OR UPDATE ON dimension_split_template_lines
 FOR EACH ROW
-EXECUTE FUNCTION validate_split_template_postable();
+EXECUTE FUNCTION validate_split_template_leaf_only();
 ```
 
 **Example Validation Scenarios:**
@@ -1885,17 +1897,20 @@ INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_
 VALUES (@template_id, 1, @val_project_x, 50.00);  -- Project X belongs to Project dimension!
 -- ERROR: Split template "CC Split" dimension mismatch. Value "PROJECT_X" does not belong to template dimension.
 
--- ❌ FAIL: Non-postable parent value
--- Parent node "All Departments" has allow_posting = FALSE
+-- ❌ FAIL: Parent node not allowed (only leaf nodes)
+-- "Sales" is a parent node with children: Sales North, Sales South
 INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
-VALUES (@template_id, 1, @val_all_departments, 50.00);
--- ERROR: Split template "Dept Split" cannot use non-postable value "ALL_DEPARTMENTS".
+VALUES (@template_id, 1, @val_sales_parent, 50.00);  -- Sales is parent node
+-- ERROR: Split template "CC Split" can only use LEAF NODES (cấp lá). Value "SALES" is a parent node and cannot be used.
 
--- ✅ SUCCESS: Valid template
+-- ✅ SUCCESS: Valid template (using leaf nodes only)
 INSERT INTO dimension_split_template_lines (template_id, line_number, dimension_value_id, percentage)
 VALUES
-    (@template_id, 1, @val_sales, 60.00),
-    (@template_id, 2, @val_marketing, 40.00);  -- Total = 100% ✅
+    (@template_id, 1, @val_sales_north, 30.00),   -- Sales North is LEAF
+    (@template_id, 2, @val_sales_south, 30.00),   -- Sales South is LEAF
+    (@template_id, 3, @val_marketing_online, 25.00), -- Marketing Online is LEAF
+    (@template_id, 4, @val_marketing_offline, 15.00); -- Marketing Offline is LEAF
+    -- Total = 100% ✅ All values are leaf nodes ✅
 ```
 
 ---

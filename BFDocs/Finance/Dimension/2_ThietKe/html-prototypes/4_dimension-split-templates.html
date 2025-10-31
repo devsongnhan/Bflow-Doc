@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimension Split Templates - Bflow ERP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .hamburger-menu {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            font-size: 14px;
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .page-header h2 {
+            margin: 0 0 5px 0;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Content Card */
+        .content-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .card-header-actions h5 {
+            margin: 0;
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 15px 8px 35px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Table Styles */
+        .table-container {
+            padding: 0;
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .data-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Badge Styles */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-secondary {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-deactivate {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-deactivate:hover {
+            background-color: #bb2d3b;
+        }
+
+        .btn-activate {
+            background-color: #198754;
+            color: white;
+        }
+
+        .btn-activate:hover {
+            background-color: #157347;
+        }
+
+        /* Modal Customization */
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .required-asterisk {
+            color: #dc3545;
+            margin-left: 2px;
+        }
+
+        /* Split Lines Section */
+        .split-lines-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .split-line-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+
+        .line-number {
+            width: 30px;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .dimension-value-select {
+            flex: 2;
+        }
+
+        .percentage-input {
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .btn-remove-line {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove-line:hover {
+            background-color: #bb2d3b;
+        }
+
+        .btn-add-line {
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            border: 2px dashed #6c757d;
+            background: white;
+            color: #6c757d;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-add-line:hover {
+            border-color: #495057;
+            color: #495057;
+            background-color: #f8f9fa;
+        }
+
+        /* Total Percentage Display */
+        .total-percentage {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: white;
+            border-radius: 4px;
+            border: 2px solid #dee2e6;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .total-percentage.valid {
+            border-color: #198754;
+            color: #198754;
+        }
+
+        .total-percentage.invalid {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .hamburger-menu {
+                display: block;
+            }
+
+            .page-header {
+                padding: 15px 20px;
+            }
+
+            .card-header-actions {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .split-line-row {
+                flex-wrap: wrap;
+            }
+
+            .dimension-value-select {
+                flex: 100%;
+            }
+
+            .percentage-input {
+                max-width: none;
+                flex: 1;
+            }
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 65px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="hamburger-menu" onclick="toggleSidebar()">☰</button>
+            <h1>Bflow ERP - Finance</h1>
+        </div>
+        <div class="header-right">
+            <span class="user-info">Finance Manager</span>
+            <button class="btn btn-sm btn-outline-light">Logout</button>
+        </div>
+    </div>
+
+    <!-- Sidebar Container (Loaded by sidebar.js) -->
+    <div id="sidebar-container"></div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2>Dimension Split Templates</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Finance</a></li>
+                    <li class="breadcrumb-item"><a href="#">Dimensions</a></li>
+                    <li class="breadcrumb-item active">Split Templates</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Content Card -->
+        <div class="content-card">
+            <div class="card-header-actions">
+                <h5>All Split Templates</h5>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search templates..." class="form-control-sm">
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#templateModal" onclick="openCreateModal()">
+                        + Create Template
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table" id="templateTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%">#</th>
+                            <th style="width: 15%">Template Code</th>
+                            <th style="width: 25%">Template Name</th>
+                            <th style="width: 15%">Dimension</th>
+                            <th style="width: 10%">Lines</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 10%">Created By</th>
+                            <th style="width: 10%">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="templateTableBody">
+                        <!-- Mock Data -->
+                        <tr>
+                            <td>1</td>
+                            <td><strong>CC_EQUAL</strong></td>
+                            <td>Equal Split (50%-50%)</td>
+                            <td>Cost Center</td>
+                            <td>2 lines</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>admin</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="editTemplate(1)">Edit</button>
+                                    <button class="btn-action btn-deactivate" onclick="deactivateTemplate(1)">Deactivate</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td><strong>CC_REVENUE</strong></td>
+                            <td>Revenue-based Split (60%-40%)</td>
+                            <td>Cost Center</td>
+                            <td>2 lines</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>finance.mgr</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="editTemplate(2)">Edit</button>
+                                    <button class="btn-action btn-deactivate" onclick="deactivateTemplate(2)">Deactivate</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td><strong>PRJ_MAJOR_MINOR</strong></td>
+                            <td>Major-Minor Project Split (70%-30%)</td>
+                            <td>Project</td>
+                            <td>2 lines</td>
+                            <td><span class="badge badge-success">Active</span></td>
+                            <td>admin</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="editTemplate(3)">Edit</button>
+                                    <button class="btn-action btn-deactivate" onclick="deactivateTemplate(3)">Deactivate</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td><strong>CC_THREE_WAY</strong></td>
+                            <td>Three-way Split (50%-30%-20%)</td>
+                            <td>Cost Center</td>
+                            <td>3 lines</td>
+                            <td><span class="badge badge-secondary">Inactive</span></td>
+                            <td>finance.mgr</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" onclick="editTemplate(4)">Edit</button>
+                                    <button class="btn-action btn-activate" onclick="activateTemplate(4)">Activate</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Create Split Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="templateForm">
+                        <!-- Template Code -->
+                        <div class="mb-3">
+                            <label for="templateCode" class="form-label">
+                                Template Code <span class="required-asterisk">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="templateCode"
+                                   placeholder="e.g., CC_EQUAL" required>
+                            <small class="form-text text-muted">Unique code for this template (uppercase, no spaces)</small>
+                        </div>
+
+                        <!-- Template Name -->
+                        <div class="mb-3">
+                            <label for="templateName" class="form-label">
+                                Template Name <span class="required-asterisk">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="templateName"
+                                   placeholder="e.g., Equal Split (50%-50%)" required>
+                        </div>
+
+                        <!-- Dimension Selection -->
+                        <div class="mb-3">
+                            <label for="dimensionSelect" class="form-label">
+                                Dimension <span class="required-asterisk">*</span>
+                            </label>
+                            <select class="form-select" id="dimensionSelect" required onchange="loadDimensionValues()">
+                                <option value="">-- Select Dimension --</option>
+                                <option value="cost_center">Cost Center</option>
+                                <option value="project">Project</option>
+                                <option value="department">Department</option>
+                                <option value="product_line">Product Line</option>
+                            </select>
+                        </div>
+
+                        <!-- Split Lines Section -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Split Lines <span class="required-asterisk">*</span>
+                                <small class="text-muted">(Minimum 2 lines, total must equal 100%)</small>
+                            </label>
+                            <div class="split-lines-section" id="splitLinesContainer">
+                                <!-- Split line rows will be added dynamically -->
+                                <div class="split-line-row">
+                                    <div class="line-number">1</div>
+                                    <select class="form-select dimension-value-select" required>
+                                        <option value="">-- Select Value --</option>
+                                    </select>
+                                    <input type="number" class="form-control percentage-input"
+                                           placeholder="%" min="0" max="100" step="0.01" required
+                                           onchange="calculateTotal()">
+                                    <button type="button" class="btn-remove-line" onclick="removeLine(this)" disabled>×</button>
+                                </div>
+                                <div class="split-line-row">
+                                    <div class="line-number">2</div>
+                                    <select class="form-select dimension-value-select" required>
+                                        <option value="">-- Select Value --</option>
+                                    </select>
+                                    <input type="number" class="form-control percentage-input"
+                                           placeholder="%" min="0" max="100" step="0.01" required
+                                           onchange="calculateTotal()">
+                                    <button type="button" class="btn-remove-line" onclick="removeLine(this)">×</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-add-line" onclick="addLine()">+ Add Line</button>
+
+                            <!-- Total Percentage Display -->
+                            <div class="total-percentage" id="totalPercentage">
+                                Total: <span id="totalValue">0.00</span>%
+                            </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isActive" checked>
+                            <label class="form-check-label" for="isActive">Active</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveTemplate()">Save Template</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Load Shared Sidebar -->
+    <script src="../../../sidebar.js"></script>
+    <script>
+        window.SIDEBAR_BASE_PATH = '../../../';
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderSidebar);
+        } else {
+            renderSidebar();
+        }
+    </script>
+
+    <!-- Page Scripts -->
+    <script>
+        // Mock data for dimension values
+        // ⚠️ IMPORTANT: Split templates can ONLY use LEAF NODES (cấp lá)
+        // Why: If selecting parent nodes, system cannot determine % for each leaf
+        //      If selecting leaf nodes, system can aggregate up to parent nodes for reporting
+        const dimensionValuesData = {
+            cost_center: [
+                // Only leaf nodes allowed
+                { code: 'SALES_NORTH', name: '🍃 Sales - North', is_leaf: true },
+                { code: 'SALES_SOUTH', name: '🍃 Sales - South', is_leaf: true },
+                { code: 'MARKETING_ONLINE', name: '🍃 Marketing - Online', is_leaf: true },
+                { code: 'MARKETING_OFFLINE', name: '🍃 Marketing - Offline', is_leaf: true },
+                { code: 'PRODUCTION', name: '🍃 Production', is_leaf: true },
+                { code: 'RND', name: '🍃 R&D', is_leaf: true }
+                // Parent nodes "Sales", "Marketing" are NOT included
+            ],
+            project: [
+                { code: 'PROJECT_X', name: '🍃 Project X', is_leaf: true },
+                { code: 'PROJECT_Y', name: '🍃 Project Y', is_leaf: true },
+                { code: 'PROJECT_Z', name: '🍃 Project Z', is_leaf: true }
+            ],
+            department: [
+                { code: 'HR', name: '🍃 Human Resources', is_leaf: true },
+                { code: 'FINANCE', name: '🍃 Finance', is_leaf: true },
+                { code: 'IT', name: '🍃 IT', is_leaf: true }
+            ],
+            product_line: [
+                { code: 'FRESH_MILK', name: '🍃 Fresh Milk', is_leaf: true },
+                { code: 'YOGURT', name: '🍃 Yogurt', is_leaf: true },
+                { code: 'CHEESE', name: '🍃 Cheese', is_leaf: true }
+            ]
+        };
+
+        // Load dimension values when dimension is selected
+        function loadDimensionValues() {
+            const dimensionSelect = document.getElementById('dimensionSelect');
+            const selectedDimension = dimensionSelect.value;
+
+            if (!selectedDimension) return;
+
+            const values = dimensionValuesData[selectedDimension] || [];
+            const allValueSelects = document.querySelectorAll('.dimension-value-select');
+
+            allValueSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">-- Select Value --</option>';
+
+                values.forEach(val => {
+                    const option = document.createElement('option');
+                    option.value = val.code;
+                    option.textContent = `${val.code} - ${val.name}`;
+                    select.appendChild(option);
+                });
+
+                // Restore previous selection if exists
+                if (currentValue && values.find(v => v.code === currentValue)) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        // Add new split line
+        function addLine() {
+            const container = document.getElementById('splitLinesContainer');
+            const lineCount = container.querySelectorAll('.split-line-row').length + 1;
+
+            const newLine = document.createElement('div');
+            newLine.className = 'split-line-row';
+            newLine.innerHTML = `
+                <div class="line-number">${lineCount}</div>
+                <select class="form-select dimension-value-select" required>
+                    <option value="">-- Select Value --</option>
+                </select>
+                <input type="number" class="form-control percentage-input"
+                       placeholder="%" min="0" max="100" step="0.01" required
+                       onchange="calculateTotal()">
+                <button type="button" class="btn-remove-line" onclick="removeLine(this)">×</button>
+            `;
+
+            container.appendChild(newLine);
+            loadDimensionValues(); // Populate new dropdown
+            updateLineNumbers();
+        }
+
+        // Remove split line
+        function removeLine(button) {
+            const container = document.getElementById('splitLinesContainer');
+            const lineCount = container.querySelectorAll('.split-line-row').length;
+
+            if (lineCount <= 2) {
+                showToast('Cannot remove line. Minimum 2 lines required.', 'warning');
+                return;
+            }
+
+            button.closest('.split-line-row').remove();
+            updateLineNumbers();
+            calculateTotal();
+        }
+
+        // Update line numbers
+        function updateLineNumbers() {
+            const container = document.getElementById('splitLinesContainer');
+            const lines = container.querySelectorAll('.split-line-row');
+
+            lines.forEach((line, index) => {
+                line.querySelector('.line-number').textContent = index + 1;
+
+                // Disable remove button for first two lines
+                const removeBtn = line.querySelector('.btn-remove-line');
+                if (index < 2) {
+                    removeBtn.disabled = true;
+                } else {
+                    removeBtn.disabled = false;
+                }
+            });
+        }
+
+        // Calculate total percentage
+        function calculateTotal() {
+            const percentageInputs = document.querySelectorAll('.percentage-input');
+            let total = 0;
+
+            percentageInputs.forEach(input => {
+                const value = parseFloat(input.value) || 0;
+                total += value;
+            });
+
+            const totalDisplay = document.getElementById('totalPercentage');
+            const totalValue = document.getElementById('totalValue');
+
+            totalValue.textContent = total.toFixed(2);
+
+            // Update styling based on validity
+            totalDisplay.classList.remove('valid', 'invalid');
+            if (total === 100) {
+                totalDisplay.classList.add('valid');
+            } else if (total > 0) {
+                totalDisplay.classList.add('invalid');
+            }
+        }
+
+        // Open create modal
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Create Split Template';
+            document.getElementById('templateForm').reset();
+            document.getElementById('templateCode').disabled = false;
+
+            // Reset split lines to 2
+            const container = document.getElementById('splitLinesContainer');
+            container.innerHTML = `
+                <div class="split-line-row">
+                    <div class="line-number">1</div>
+                    <select class="form-select dimension-value-select" required>
+                        <option value="">-- Select Value --</option>
+                    </select>
+                    <input type="number" class="form-control percentage-input"
+                           placeholder="%" min="0" max="100" step="0.01" required
+                           onchange="calculateTotal()">
+                    <button type="button" class="btn-remove-line" onclick="removeLine(this)" disabled>×</button>
+                </div>
+                <div class="split-line-row">
+                    <div class="line-number">2</div>
+                    <select class="form-select dimension-value-select" required>
+                        <option value="">-- Select Value --</option>
+                    </select>
+                    <input type="number" class="form-control percentage-input"
+                           placeholder="%" min="0" max="100" step="0.01" required
+                           onchange="calculateTotal()">
+                    <button type="button" class="btn-remove-line" onclick="removeLine(this)">×</button>
+                </div>
+            `;
+
+            calculateTotal();
+        }
+
+        // Edit template
+        function editTemplate(id) {
+            document.getElementById('modalTitle').textContent = 'Edit Split Template';
+
+            // Mock data for editing
+            if (id === 1) {
+                document.getElementById('templateCode').value = 'CC_EQUAL';
+                document.getElementById('templateCode').disabled = true;
+                document.getElementById('templateName').value = 'Equal Split (50%-50%)';
+                document.getElementById('dimensionSelect').value = 'cost_center';
+                loadDimensionValues();
+
+                // Set line values
+                setTimeout(() => {
+                    const valueSelects = document.querySelectorAll('.dimension-value-select');
+                    const percentageInputs = document.querySelectorAll('.percentage-input');
+
+                    valueSelects[0].value = 'SALES';
+                    percentageInputs[0].value = 50;
+
+                    valueSelects[1].value = 'MARKETING';
+                    percentageInputs[1].value = 50;
+
+                    calculateTotal();
+                }, 100);
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+            modal.show();
+        }
+
+        // Save template
+        function saveTemplate() {
+            const form = document.getElementById('templateForm');
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Check total percentage
+            const totalValue = parseFloat(document.getElementById('totalValue').textContent);
+            if (totalValue !== 100) {
+                showToast('Total percentage must equal 100%', 'danger');
+                return;
+            }
+
+            // Validate all lines have values selected
+            const valueSelects = document.querySelectorAll('.dimension-value-select');
+            const percentageInputs = document.querySelectorAll('.percentage-input');
+
+            let allValid = true;
+            valueSelects.forEach((select, index) => {
+                if (!select.value || !percentageInputs[index].value) {
+                    allValid = false;
+                }
+            });
+
+            if (!allValid) {
+                showToast('Please fill in all split lines', 'danger');
+                return;
+            }
+
+            // Success
+            showToast('Template saved successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('templateModal')).hide();
+        }
+
+        // Deactivate template
+        function deactivateTemplate(id) {
+            if (confirm('Are you sure you want to deactivate this template?')) {
+                showToast('Template deactivated successfully', 'success');
+                // Update UI - change badge and button
+            }
+        }
+
+        // Activate template
+        function activateTemplate(id) {
+            showToast('Template activated successfully', 'success');
+            // Update UI - change badge and button
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+
+            const bgClass = type === 'success' ? 'bg-success' :
+                           type === 'danger' ? 'bg-danger' :
+                           type === 'warning' ? 'bg-warning' : 'bg-info';
+
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white ${bgClass} border-0`;
+            toast.id = toastId;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+            bsToast.show();
+
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#templateTableBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Auto-uppercase for template code
+        document.getElementById('templateCode').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase().replace(/\s/g, '_');
+        });
+
+        // Toggle sidebar for mobile
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            if (sidebar) {
+                sidebar.classList.toggle('show-mobile');
+            }
+            overlay.classList.toggle('show');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLineNumbers();
+            calculateTotal();
+        });
+    </script>
+</body>
+</html>

@@ -169,7 +169,7 @@ function renderSidebar() {
                         <li><a href="${basePath}Cashin-out/2_ThietKe/html-prototypes/1_transaction-list.html" class="sidebar-link" data-page="transaction-list">Transaction List</a></li>
                         <li><a href="${basePath}Cashin-out/2_ThietKe/html-prototypes/2_create-cashin.html" class="sidebar-link" data-page="create-cashin">Cash In</a></li>
                         <li><a href="${basePath}Cashin-out/2_ThietKe/html-prototypes/3_create-cashout.html" class="sidebar-link" data-page="create-cashout">Cash Out</a></li>
-                        <li><a href="#" class="sidebar-link" data-page="manual-journal">Manual Journal Entry</a></li>
+                        <li><a href="${basePath}Accounting/2_ThietKe/html-prototypes/1_manual-journal-entry.html" class="sidebar-link" data-page="manual-journal">Manual Journal Entry</a></li>
                         <li><a href="#" class="sidebar-link" data-page="initial-balance">Initial Balance</a></li>
                     </ul>
                 </li>

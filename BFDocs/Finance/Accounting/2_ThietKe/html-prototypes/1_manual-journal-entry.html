@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Journal Entry - Core Accounting</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Top Header */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-buttons button {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save-draft {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-save-draft:hover {
+            background-color: #218838;
+        }
+
+        .btn-post {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .btn-post:hover {
+            background-color: #0b7dda;
+        }
+
+        .btn-close {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-close:hover {
+            background-color: #c82333;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            margin-top: 65px;
+            padding: 30px;
+            min-height: calc(100vh - 65px);
+        }
+
+        /* Form Container */
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        .form-heading {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        /* Form Fields */
+        .form-label {
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            height: 36px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            outline: none;
+        }
+
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+
+        .status-draft {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-posted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        /* Journal Lines Table */
+        .journal-lines-section {
+            margin-top: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            margin-bottom: 15px;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        th.col-line-no {
+            width: 50px;
+        }
+
+        th.col-account {
+            width: 200px;
+        }
+
+        th.col-description {
+            min-width: 150px;
+        }
+
+        th.col-debit, th.col-credit {
+            width: 120px;
+            text-align: right;
+        }
+
+        th.col-dimensions {
+            min-width: 200px;
+        }
+
+        th.col-actions {
+            width: 150px;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 13px;
+            vertical-align: top;
+        }
+
+        td.text-end {
+            text-align: right;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Amount Inputs */
+        input.amount-input {
+            width: 100%;
+            text-align: right;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        input.amount-input:disabled {
+            background-color: #f8f9fa;
+        }
+
+        /* Dimension Tags */
+        .dimension-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .dimension-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 11px;
+            background-color: #e3f2fd;
+            color: #1976d2;
+            border-radius: 3px;
+            border: 1px solid #90caf9;
+        }
+
+        .dimension-tag strong {
+            margin-right: 4px;
+        }
+
+        .dimension-split-tag {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+            border: 1px solid #ce93d8;
+        }
+
+        /* Action Buttons in Table */
+        .btn-action {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid;
+            transition: all 0.2s;
+        }
+
+        .btn-split {
+            background-color: #fff;
+            color: #7b1fa2;
+            border-color: #7b1fa2;
+        }
+
+        .btn-split:hover {
+            background-color: #f3e5f5;
+        }
+
+        .btn-delete-line {
+            background-color: #fff;
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-delete-line:hover {
+            background-color: #f8d7da;
+        }
+
+        /* Add Line Button */
+        .add-line-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .add-line-btn:hover {
+            background-color: #0b7dda;
+        }
+
+        /* Totals Section */
+        .totals-section {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 0.375rem;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .totals-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .total-item label {
+            font-size: 13px;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .total-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .total-value.balanced {
+            color: #28a745;
+        }
+
+        .total-value.unbalanced {
+            color: #dc3545;
+        }
+
+        /* Validation Alert */
+        .validation-alert {
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .validation-alert.alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .validation-alert.alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        /* Modals */
+        .modal-header {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Account Selection Modal */
+        .account-search {
+            margin-bottom: 20px;
+        }
+
+        .account-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .account-item {
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .account-item:last-child {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .account-item:hover {
+            background-color: #e3f2fd;
+        }
+
+        .account-code {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-right: 10px;
+        }
+
+        .account-name {
+            color: #666;
+        }
+
+        /* Dimension Split Modal */
+        .split-section {
+            margin-bottom: 25px;
+        }
+
+        .split-lines-container {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+
+        .split-line {
+            display: grid;
+            grid-template-columns: 1fr 150px 80px 40px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+
+        .split-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .percentage-input {
+            text-align: right;
+        }
+
+        .btn-remove-split {
+            padding: 4px 8px;
+            font-size: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .btn-add-split-line {
+            padding: 6px 12px;
+            font-size: 13px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .split-total {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .split-total.valid {
+            color: #28a745;
+        }
+
+        .split-total.invalid {
+            color: #dc3545;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .totals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            th, td {
+                font-size: 12px;
+                padding: 6px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <div class="top-header">
+        <div class="header-title">📒 Manual Journal Entry</div>
+        <div class="header-buttons">
+            <button class="btn-save-draft" onclick="saveDraft()">💾 Save Draft</button>
+            <button class="btn-post" onclick="postJournal()" id="postBtn">✅ Post</button>
+            <button class="btn-close" onclick="closeForm()">❌ Close</button>
+        </div>
+    </div>
+
+    <!-- Shared Sidebar Container -->
+    <div id="sidebar-container"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="form-container">
+            <h2 class="form-heading">
+                📒 Manual Journal Entry
+                <span class="status-badge status-draft" id="statusBadge">DRAFT</span>
+            </h2>
+
+            <!-- Journal Header Section -->
+            <section>
+                <h3 class="section-title">Journal Header</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="journalNumber" class="form-label">
+                            Journal Number <span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="journalNumber" value="JE-2024-0001" disabled>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="entryDate" class="form-label">
+                            Entry Date <span class="required">*</span>
+                        </label>
+                        <input type="date" class="form-control" id="entryDate" value="2024-10-31" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="postingDate" class="form-label">
+                            Posting Date
+                        </label>
+                        <input type="date" class="form-control" id="postingDate" value="2024-10-31">
+                        <small class="text-muted">Defaults to Entry Date if empty</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="period" class="form-label">
+                            Period <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="period" required>
+                            <option value="">-- Select Period --</option>
+                            <option value="2024-10" selected>October 2024 (2024-10)</option>
+                            <option value="2024-11">November 2024 (2024-11)</option>
+                            <option value="2024-12">December 2024 (2024-12)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <label for="description" class="form-label">
+                            Description <span class="required">*</span>
+                        </label>
+                        <textarea class="form-control" id="description" rows="3" required placeholder="Enter journal entry description...">Monthly depreciation - October 2024</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Journal Lines Section -->
+            <section class="journal-lines-section">
+                <h3 class="section-title">Journal Lines</h3>
+                <button class="add-line-btn" onclick="addJournalLine()">➕ Add Line</button>
+
+                <div class="table-container">
+                    <table id="journalLinesTable">
+                        <thead>
+                            <tr>
+                                <th class="col-line-no">#</th>
+                                <th class="col-account">Account</th>
+                                <th class="col-description">Description</th>
+                                <th class="col-debit text-end">Debit</th>
+                                <th class="col-credit text-end">Credit</th>
+                                <th class="col-dimensions">Dimensions</th>
+                                <th class="col-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journalLinesBody">
+                            <!-- Lines will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totals Section -->
+                <div class="totals-section">
+                    <h5 class="section-title">Totals & Balance</h5>
+                    <div class="totals-grid">
+                        <div class="total-item">
+                            <label>Total Debit:</label>
+                            <div class="total-value" id="totalDebit">0</div>
+                        </div>
+                        <div class="total-item">
+                            <label>Total Credit:</label>
+                            <div class="total-value" id="totalCredit">0</div>
+                        </div>
+                        <div class="total-item">
+                            <label>Difference:</label>
+                            <div class="total-value balanced" id="difference">0</div>
+                        </div>
+                    </div>
+                    <div id="validationAlert" class="validation-alert alert-success" style="display: none;">
+                        ✅ Journal is balanced (Debit = Credit)
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Account Selection Modal -->
+    <div class="modal fade" id="accountModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Account</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="account-search">
+                        <input type="text" class="form-control" id="accountSearch" placeholder="Search by account code or name...">
+                    </div>
+                    <ul class="account-list" id="accountList">
+                        <!-- Accounts populated dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dimension Split Modal -->
+    <div class="modal fade" id="dimensionSplitModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Split Dimension</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="split-section">
+                        <label class="form-label">Select Dimension <span class="required">*</span></label>
+                        <select class="form-select" id="splitDimension">
+                            <option value="">-- Select Dimension --</option>
+                        </select>
+                    </div>
+
+                    <div class="split-section">
+                        <label class="form-label">Use Split Template (Optional)</label>
+                        <select class="form-select" id="splitTemplate">
+                            <option value="">-- Manual Split --</option>
+                        </select>
+                    </div>
+
+                    <div class="split-section">
+                        <label class="form-label">Split Lines <span class="required">*</span></label>
+                        <div class="split-lines-container" id="splitLinesContainer">
+                            <!-- Split lines populated dynamically -->
+                        </div>
+                        <button class="btn-add-split-line" onclick="addSplitLine()">➕ Add Split Line</button>
+                        <div class="split-total invalid" id="splitTotal">
+                            Total: 0.00%
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="applySplit()">Apply Split</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Load Shared Sidebar -->
+    <script src="../../../sidebar.js"></script>
+    <script>
+        window.SIDEBAR_BASE_PATH = '../../../';
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderSidebar);
+        } else {
+            renderSidebar();
+        }
+    </script>
+
+    <script>
+        // ============================================
+        // MOCK DATA
+        // ============================================
+
+        // Mock Chart of Accounts
+        const accountsData = [
+            { code: '1121', name: 'Cash on Hand', type: 'Asset', dimensions: ['cost_center'] },
+            { code: '1122', name: 'Cash in Bank - VCB', type: 'Asset', dimensions: ['cost_center'] },
+            { code: '1131', name: 'Accounts Receivable', type: 'Asset', dimensions: ['cost_center', 'project'] },
+            { code: '2111', name: 'Accounts Payable', type: 'Liability', dimensions: ['cost_center', 'project'] },
+            { code: '6271', name: 'Depreciation Expense', type: 'Expense', dimensions: ['cost_center', 'asset_type'] },
+            { code: '2141', name: 'Accumulated Depreciation', type: 'Asset', dimensions: ['asset_type'] },
+            { code: '5111', name: 'Product Sales Revenue', type: 'Revenue', dimensions: ['cost_center', 'project', 'product_line'] },
+            { code: '6421', name: 'Salaries Expense', type: 'Expense', dimensions: ['cost_center', 'department'] },
+        ];
+
+        // Mock Dimensions
+        const dimensionsData = {
+            cost_center: {
+                id: 'dim-cc',
+                name: 'Cost Center',
+                values: [
+                    { code: 'SALES_NORTH', name: 'Sales - North' },
+                    { code: 'SALES_SOUTH', name: 'Sales - South' },
+                    { code: 'MARKETING', name: 'Marketing' },
+                    { code: 'PRODUCTION', name: 'Production' },
+                ]
+            },
+            project: {
+                id: 'dim-proj',
+                name: 'Project',
+                values: [
+                    { code: 'PROJ_2024_001', name: 'Project Alpha' },
+                    { code: 'PROJ_2024_002', name: 'Project Beta' },
+                    { code: 'PROJ_2024_003', name: 'Project Gamma' },
+                ]
+            },
+            asset_type: {
+                id: 'dim-asset',
+                name: 'Asset Type',
+                values: [
+                    { code: 'BUILDING', name: 'Buildings' },
+                    { code: 'EQUIPMENT', name: 'Equipment' },
+                    { code: 'VEHICLE', name: 'Vehicles' },
+                    { code: 'COMPUTER', name: 'Computers' },
+                ]
+            },
+            product_line: {
+                id: 'dim-prod',
+                name: 'Product Line',
+                values: [
+                    { code: 'PROD_A', name: 'Product Line A' },
+                    { code: 'PROD_B', name: 'Product Line B' },
+                ]
+            },
+            department: {
+                id: 'dim-dept',
+                name: 'Department',
+                values: [
+                    { code: 'DEPT_HR', name: 'Human Resources' },
+                    { code: 'DEPT_FINANCE', name: 'Finance' },
+                    { code: 'DEPT_IT', name: 'IT' },
+                ]
+            }
+        };
+
+        // Mock Split Templates
+        const splitTemplatesData = {
+            cost_center: [
+                {
+                    code: 'TMPL_CC_SALES',
+                    name: 'Sales Split (60-40)',
+                    lines: [
+                        { value: 'SALES_NORTH', percentage: 60 },
+                        { value: 'SALES_SOUTH', percentage: 40 }
+                    ]
+                },
+                {
+                    code: 'TMPL_CC_EQUAL',
+                    name: 'Equal Split All Centers',
+                    lines: [
+                        { value: 'SALES_NORTH', percentage: 25 },
+                        { value: 'SALES_SOUTH', percentage: 25 },
+                        { value: 'MARKETING', percentage: 25 },
+                        { value: 'PRODUCTION', percentage: 25 }
+                    ]
+                }
+            ],
+            project: [
+                {
+                    code: 'TMPL_PROJ_MAJOR',
+                    name: 'Major Projects (50-30-20)',
+                    lines: [
+                        { value: 'PROJ_2024_001', percentage: 50 },
+                        { value: 'PROJ_2024_002', percentage: 30 },
+                        { value: 'PROJ_2024_003', percentage: 20 }
+                    ]
+                }
+            ]
+        };
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+
+        let journalLines = [];
+        let lineCounter = 1;
+        let currentEditingLineId = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add 2 sample lines
+            addSampleLines();
+            updateTotals();
+            renderAccountList();
+        });
+
+        function addSampleLines() {
+            // Line 1: Debit - Depreciation Expense with dimensions
+            const line1 = {
+                id: lineCounter++,
+                account: accountsData.find(a => a.code === '6271'),
+                description: 'Monthly depreciation - Buildings',
+                debit: 5000000,
+                credit: null,
+                dimensions: {
+                    cost_center: 'PRODUCTION',
+                    asset_type: 'BUILDING'
+                }
+            };
+            journalLines.push(line1);
+
+            // Line 2: Credit - Accumulated Depreciation with dimension
+            const line2 = {
+                id: lineCounter++,
+                account: accountsData.find(a => a.code === '2141'),
+                description: 'Monthly depreciation - Buildings',
+                debit: null,
+                credit: 5000000,
+                dimensions: {
+                    asset_type: 'BUILDING'
+                }
+            };
+            journalLines.push(line2);
+
+            renderJournalLines();
+        }
+
+        // ============================================
+        // JOURNAL LINES MANAGEMENT
+        // ============================================
+
+        function addJournalLine() {
+            const line = {
+                id: lineCounter++,
+                account: null,
+                description: '',
+                debit: null,
+                credit: null,
+                dimensions: {}
+            };
+            journalLines.push(line);
+            renderJournalLines();
+        }
+
+        function deleteJournalLine(lineId) {
+            if (confirm('Delete this line?')) {
+                journalLines = journalLines.filter(l => l.id !== lineId);
+                renderJournalLines();
+                updateTotals();
+            }
+        }
+
+        function renderJournalLines() {
+            const tbody = document.getElementById('journalLinesBody');
+            tbody.innerHTML = '';
+
+            journalLines.forEach((line, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        ${line.account
+                            ? `<strong>${line.account.code}</strong><br><small>${line.account.name}</small>`
+                            : `<button class="btn btn-sm btn-outline-primary" onclick="openAccountModal(${line.id})">Select Account</button>`
+                        }
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" value="${line.description || ''}"
+                               onchange="updateLineDescription(${line.id}, this.value)"
+                               placeholder="Enter description...">
+                    </td>
+                    <td class="text-end">
+                        <input type="text" class="form-control amount-input"
+                               value="${line.debit ? formatNumber(line.debit) : ''}"
+                               ${line.credit ? 'disabled' : ''}
+                               onchange="updateLineAmount(${line.id}, 'debit', this.value)">
+                    </td>
+                    <td class="text-end">
+                        <input type="text" class="form-control amount-input"
+                               value="${line.credit ? formatNumber(line.credit) : ''}"
+                               ${line.debit ? 'disabled' : ''}
+                               onchange="updateLineAmount(${line.id}, 'credit', this.value)">
+                    </td>
+                    <td>
+                        ${renderDimensionTags(line)}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            ${line.account && line.account.dimensions.length > 0
+                                ? `<button class="btn-action btn-split" onclick="openDimensionSplitModal(${line.id})">🔀 Split</button>`
+                                : ''
+                            }
+                            <button class="btn-action btn-delete-line" onclick="deleteJournalLine(${line.id})">🗑️ Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderDimensionTags(line) {
+            if (!line.account || !line.dimensions || Object.keys(line.dimensions).length === 0) {
+                return '<small class="text-muted">No dimensions</small>';
+            }
+
+            let html = '<div class="dimension-tags">';
+            for (const [dimKey, dimValue] of Object.entries(line.dimensions)) {
+                const dimension = dimensionsData[dimKey];
+                if (dimension) {
+                    // Check if this is a split dimension (array of values with percentages)
+                    if (Array.isArray(dimValue)) {
+                        html += `<span class="dimension-tag dimension-split-tag"><strong>${dimension.name}:</strong> Split (${dimValue.length} values)</span>`;
+                    } else {
+                        const value = dimension.values.find(v => v.code === dimValue);
+                        html += `<span class="dimension-tag"><strong>${dimension.name}:</strong> ${value ? value.name : dimValue}</span>`;
+                    }
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function updateLineDescription(lineId, description) {
+            const line = journalLines.find(l => l.id === lineId);
+            if (line) {
+                line.description = description;
+            }
+        }
+
+        function updateLineAmount(lineId, type, value) {
+            const line = journalLines.find(l => l.id === lineId);
+            if (!line) return;
+
+            const amount = parseAmount(value);
+
+            if (type === 'debit') {
+                line.debit = amount > 0 ? amount : null;
+                line.credit = null;
+            } else {
+                line.credit = amount > 0 ? amount : null;
+                line.debit = null;
+            }
+
+            renderJournalLines();
+            updateTotals();
+        }
+
+        // ============================================
+        // ACCOUNT SELECTION
+        // ============================================
+
+        function openAccountModal(lineId) {
+            currentEditingLineId = lineId;
+            const modal = new bootstrap.Modal(document.getElementById('accountModal'));
+            modal.show();
+        }
+
+        function renderAccountList(searchTerm = '') {
+            const accountList = document.getElementById('accountList');
+            const filtered = searchTerm
+                ? accountsData.filter(a =>
+                    a.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    a.name.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+                : accountsData;
+
+            accountList.innerHTML = filtered.map(account => `
+                <li class="account-item" onclick="selectAccount('${account.code}')">
+                    <span class="account-code">${account.code}</span>
+                    <span class="account-name">${account.name}</span>
+                    <small class="text-muted"> (${account.type})</small>
+                </li>
+            `).join('');
+        }
+
+        function selectAccount(accountCode) {
+            const line = journalLines.find(l => l.id === currentEditingLineId);
+            const account = accountsData.find(a => a.code === accountCode);
+
+            if (line && account) {
+                line.account = account;
+                line.dimensions = {}; // Reset dimensions when account changes
+                renderJournalLines();
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
+        }
+
+        // Account search
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('accountSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    renderAccountList(this.value);
+                });
+            }
+        });
+
+        // ============================================
+        // DIMENSION SPLIT
+        // ============================================
+
+        let currentSplitDimension = null;
+        let splitLines = [];
+
+        function openDimensionSplitModal(lineId) {
+            currentEditingLineId = lineId;
+            const line = journalLines.find(l => l.id === lineId);
+
+            if (!line || !line.account) {
+                alert('Please select an account first');
+                return;
+            }
+
+            // Populate dimension dropdown
+            const dimSelect = document.getElementById('splitDimension');
+            dimSelect.innerHTML = '<option value="">-- Select Dimension --</option>';
+            line.account.dimensions.forEach(dimKey => {
+                const dimension = dimensionsData[dimKey];
+                if (dimension) {
+                    dimSelect.innerHTML += `<option value="${dimKey}">${dimension.name}</option>`;
+                }
+            });
+
+            // Clear split lines
+            splitLines = [];
+            currentSplitDimension = null;
+            document.getElementById('splitTemplate').innerHTML = '<option value="">-- Manual Split --</option>';
+            document.getElementById('splitLinesContainer').innerHTML = '';
+            updateSplitTotal();
+
+            const modal = new bootstrap.Modal(document.getElementById('dimensionSplitModal'));
+            modal.show();
+        }
+
+        // Dimension selection change
+        document.addEventListener('DOMContentLoaded', function() {
+            const dimSelect = document.getElementById('splitDimension');
+            if (dimSelect) {
+                dimSelect.addEventListener('change', function() {
+                    currentSplitDimension = this.value;
+                    populateSplitTemplates(this.value);
+                    splitLines = [];
+                    renderSplitLines();
+                });
+            }
+
+            const templateSelect = document.getElementById('splitTemplate');
+            if (templateSelect) {
+                templateSelect.addEventListener('change', function() {
+                    if (this.value) {
+                        loadSplitTemplate(this.value);
+                    }
+                });
+            }
+        });
+
+        function populateSplitTemplates(dimensionKey) {
+            const templateSelect = document.getElementById('splitTemplate');
+            templateSelect.innerHTML = '<option value="">-- Manual Split --</option>';
+
+            if (splitTemplatesData[dimensionKey]) {
+                splitTemplatesData[dimensionKey].forEach(template => {
+                    templateSelect.innerHTML += `<option value="${template.code}">${template.name}</option>`;
+                });
+            }
+        }
+
+        function loadSplitTemplate(templateCode) {
+            if (!currentSplitDimension) return;
+
+            const templates = splitTemplatesData[currentSplitDimension];
+            const template = templates?.find(t => t.code === templateCode);
+
+            if (template) {
+                splitLines = template.lines.map(line => ({
+                    dimensionValue: line.value,
+                    percentage: line.percentage
+                }));
+                renderSplitLines();
+                updateSplitTotal();
+            }
+        }
+
+        function addSplitLine() {
+            if (!currentSplitDimension) {
+                alert('Please select a dimension first');
+                return;
+            }
+
+            splitLines.push({
+                dimensionValue: '',
+                percentage: 0
+            });
+            renderSplitLines();
+        }
+
+        function removeSplitLine(index) {
+            splitLines.splice(index, 1);
+            renderSplitLines();
+            updateSplitTotal();
+        }
+
+        function renderSplitLines() {
+            const container = document.getElementById('splitLinesContainer');
+            if (!currentSplitDimension) {
+                container.innerHTML = '<p class="text-muted">Please select a dimension</p>';
+                return;
+            }
+
+            const dimension = dimensionsData[currentSplitDimension];
+            container.innerHTML = splitLines.map((line, index) => `
+                <div class="split-line">
+                    <select class="form-select" onchange="updateSplitLineValue(${index}, this.value)">
+                        <option value="">-- Select ${dimension.name} --</option>
+                        ${dimension.values.map(v => `
+                            <option value="${v.code}" ${line.dimensionValue === v.code ? 'selected' : ''}>
+                                ${v.name} (${v.code})
+                            </option>
+                        `).join('')}
+                    </select>
+                    <input type="number" class="form-control percentage-input"
+                           value="${line.percentage}"
+                           min="0" max="100" step="0.01"
+                           onchange="updateSplitLinePercentage(${index}, this.value)">
+                    <span>%</span>
+                    <button class="btn-remove-split" onclick="removeSplitLine(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function updateSplitLineValue(index, value) {
+            splitLines[index].dimensionValue = value;
+        }
+
+        function updateSplitLinePercentage(index, value) {
+            splitLines[index].percentage = parseFloat(value) || 0;
+            updateSplitTotal();
+        }
+
+        function updateSplitTotal() {
+            const total = splitLines.reduce((sum, line) => sum + line.percentage, 0);
+            const totalEl = document.getElementById('splitTotal');
+            totalEl.textContent = `Total: ${total.toFixed(2)}%`;
+            totalEl.className = `split-total ${total === 100 ? 'valid' : 'invalid'}`;
+        }
+
+        function applySplit() {
+            // Validate
+            const total = splitLines.reduce((sum, line) => sum + line.percentage, 0);
+            if (total !== 100) {
+                alert('Split percentages must total 100%');
+                return;
+            }
+
+            if (splitLines.some(line => !line.dimensionValue)) {
+                alert('Please select a dimension value for all split lines');
+                return;
+            }
+
+            // Apply split to line
+            const line = journalLines.find(l => l.id === currentEditingLineId);
+            if (line && currentSplitDimension) {
+                line.dimensions[currentSplitDimension] = splitLines.map(sl => ({
+                    value: sl.dimensionValue,
+                    percentage: sl.percentage
+                }));
+                renderJournalLines();
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('dimensionSplitModal')).hide();
+        }
+
+        // ============================================
+        // TOTALS & VALIDATION
+        // ============================================
+
+        function updateTotals() {
+            const totalDebit = journalLines.reduce((sum, line) => sum + (line.debit || 0), 0);
+            const totalCredit = journalLines.reduce((sum, line) => sum + (line.credit || 0), 0);
+            const difference = Math.abs(totalDebit - totalCredit);
+
+            document.getElementById('totalDebit').textContent = formatNumber(totalDebit);
+            document.getElementById('totalCredit').textContent = formatNumber(totalCredit);
+
+            const diffEl = document.getElementById('difference');
+            diffEl.textContent = formatNumber(difference);
+            diffEl.className = difference === 0 ? 'total-value balanced' : 'total-value unbalanced';
+
+            // Validation alert
+            const alertEl = document.getElementById('validationAlert');
+            if (difference === 0 && totalDebit > 0) {
+                alertEl.className = 'validation-alert alert-success';
+                alertEl.textContent = '✅ Journal is balanced (Debit = Credit)';
+                alertEl.style.display = 'block';
+            } else if (difference > 0) {
+                alertEl.className = 'validation-alert alert-danger';
+                alertEl.textContent = '⚠️ Journal is not balanced. Difference: ' + formatNumber(difference);
+                alertEl.style.display = 'block';
+            } else {
+                alertEl.style.display = 'none';
+            }
+        }
+
+        // ============================================
+        // FORM ACTIONS
+        // ============================================
+
+        function saveDraft() {
+            if (!validateJournal(false)) return;
+
+            console.log('Saving draft...', {
+                journalNumber: document.getElementById('journalNumber').value,
+                entryDate: document.getElementById('entryDate').value,
+                postingDate: document.getElementById('postingDate').value,
+                period: document.getElementById('period').value,
+                description: document.getElementById('description').value,
+                lines: journalLines,
+                status: 'DRAFT'
+            });
+
+            alert('✅ Journal saved as DRAFT');
+        }
+
+        function postJournal() {
+            if (!validateJournal(true)) return;
+
+            if (!confirm('Post this journal? This action cannot be undone.')) return;
+
+            console.log('Posting journal...', {
+                journalNumber: document.getElementById('journalNumber').value,
+                entryDate: document.getElementById('entryDate').value,
+                postingDate: document.getElementById('postingDate').value,
+                period: document.getElementById('period').value,
+                description: document.getElementById('description').value,
+                lines: journalLines,
+                status: 'POSTED'
+            });
+
+            // Update UI
+            document.getElementById('statusBadge').textContent = 'POSTED';
+            document.getElementById('statusBadge').className = 'status-badge status-posted';
+            document.getElementById('postBtn').disabled = true;
+
+            alert('✅ Journal posted successfully!');
+        }
+
+        function validateJournal(strictMode) {
+            // Check required fields
+            if (!document.getElementById('entryDate').value) {
+                alert('Entry Date is required');
+                return false;
+            }
+
+            if (!document.getElementById('period').value) {
+                alert('Period is required');
+                return false;
+            }
+
+            if (!document.getElementById('description').value.trim()) {
+                alert('Description is required');
+                return false;
+            }
+
+            // Check journal lines
+            if (journalLines.length === 0) {
+                alert('At least one journal line is required');
+                return false;
+            }
+
+            // Check all lines have accounts
+            if (journalLines.some(l => !l.account)) {
+                alert('All lines must have an account selected');
+                return false;
+            }
+
+            // Check all lines have either debit or credit
+            if (journalLines.some(l => !l.debit && !l.credit)) {
+                alert('All lines must have either debit or credit amount');
+                return false;
+            }
+
+            // Check balance (strict mode for posting)
+            const totalDebit = journalLines.reduce((sum, line) => sum + (line.debit || 0), 0);
+            const totalCredit = journalLines.reduce((sum, line) => sum + (line.credit || 0), 0);
+
+            if (strictMode && totalDebit !== totalCredit) {
+                alert('Journal must be balanced (Debit = Credit) before posting');
+                return false;
+            }
+
+            return true;
+        }
+
+        function closeForm() {
+            if (confirm('Close this form? Unsaved changes will be lost.')) {
+                window.history.back();
+            }
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function formatNumber(value) {
+            if (!value && value !== 0) return '';
+            return new Intl.NumberFormat('vi-VN').format(value);
+        }
+
+        function parseAmount(value) {
+            if (!value) return 0;
+            const cleaned = value.toString().replace(/,/g, '');
+            return parseInt(cleaned) || 0;
+        }
+    </script>
+</body>
+</html>

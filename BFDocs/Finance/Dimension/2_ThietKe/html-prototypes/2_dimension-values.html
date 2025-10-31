@@ -476,60 +476,8 @@
     </div>
 </header>
 
-<!-- Left Sidebar -->
-<nav class="sidebar" id="sidebar">
-    <ul class="sidebar-menu">
-        <li>
-            <a href="#" class="sidebar-link">📊 Dashboard</a>
-        </li>
-        <li>
-            <div class="submenu-toggle open" onclick="toggleSubmenu(this)">
-                <span>⚙️ Master Data</span>
-                <span class="arrow">▶</span>
-            </div>
-            <ul class="submenu show">
-                <li><a href="#" class="sidebar-link">Chart of Accounts</a></li>
-                <li><a href="1_dimension-definition.html" class="sidebar-link">Dimension Definition</a></li>
-                <li><a href="2_dimension-values.html" class="sidebar-link active">Dimension Values</a></li>
-                <li><a href="3_account-dimension-mapping.html" class="sidebar-link">Account-Dimension Mapping</a></li>
-                <li><a href="#" class="sidebar-link">Fiscal Period Management</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="submenu-toggle" onclick="toggleSubmenu(this)">
-                <span>📝 Transactions</span>
-                <span class="arrow">▶</span>
-            </div>
-            <ul class="submenu">
-                <li><a href="../../../Cashin-out/2_ThietKe/html-prototypes/2_create-cashin.html" class="sidebar-link">Cash In</a></li>
-                <li><a href="../../../Cashin-out/2_ThietKe/html-prototypes/3_create-cashout.html" class="sidebar-link">Cash Out</a></li>
-                <li><a href="#" class="sidebar-link">Manual Journal Entry</a></li>
-                <li><a href="#" class="sidebar-link">Initial Balance</a></li>
-            </ul>
-        </li>
-        <li>
-            <div class="submenu-toggle" onclick="toggleSubmenu(this)">
-                <span>📊 Reports</span>
-                <span class="arrow">▶</span>
-            </div>
-            <ul class="submenu">
-                <li><a href="#" class="sidebar-link">General Ledger</a></li>
-                <li><a href="#" class="sidebar-link">Trial Balance</a></li>
-                <li><a href="#" class="sidebar-link">Financial Statements</a></li>
-                <li><a href="#" class="sidebar-link">Dimension Analysis</a></li>
-            </ul>
-        </li>
-        <li>
-            <a href="#" class="sidebar-link">🔒 Period Closing</a>
-        </li>
-        <li>
-            <a href="#" class="sidebar-link">⚙️ Settings</a>
-        </li>
-        <li>
-            <a href="#" class="sidebar-link">❓ Help & Support</a>
-        </li>
-    </ul>
-</nav>
+<!-- Sidebar Container (Loaded by sidebar.js) -->
+<div id="sidebar-container"></div>
 
 <!-- Main Content -->
 <div class="main-container">
@@ -1211,6 +1159,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+
+<!-- Load Shared Sidebar -->
+<script src="../../../sidebar.js"></script>
+<script>
+    window.SIDEBAR_BASE_PATH = '../../../';
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', renderSidebar);
+    } else {
+        renderSidebar();
+    }
 </script>
 
 </body>
