@@ -1,10 +1,11 @@
 # Core Accounting - Database Design
-## Pure Flexible Dimension Model
+## Pure Flexible Dimension Model with Account-Specific Rules
 
-**Version:** 2.0
-**Date:** 2025-10-30
-**Approach:** Journal Line Mode - Pure Flexible Dimensions + Materialized Views
+**Version:** 2.1
+**Date:** 2025-10-31
+**Approach:** Journal Line Mode - Pure Flexible Dimensions + Materialized Views + Account-Specific Dimension Rules
 **Target:** Enterprise customers với độ trưởng thành cao về quản trị
+**New in v2.1:** Account-dimension rules (whitelist approach) - inspired by Microsoft Dynamics 365
 
 ---
 
@@ -269,7 +270,6 @@ CREATE INDEX idx_journal_lines_account ON journal_lines(account_id);
 **B. Dimension Management:**
 - **Feature**: **"Dimension Definition"** (Module: Finance Setup)
   - Add/Edit/Deactivate dimensions
-  - Set required/optional dimensions
   - Define display order
   - Example: Add "CAMPAIGN" dimension cho marketing tracking
 - **Access**: Finance Manager, System Admin
@@ -283,6 +283,7 @@ CREATE INDEX idx_journal_lines_account ON journal_lines(account_id);
 
 **D. Usage:**
 - Dimensions được assign vào journal lines qua form **"Manual Journal Entry"** hoặc tự động từ source documents
+- **Account-specific rules**: Mỗi account có thể define riêng dimensions nào được phép/bắt buộc (xem section 2.5)
 
 #### Table: `dimensions`
 Master data cho dimensions - mỗi tenant tự define
@@ -293,7 +294,6 @@ CREATE TABLE dimensions (
     tenant_id       UUID NOT NULL,
     dimension_code  VARCHAR(20) NOT NULL,
     dimension_name  VARCHAR(100) NOT NULL,
-    is_required     BOOLEAN NOT NULL DEFAULT FALSE,
     display_order   INTEGER NOT NULL DEFAULT 0,
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -305,32 +305,36 @@ CREATE INDEX idx_dimensions_tenant ON dimensions(tenant_id);
 CREATE INDEX idx_dimensions_code ON dimensions(dimension_code);
 ```
 
+**Note:** Không có global `is_required` field. Required/optional status được define theo từng account trong bảng `account_dimension_rules` (section 2.5).
+
 **Sample data:**
 ```sql
 -- Tenant A (Manufacturing company - Vinamilk style)
-INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, is_required, display_order) VALUES
-('tenant-a', 'COST_CENTER', 'Cost Center', TRUE, 1),
-('tenant-a', 'PRODUCT_LINE', 'Product Line', TRUE, 2),
-('tenant-a', 'FACTORY', 'Factory Location', FALSE, 3),
-('tenant-a', 'SALES_CHANNEL', 'Sales Channel', FALSE, 4),
-('tenant-a', 'CUSTOMER_SEGMENT', 'Customer Segment', FALSE, 5),
-('tenant-a', 'REGION', 'Region', FALSE, 6),
-('tenant-a', 'BRAND', 'Brand', FALSE, 7),
-('tenant-a', 'CAMPAIGN', 'Marketing Campaign', FALSE, 8);
+INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, display_order) VALUES
+('tenant-a', 'COST_CENTER', 'Cost Center', 1),
+('tenant-a', 'PRODUCT_LINE', 'Product Line', 2),
+('tenant-a', 'FACTORY', 'Factory Location', 3),
+('tenant-a', 'SALES_CHANNEL', 'Sales Channel', 4),
+('tenant-a', 'CUSTOMER_SEGMENT', 'Customer Segment', 5),
+('tenant-a', 'REGION', 'Region', 6),
+('tenant-a', 'BRAND', 'Brand', 7),
+('tenant-a', 'CAMPAIGN', 'Marketing Campaign', 8);
 
 -- Tenant B (Consulting company)
-INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, is_required, display_order) VALUES
-('tenant-b', 'PROJECT', 'Project', TRUE, 1),
-('tenant-b', 'DEPARTMENT', 'Department', TRUE, 2),
-('tenant-b', 'CLIENT', 'Client', FALSE, 3),
-('tenant-b', 'SERVICE_LINE', 'Service Line', FALSE, 4);
+INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, display_order) VALUES
+('tenant-b', 'PROJECT', 'Project', 1),
+('tenant-b', 'DEPARTMENT', 'Department', 2),
+('tenant-b', 'CLIENT', 'Client', 3),
+('tenant-b', 'SERVICE_LINE', 'Service Line', 4);
 
 -- Tenant C (Retail chain)
-INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, is_required, display_order) VALUES
-('tenant-c', 'STORE', 'Store Location', TRUE, 1),
-('tenant-c', 'DEPARTMENT', 'Department', FALSE, 2),
-('tenant-c', 'PRODUCT_CATEGORY', 'Product Category', FALSE, 3);
+INSERT INTO dimensions (tenant_id, dimension_code, dimension_name, display_order) VALUES
+('tenant-c', 'STORE', 'Store Location', 1),
+('tenant-c', 'DEPARTMENT', 'Department', 2),
+('tenant-c', 'PRODUCT_CATEGORY', 'Product Category', 3);
 ```
+
+**Note:** Required/optional status của từng dimension sẽ được define trong `account_dimension_rules` theo từng account (section 2.5).
 
 ---
 
@@ -409,6 +413,152 @@ WHERE dimension_id IN (SELECT id FROM dimensions WHERE dimension_code = 'PROJECT
 
 ---
 
+### 2.5 Account-Dimension Rules (Whitelist Approach)
+
+**📌 Architectural Decision:**
+
+**Approach:** Account-specific dimension rules với Whitelist Mechanism
+
+Inspired by **Microsoft Dynamics 365 "Account Structure"** feature - mỗi account có thể specify dimensions nào được phép (required/optional/not-allowed).
+
+**Why this approach?**
+- ✅ **Flexibility**: Expense account "641 - Marketing" requires COST_CENTER + PRODUCT_LINE, nhưng "112 - Bank Account" không cần dimensions
+- ✅ **Data Quality**: Enforce correct dimensions ngay tại data entry point
+- ✅ **Better than competitors**: Combines best practices từ 4 major ERPs (Dynamics 365, Oracle, SAP, NetSuite)
+
+**📌 Data Source & Features:**
+
+**Feature**: **"Account-Dimension Mapping"** (Module: Finance Setup)
+- Define dimensions cho từng account (whitelist)
+- Set required/optional status per account-dimension pair
+- Configure display order của dimensions trong entry form
+- **Business Rule**: Nếu account không có rule cho dimension X → dimension X **không được phép** sử dụng cho account đó
+- **Access**: Finance Manager, System Admin
+
+**UI Example:**
+```
+Account: 641 - Marketing Expense
+─────────────────────────────────────────────────────
+Dimension           Status      Display Order
+─────────────────────────────────────────────────────
+✅ Cost Center      Required    1
+✅ Product Line     Required    2
+✅ Campaign         Optional    3
+✅ Region           Optional    4
+─────────────────────────────────────────────────────
+
+Account: 112 - Bank Account
+─────────────────────────────────────────────────────
+Dimension           Status      Display Order
+─────────────────────────────────────────────────────
+(No dimensions required)
+─────────────────────────────────────────────────────
+```
+
+#### Table: `account_dimension_rules`
+
+**Whitelist Approach:**
+- Có record → Dimension được phép (required hoặc optional)
+- **Không có record** → Dimension **KHÔNG được phép**
+
+```sql
+CREATE TABLE account_dimension_rules (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id           UUID NOT NULL,
+    account_id          UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    dimension_id        UUID NOT NULL REFERENCES dimensions(id) ON DELETE CASCADE,
+
+    -- Whitelist approach
+    is_required         BOOLEAN NOT NULL DEFAULT FALSE,
+    -- TRUE = bắt buộc nhập
+    -- FALSE = optional (được phép nhưng không bắt buộc)
+    -- NO RECORD = NOT ALLOWED (dimension không xuất hiện trong form)
+
+    display_order       INTEGER,
+    created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by          UUID,
+
+    CONSTRAINT uq_account_dimension UNIQUE (account_id, dimension_id)
+);
+
+CREATE INDEX idx_account_dim_rules_account ON account_dimension_rules(account_id);
+CREATE INDEX idx_account_dim_rules_dimension ON account_dimension_rules(dimension_id);
+CREATE INDEX idx_account_dim_rules_tenant ON account_dimension_rules(tenant_id);
+```
+
+**Sample data:**
+```sql
+-- Account 641 (Marketing Expense) - requires Cost Center + Product Line
+INSERT INTO account_dimension_rules (tenant_id, account_id, dimension_id, is_required, display_order)
+SELECT
+    'tenant-vinamilk',
+    (SELECT id FROM accounts WHERE account_code = '641' AND tenant_id = 'tenant-vinamilk'),
+    d.id,
+    CASE d.dimension_code
+        WHEN 'COST_CENTER' THEN TRUE
+        WHEN 'PRODUCT_LINE' THEN TRUE
+        WHEN 'CAMPAIGN' THEN FALSE
+        WHEN 'REGION' THEN FALSE
+    END AS is_required,
+    CASE d.dimension_code
+        WHEN 'COST_CENTER' THEN 1
+        WHEN 'PRODUCT_LINE' THEN 2
+        WHEN 'CAMPAIGN' THEN 3
+        WHEN 'REGION' THEN 4
+    END AS display_order
+FROM dimensions d
+WHERE d.tenant_id = 'tenant-vinamilk'
+  AND d.dimension_code IN ('COST_CENTER', 'PRODUCT_LINE', 'CAMPAIGN', 'REGION');
+
+-- Account 632 (Cost of Goods Sold) - requires Product Line + Factory
+INSERT INTO account_dimension_rules (tenant_id, account_id, dimension_id, is_required, display_order)
+SELECT
+    'tenant-vinamilk',
+    (SELECT id FROM accounts WHERE account_code = '632' AND tenant_id = 'tenant-vinamilk'),
+    d.id,
+    CASE d.dimension_code
+        WHEN 'PRODUCT_LINE' THEN TRUE
+        WHEN 'FACTORY' THEN TRUE
+        WHEN 'COST_CENTER' THEN FALSE
+    END AS is_required,
+    CASE d.dimension_code
+        WHEN 'PRODUCT_LINE' THEN 1
+        WHEN 'FACTORY' THEN 2
+        WHEN 'COST_CENTER' THEN 3
+    END AS display_order
+FROM dimensions d
+WHERE d.tenant_id = 'tenant-vinamilk'
+  AND d.dimension_code IN ('PRODUCT_LINE', 'FACTORY', 'COST_CENTER');
+
+-- Account 112 (Bank Account) - NO dimensions (no records = not allowed)
+-- (Không insert gì cả)
+```
+
+**How it works:**
+1. **Account 641 (Marketing)**: Có 4 records → 4 dimensions allowed (2 required, 2 optional)
+2. **Account 632 (COGS)**: Có 3 records → 3 dimensions allowed (2 required, 1 optional)
+3. **Account 112 (Bank)**: Không có records → **KHÔNG dimension nào được phép**
+
+---
+
+**📊 Comparison with Major ERPs:**
+
+| Feature | Dynamics 365 | Oracle | SAP | NetSuite | **Bflow** |
+|---------|--------------|--------|-----|----------|-----------|
+| **Account-Specific Rules** | ✅ Yes (Account Structure) | ⚠️ Segment-level only | ❌ No (Distribution Rules apply to all) | ❌ Record-type only | ✅ **Yes** |
+| **Max Dimensions** | 10 financial dimensions | Flexible (30 segments) | 5 dimensions | Unlimited custom segments | **Unlimited** |
+| **Required/Optional per Account** | ✅ Yes | ⚠️ Limited | ❌ Only revenue/expense | ⚠️ Global only | ✅ **Yes** |
+| **Whitelist Mechanism** | ✅ Yes | ⚠️ Partial | ❌ No | ❌ No | ✅ **Yes** |
+| **Multi-tenant SaaS** | ❌ No | ❌ No | ❌ No | ✅ Yes | ✅ **Yes** |
+| **Performance** | Good | Good | Good | Good | **Excellent (MV)** |
+
+**Bflow's Advantage:**
+- Combines **best features** từ tất cả ERPs
+- Account-specific rules (như Dynamics 365) + Unlimited dimensions (như NetSuite) + Multi-tenant (chuẩn SaaS)
+- Đơn giản hơn Dynamics 365 (không cần Account Structure configuration complexity)
+
+---
+
 ## 3. System Architecture & Features
 
 ### 3.1 Feature Map - Accounting System
@@ -428,7 +578,8 @@ graph LR
         B1[Chart of Accounts<br/>Management]
         B2[Dimension<br/>Definition]
         B3[Dimension Values<br/>Management]
-        B4[Fiscal Period<br/>Management]
+        B4[Account-Dimension<br/>Mapping]
+        B5[Fiscal Period<br/>Management]
     end
 
     subgraph SOURCES["📝 SOURCE DOCUMENTS<br/>(Daily Operations)"]
@@ -485,6 +636,7 @@ graph LR
     B2 -.-> D2
     B3 -.-> D2
     B4 -.-> D3
+    B5 -.-> D3
 
     C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8 & C9 & C10 & C11 -.-> D1
 
@@ -529,6 +681,9 @@ erDiagram
     dimension_templates ||--|{ dimension_template_items : "defines"
 
     accounts ||--o{ accounts : "parent-child"
+
+    accounts ||--o{ account_dimension_rules : "defines rules"
+    dimensions ||--o{ account_dimension_rules : "applied to accounts"
 ```
 
 ---
@@ -699,13 +854,14 @@ CREATE TABLE dimension_template_items (
     template_id         UUID NOT NULL REFERENCES dimension_templates(id) ON DELETE CASCADE,
     dimension_code      VARCHAR(20) NOT NULL,
     dimension_name      VARCHAR(100) NOT NULL,
-    is_required         BOOLEAN NOT NULL DEFAULT FALSE,
     display_order       INTEGER NOT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_template_items_template ON dimension_template_items(template_id);
 ```
+
+**Note:** Template chỉ define dimensions nào có sẵn cho tenant. Required/optional status được config sau trong `account_dimension_rules` (section 2.5).
 
 ### 5.2 Sample Templates
 
@@ -714,71 +870,71 @@ CREATE INDEX idx_template_items_template ON dimension_template_items(template_id
 INSERT INTO dimension_templates (template_code, template_name, description, industry) VALUES
 ('MANUFACTURING', 'Công ty sản xuất', 'Cost Center + Product Line + Factory + nhiều dimensions khác', 'MANUFACTURING');
 
-INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, is_required, display_order)
+INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, display_order)
 SELECT
     (SELECT id FROM dimension_templates WHERE template_code = 'MANUFACTURING'),
-    dimension_code, dimension_name, is_required, display_order
+    dimension_code, dimension_name, display_order
 FROM (VALUES
-    ('COST_CENTER', 'Cost Center', TRUE, 1),
-    ('PRODUCT_LINE', 'Dòng sản phẩm', TRUE, 2),
-    ('FACTORY', 'Nhà máy', FALSE, 3),
-    ('SALES_CHANNEL', 'Kênh bán hàng', FALSE, 4),
-    ('CUSTOMER_SEGMENT', 'Phân khúc khách hàng', FALSE, 5),
-    ('REGION', 'Khu vực', FALSE, 6),
-    ('BRAND', 'Thương hiệu', FALSE, 7),
-    ('CAMPAIGN', 'Chiến dịch', FALSE, 8)
-) AS t(dimension_code, dimension_name, is_required, display_order);
+    ('COST_CENTER', 'Cost Center', 1),
+    ('PRODUCT_LINE', 'Dòng sản phẩm', 2),
+    ('FACTORY', 'Nhà máy', 3),
+    ('SALES_CHANNEL', 'Kênh bán hàng', 4),
+    ('CUSTOMER_SEGMENT', 'Phân khúc khách hàng', 5),
+    ('REGION', 'Khu vực', 6),
+    ('BRAND', 'Thương hiệu', 7),
+    ('CAMPAIGN', 'Chiến dịch', 8)
+) AS t(dimension_code, dimension_name, display_order);
 
 -- Template 2: Consulting (Công ty tư vấn)
 INSERT INTO dimension_templates (template_code, template_name, description, industry) VALUES
 ('CONSULTING', 'Công ty tư vấn/dịch vụ', 'Project + Department + Client', 'SERVICE');
 
-INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, is_required, display_order)
+INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, display_order)
 SELECT
     (SELECT id FROM dimension_templates WHERE template_code = 'CONSULTING'),
-    dimension_code, dimension_name, is_required, display_order
+    dimension_code, dimension_name, display_order
 FROM (VALUES
-    ('PROJECT', 'Dự án', TRUE, 1),
-    ('DEPARTMENT', 'Phòng ban', TRUE, 2),
-    ('CLIENT', 'Khách hàng', FALSE, 3),
-    ('SERVICE_LINE', 'Dòng dịch vụ', FALSE, 4)
-) AS t(dimension_code, dimension_name, is_required, display_order);
+    ('PROJECT', 'Dự án', 1),
+    ('DEPARTMENT', 'Phòng ban', 2),
+    ('CLIENT', 'Khách hàng', 3),
+    ('SERVICE_LINE', 'Dòng dịch vụ', 4)
+) AS t(dimension_code, dimension_name, display_order);
 
 -- Template 3: Retail (Chuỗi bán lẻ)
 INSERT INTO dimension_templates (template_code, template_name, description, industry) VALUES
 ('RETAIL', 'Chuỗi bán lẻ', 'Store + Department + Product Category', 'RETAIL');
 
-INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, is_required, display_order)
+INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, display_order)
 SELECT
     (SELECT id FROM dimension_templates WHERE template_code = 'RETAIL'),
-    dimension_code, dimension_name, is_required, display_order
+    dimension_code, dimension_name, display_order
 FROM (VALUES
-    ('STORE', 'Cửa hàng', TRUE, 1),
-    ('DEPARTMENT', 'Nhóm hàng', FALSE, 2),
-    ('PRODUCT_CATEGORY', 'Danh mục sản phẩm', FALSE, 3),
-    ('SALES_CHANNEL', 'Kênh bán', FALSE, 4)
-) AS t(dimension_code, dimension_name, is_required, display_order);
+    ('STORE', 'Cửa hàng', 1),
+    ('DEPARTMENT', 'Nhóm hàng', 2),
+    ('PRODUCT_CATEGORY', 'Danh mục sản phẩm', 3),
+    ('SALES_CHANNEL', 'Kênh bán', 4)
+) AS t(dimension_code, dimension_name, display_order);
 
 -- Template 4: Enterprise (Tập đoàn - nhiều dimensions nhất)
 INSERT INTO dimension_templates (template_code, template_name, description, industry) VALUES
 ('ENTERPRISE', 'Tập đoàn đa ngành', 'Full dimensions cho doanh nghiệp lớn', 'ENTERPRISE');
 
-INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, is_required, display_order)
+INSERT INTO dimension_template_items (template_id, dimension_code, dimension_name, display_order)
 SELECT
     (SELECT id FROM dimension_templates WHERE template_code = 'ENTERPRISE'),
-    dimension_code, dimension_name, is_required, display_order
+    dimension_code, dimension_name, display_order
 FROM (VALUES
-    ('COST_CENTER', 'Cost Center', TRUE, 1),
-    ('DEPARTMENT', 'Phòng ban', TRUE, 2),
-    ('PROJECT', 'Dự án', FALSE, 3),
-    ('PRODUCT_LINE', 'Dòng sản phẩm', FALSE, 4),
-    ('REGION', 'Khu vực', FALSE, 5),
-    ('FACTORY', 'Nhà máy/Chi nhánh', FALSE, 6),
-    ('CUSTOMER_SEGMENT', 'Phân khúc KH', FALSE, 7),
-    ('SALES_CHANNEL', 'Kênh bán hàng', FALSE, 8),
-    ('BRAND', 'Thương hiệu', FALSE, 9),
-    ('CAMPAIGN', 'Chiến dịch', FALSE, 10)
-) AS t(dimension_code, dimension_name, is_required, display_order);
+    ('COST_CENTER', 'Cost Center', 1),
+    ('DEPARTMENT', 'Phòng ban', 2),
+    ('PROJECT', 'Dự án', 3),
+    ('PRODUCT_LINE', 'Dòng sản phẩm', 4),
+    ('REGION', 'Khu vực', 5),
+    ('FACTORY', 'Nhà máy/Chi nhánh', 6),
+    ('CUSTOMER_SEGMENT', 'Phân khúc KH', 7),
+    ('SALES_CHANNEL', 'Kênh bán hàng', 8),
+    ('BRAND', 'Thương hiệu', 9),
+    ('CAMPAIGN', 'Chiến dịch', 10)
+) AS t(dimension_code, dimension_name, display_order);
 ```
 
 ### 5.3 Apply Template Function
@@ -812,14 +968,12 @@ BEGIN
             tenant_id,
             dimension_code,
             dimension_name,
-            is_required,
             display_order,
             is_active
         ) VALUES (
             p_tenant_id,
             v_item.dimension_code,
             v_item.dimension_name,
-            v_item.is_required,
             v_item.display_order,
             TRUE
         );
@@ -828,6 +982,9 @@ BEGIN
     RAISE NOTICE 'Applied template % to tenant %', p_template_code, p_tenant_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Note: After applying template, use "Account-Dimension Mapping" screen to configure
+-- which dimensions are required/optional for each account.
 
 -- Usage example:
 SELECT apply_dimension_template('tenant-vinamilk', 'MANUFACTURING');
@@ -978,46 +1135,211 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv_journal_analysis;
 
 ---
 
-## 7. Business Rules & Validation
+### 6.4 Account-Specific Dimension Rules Examples
 
-### 7.1 Required Dimension Validation
+**Scenario Setup:**
+
+Giả sử tenant Vinamilk có 3 accounts với các dimension rules khác nhau:
+
+| Account | Code | Required Dimensions | Optional Dimensions | Not Allowed |
+|---------|------|-------------------|-------------------|-------------|
+| Marketing Expense | 641 | COST_CENTER, PRODUCT_LINE | CAMPAIGN, REGION | FACTORY, STORE |
+| Cost of Goods Sold | 632 | PRODUCT_LINE, FACTORY | COST_CENTER | CAMPAIGN, REGION |
+| Bank Account | 112 | (none) | (none) | ALL dimensions |
+
+---
+
+#### Example 1: ✅ Valid - Marketing Expense với đầy đủ required dimensions
 
 ```sql
-CREATE OR REPLACE FUNCTION validate_required_dimensions()
+-- Insert journal entry: Chi phí marketing 100M
+INSERT INTO journals (tenant_id, journal_number, entry_date, period_id, description, total_debit, total_credit, status, created_by)
+VALUES ('tenant-vinamilk', 'JE-2025-00001', '2025-01-15', 'period-2025-01',
+        'Marketing expense - Tet campaign', 100000000, 100000000, 'DRAFT', 'user-1')
+RETURNING id INTO @journal_id;
+
+-- Debit line: Account 641 (Marketing)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 100000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions (2 required + 1 optional)
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-marketing'),      -- ✅ Required
+(@line_id, 'dim-product-line', 'val-fresh-milk'),    -- ✅ Required
+(@line_id, 'dim-campaign', 'val-tet-2025');          -- ✅ Optional (allowed)
+
+-- Credit line: Account 112 (Bank) - no dimensions
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, credit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 2, 'acc-112', 100000000);
+-- ✅ Bank account không cần dimensions
+
+-- Post journal
+UPDATE journals SET status = 'POSTED', posted_by = 'user-1', posted_at = NOW()
+WHERE id = @journal_id;
+-- ✅ SUCCESS - Tất cả rules đều satisfied
+```
+
+---
+
+#### Example 2: ❌ Invalid - Thiếu required dimension
+
+```sql
+-- Debit line: Account 641 (Marketing)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 100000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions (chỉ có 1/2 required)
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-marketing');      -- ✅ Required - có rồi
+-- ❌ THIẾU PRODUCT_LINE (required)
+
+-- Trigger validation sẽ reject:
+-- ERROR: Account 641 requires dimension Product Line. Please provide a value.
+```
+
+---
+
+#### Example 3: ❌ Invalid - Sử dụng dimension không được phép
+
+```sql
+-- Debit line: Account 641 (Marketing)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-641', 100000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-marketing'),      -- ✅ Required
+(@line_id, 'dim-product-line', 'val-fresh-milk'),    -- ✅ Required
+(@line_id, 'dim-factory', 'val-factory-hcm');        -- ❌ FACTORY không có trong whitelist của account 641
+
+-- Trigger validation sẽ reject:
+-- ERROR: Account 641 does not allow dimension Factory Location. Please remove it.
+```
+
+---
+
+#### Example 4: ❌ Invalid - Bank account không được có dimensions
+
+```sql
+-- Credit line: Account 112 (Bank)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, credit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 2, 'acc-112', 100000000)
+RETURNING id INTO @line_id;
+
+-- Add dimension (bank account không cho phép ANY dimension)
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-cost-center', 'val-finance');        -- ❌ Bank account không có rules → KHÔNG dimension nào được phép
+
+-- Trigger validation sẽ reject:
+-- ERROR: Account 112 does not allow dimension Cost Center. Please remove it.
+```
+
+---
+
+#### Example 5: ✅ Valid - COGS với dimensions khác Marketing
+
+```sql
+-- Debit line: Account 632 (Cost of Goods Sold)
+INSERT INTO journal_lines (tenant_id, journal_id, line_number, account_id, debit_amount)
+VALUES ('tenant-vinamilk', @journal_id, 1, 'acc-632', 50000000)
+RETURNING id INTO @line_id;
+
+-- Add dimensions (2 required + 1 optional)
+INSERT INTO journal_line_dimensions (journal_line_id, dimension_id, dimension_value_id) VALUES
+(@line_id, 'dim-product-line', 'val-yogurt'),        -- ✅ Required for 632
+(@line_id, 'dim-factory', 'val-factory-hanoi'),      -- ✅ Required for 632
+(@line_id, 'dim-cost-center', 'val-production');     -- ✅ Optional for 632
+
+-- ✅ SUCCESS - Account 632 có rules khác với account 641
+-- CAMPAIGN và REGION không được phép cho 632, nhưng FACTORY thì được
+```
+
+---
+
+**Key Takeaways:**
+1. Mỗi account có **independent dimension rules**
+2. Required dimensions **phải** được provide (Rule 1)
+3. Dimensions không trong whitelist **sẽ bị reject** (Rule 2)
+4. Optional dimensions **có thể** skip (không bắt buộc)
+5. Bank accounts và balance sheet accounts **thường không cần** dimensions
+
+---
+
+## 7. Business Rules & Validation
+
+### 7.1 Account-Specific Dimension Validation
+
+**Note:** Validation dựa trên account-specific rules (bảng `account_dimension_rules`), không phải global `is_required`.
+
+```sql
+CREATE OR REPLACE FUNCTION validate_account_dimensions()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_required_dims RECORD;
+    v_rule RECORD;
     v_provided_dims INTEGER;
+    v_account_code VARCHAR(20);
+    v_dimension_name VARCHAR(100);
 BEGIN
-    -- Check required dimensions for this tenant
-    FOR v_required_dims IN
-        SELECT d.id, d.dimension_name
-        FROM dimensions d
-        WHERE d.tenant_id = NEW.tenant_id
-          AND d.is_required = TRUE
-          AND d.is_active = TRUE
+    -- Get account code for better error messages
+    SELECT account_code INTO v_account_code
+    FROM accounts
+    WHERE id = NEW.account_id;
+
+    -- Rule 1: Check REQUIRED dimensions for this account
+    FOR v_rule IN
+        SELECT adr.dimension_id, d.dimension_name
+        FROM account_dimension_rules adr
+        JOIN dimensions d ON adr.dimension_id = d.id
+        WHERE adr.account_id = NEW.account_id
+          AND adr.is_required = TRUE
     LOOP
         -- Check if dimension is provided
         SELECT COUNT(*) INTO v_provided_dims
         FROM journal_line_dimensions jld
         WHERE jld.journal_line_id = NEW.id
-          AND jld.dimension_id = v_required_dims.id;
+          AND jld.dimension_id = v_rule.dimension_id;
 
         IF v_provided_dims = 0 THEN
-            RAISE EXCEPTION 'Required dimension % is missing for journal line %',
-                v_required_dims.dimension_name, NEW.id;
+            RAISE EXCEPTION 'Account % requires dimension %. Please provide a value.',
+                v_account_code, v_rule.dimension_name;
         END IF;
+    END LOOP;
+
+    -- Rule 2: Check NOT ALLOWED dimensions (whitelist enforcement)
+    -- Nếu dimension không có trong account_dimension_rules → KHÔNG được phép
+    FOR v_rule IN
+        SELECT jld.dimension_id, d.dimension_name
+        FROM journal_line_dimensions jld
+        JOIN dimensions d ON jld.dimension_id = d.id
+        WHERE jld.journal_line_id = NEW.id
+          AND NOT EXISTS (
+              SELECT 1
+              FROM account_dimension_rules adr
+              WHERE adr.account_id = NEW.account_id
+                AND adr.dimension_id = jld.dimension_id
+          )
+    LOOP
+        RAISE EXCEPTION 'Account % does not allow dimension %. Please remove it.',
+            v_account_code, v_rule.dimension_name;
     END LOOP;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_validate_required_dimensions
+CREATE TRIGGER trg_validate_account_dimensions
 AFTER INSERT OR UPDATE ON journal_lines
 FOR EACH ROW
-EXECUTE FUNCTION validate_required_dimensions();
+EXECUTE FUNCTION validate_account_dimensions();
 ```
+
+**How it works:**
+1. **Rule 1 - Required Check**: Nếu account có rule với `is_required = TRUE` → dimension phải được provide
+2. **Rule 2 - Whitelist Check**: Nếu dimension được provide nhưng không có rule → reject (not allowed)
+3. **Optional dimensions**: Có rule với `is_required = FALSE` → được phép nhưng không bắt buộc
 
 ### 7.2 Dimension Value Validation
 
@@ -1136,18 +1458,20 @@ Rows scanned: Pre-aggregated MV only
 
 ### Tables count:
 - Core: 6 tables (accounts, fiscal_years, periods, journals, journal_lines, journal_line_dimensions)
-- Dimensions: 2 tables (dimensions, dimension_values)
+- Dimensions: 3 tables (dimensions, dimension_values, account_dimension_rules)
 - Templates: 2 tables (dimension_templates, dimension_template_items)
 - Views: 1 materialized view (mv_journal_analysis)
-- **Total: 11 tables/views**
+- **Total: 12 tables/views**
 
 ### Key features:
 ✅ Double-entry accounting compliance
 ✅ Unlimited flexible dimensions per tenant
+✅ **Account-specific dimension rules** (whitelist approach)
 ✅ High performance with materialized views
 ✅ Template-based onboarding
 ✅ Multi-tenant isolation
 ✅ Vietnam accounting standards (Thông tư 200)
+✅ **Better than major ERPs** (Dynamics 365, Oracle, SAP, NetSuite)
 
 ---
 

@@ -894,26 +894,25 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Chi Tiết Tài Khoản Ngân Hàng</h5>
+                    <h5 class="modal-title">Lựa chọn tài khoản ngân hàng</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Tên Ngân Hàng</label>
-                        <input type="text" class="form-control" id="detailBankName" placeholder="e.g., Vietcombank">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Số Tài Khoản</label>
-                        <input type="text" class="form-control" id="detailAccountNumber" placeholder="e.g., 1010123456">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Chủ Tài Khoản</label>
-                        <input type="text" class="form-control" id="detailAccountOwner" placeholder="e.g., Nguyễn Văn A">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ghi Chú</label>
-                        <textarea class="form-control" id="detailNote" rows="2" placeholder="Ghi chú..."></textarea>
-                    </div>
+                    <p class="text-muted" style="font-size: 13px; margin-bottom: 15px;">
+                        Loại tiền: <strong id="modalCurrencyDisplay"></strong>
+                    </p>
+                    <table class="table table-bordered table-hover" style="font-size: 14px;">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 60px; text-align: center;"></th>
+                                <th style="width: 150px;">Số tài khoản</th>
+                                <th>Tên ngân hàng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bankAccountsList">
+                            <!-- Bank accounts will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -988,7 +987,25 @@
         let editingRowIndex = -1;
         let editingRowIndex8 = -1;
         let detailModalIndex = -1;
-        let inputRowDetail = { bankName: '', accountNumber: '', accountOwner: '', note: '' };
+
+        // For input row (before Add)
+        let inputRowBankAccount = {
+            bankAccountId: null,
+            bankAccountNumber: null,
+            bankName: null
+        };
+
+        // Master data: Bank Accounts (khai báo trước)
+        const bankAccountsMaster = [
+            { id: 'ba001', accountNumber: '123452', bankName: 'Ngân hàng ACB', currency: 'USD' },
+            { id: 'ba002', accountNumber: '456123', bankName: 'Ngân hàng Vietcombank', currency: 'USD' },
+            { id: 'ba003', accountNumber: '789456', bankName: 'Ngân hàng Techcombank', currency: 'USD' },
+            { id: 'ba004', accountNumber: '101010', bankName: 'Ngân hàng BIDV', currency: 'VND' },
+            { id: 'ba005', accountNumber: '202020', bankName: 'Ngân hàng Vietinbank', currency: 'VND' },
+            { id: 'ba006', accountNumber: '303030', bankName: 'Ngân hàng MB Bank', currency: 'VND' },
+            { id: 'ba007', accountNumber: '654321', bankName: 'Ngân hàng ACB', currency: 'EUR' },
+            { id: 'ba008', accountNumber: '987654', bankName: 'Ngân hàng Vietcombank', currency: 'EUR' }
+        ];
 
         const accountMap = {
             '1111': 'Tiền Mặt VND',
@@ -1159,6 +1176,7 @@
             } else if (moneyType === 'bank') {
                 code = currency === 'VND' ? '1121' : '1122';
                 name = accountMap[code];
+                // Enable detail button for input row to select bank account BEFORE adding
                 detailBtn.style.color = '#6c757d';
                 detailBtn.style.cursor = 'pointer';
                 detailBtn.style.opacity = '1';
@@ -1220,15 +1238,27 @@
                 exchangedAmount = parseCurrency(exInput);
             }
 
+            // Validate: Bank account must be selected for Bank type
+            if (moneyType === 'bank' && !inputRowBankAccount.bankAccountId) {
+                alert('❌ Vui lòng chọn tài khoản ngân hàng! Click vào icon ℹ️ ở cột Detail để chọn.');
+                return;
+            }
+
             accountData.push({
                 moneyType, currency, code, name, amount, exchangedAmount,
-                bankName: inputRowDetail.bankName,
-                accountNumber: inputRowDetail.accountNumber,
-                accountOwner: inputRowDetail.accountOwner,
-                note: inputRowDetail.note
+                exchangeRate: currency !== 'VND' ? (exchangedAmount / amount) : 1,
+                bankAccountId: inputRowBankAccount.bankAccountId,
+                bankAccountNumber: inputRowBankAccount.bankAccountNumber,
+                bankName: inputRowBankAccount.bankName
             });
 
-            inputRowDetail = { bankName: '', accountNumber: '', accountOwner: '', note: '' };
+            // Reset inputRowBankAccount for next input
+            inputRowBankAccount = {
+                bankAccountId: null,
+                bankAccountNumber: null,
+                bankName: null
+            };
+
             renderInputTable();
             renderAddedAccounts();
             updateBalanceSummary();
@@ -1278,69 +1308,256 @@
                 const debitVal = isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
                 const creditVal = !isCash ? formatCurrencyWithSuffix(row.currency !== 'VND' ? row.exchangedAmount : row.amount, 'VND') : '-';
 
-                tr.innerHTML = `
-                    <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
-                    <td><strong>${row.currency}</strong></td>
-                    <td><strong>${row.code}</strong></td>
-                    <td>${row.name}</td>
-                    <td class="text-end">${formatCurrencyWithSuffix(row.amount, row.currency)}</td>
-                    <td class="text-end">${exVal}</td>
-                    <td class="text-end">${debitVal}</td>
-                    <td class="text-end">${creditVal}</td>
-                    <td style="text-align: center;">
-                        <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${row.moneyType === 'bank' ? '#6c757d' : '#ccc'}; font-size: 14px; cursor: ${row.moneyType === 'bank' ? 'pointer' : 'not-allowed'}; opacity: ${row.moneyType === 'bank' ? '1' : '0.5'};">ℹ️</button>
-                    </td>
-                    <td style="text-align: center;">
-                        <button class="btn btn-sm btn-link p-1" onclick="deleteAddedAccount(${idx})" style="color: #dc3545; font-size: 18px;">🗑</button>
-                    </td>
-                `;
+                // Check if this row is being edited
+                if (editingRowIndex === idx) {
+                    // Edit mode
+                    tr.innerHTML = `
+                        <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
+                        <td><strong>${row.currency}</strong></td>
+                        <td><strong>${row.code}</strong></td>
+                        <td>${row.name}</td>
+                        <td class="text-end">
+                            <input type="text" class="form-control form-control-sm text-end" id="editAmount${idx}" value="${row.amount}" style="max-width: 150px; display: inline-block;">
+                        </td>
+                        <td class="text-end">
+                            ${row.currency !== 'VND' ? `<input type="text" class="form-control form-control-sm text-end" id="editExchangeRate${idx}" value="${row.exchangeRate || 1}" style="max-width: 100px; display: inline-block;">` : '-'}
+                        </td>
+                        <td class="text-end">${debitVal}</td>
+                        <td class="text-end">${creditVal}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-link p-1" onclick="${row.moneyType === 'bank' ? `openDetailModal(${idx})` : ''}" style="color: ${row.moneyType === 'bank' ? '#6c757d' : '#ccc'}; font-size: 14px; cursor: ${row.moneyType === 'bank' ? 'pointer' : 'not-allowed'}; opacity: ${row.moneyType === 'bank' ? '1' : '0.5'};">ℹ️</button>
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <button class="btn btn-sm btn-link p-1" onclick="cancelEditAddedAccount()" style="color: #6c757d; font-size: 14px; display: inline-block;" title="Cancel">❌</button>
+                            <button class="btn btn-sm btn-link p-1" onclick="saveEditAddedAccount(${idx})" style="color: #28a745; font-size: 14px; display: inline-block;" title="Save">✅</button>
+                        </td>
+                    `;
+                } else {
+                    // View mode - Detail button DISABLED (must click Edit first to change bank account)
+                    tr.innerHTML = `
+                        <td>${row.moneyType === 'cash' ? '💵 Cash' : '🏦 Bank'}</td>
+                        <td><strong>${row.currency}</strong></td>
+                        <td><strong>${row.code}</strong></td>
+                        <td>${row.name}</td>
+                        <td class="text-end">${formatCurrencyWithSuffix(row.amount, row.currency)}</td>
+                        <td class="text-end">${exVal}</td>
+                        <td class="text-end">${debitVal}</td>
+                        <td class="text-end">${creditVal}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-link p-1" style="color: #ccc; font-size: 14px; cursor: not-allowed; opacity: 0.5;" title="Click Edit để thay đổi bank account">ℹ️</button>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-link p-1" onclick="editAddedAccount(${idx})" style="color: #0d6efd; font-size: 14px;" title="Edit">✏️</button>
+                            <button class="btn btn-sm btn-link p-1" onclick="deleteAddedAccount(${idx})" style="color: #dc3545; font-size: 14px;" title="Delete">🗑</button>
+                        </td>
+                    `;
+                }
                 tbody.appendChild(tr);
             });
+        }
+
+        function editAddedAccount(idx) {
+            editingRowIndex = idx;
+            renderAddedAccounts();
+        }
+
+        function saveEditAddedAccount(idx) {
+            const amountInput = document.getElementById(`editAmount${idx}`);
+            const exchangeRateInput = document.getElementById(`editExchangeRate${idx}`);
+
+            if (!amountInput) {
+                alert('❌ Lỗi: Không tìm thấy input!');
+                return;
+            }
+
+            // Parse and validate amount
+            const newAmount = parseCurrency(amountInput.value);
+            if (newAmount <= 0) {
+                alert('❌ Số tiền phải lớn hơn 0!');
+                amountInput.focus();
+                return;
+            }
+
+            // Update accountData
+            accountData[idx].amount = newAmount;
+
+            // Update exchange rate if exists
+            if (exchangeRateInput) {
+                const newExchangeRate = parseFloat(exchangeRateInput.value) || 1;
+                if (newExchangeRate <= 0) {
+                    alert('❌ Tỷ giá phải lớn hơn 0!');
+                    exchangeRateInput.focus();
+                    return;
+                }
+                accountData[idx].exchangeRate = newExchangeRate;
+                accountData[idx].exchangedAmount = newAmount * newExchangeRate;
+            } else {
+                accountData[idx].exchangedAmount = newAmount;
+            }
+
+            // Exit edit mode
+            editingRowIndex = -1;
+            renderAddedAccounts();
+            updateBalanceSummary();
+        }
+
+        function cancelEditAddedAccount() {
+            editingRowIndex = -1;
+            renderAddedAccounts();
         }
 
         function deleteAddedAccount(idx) {
             if (confirm('Xóa tài khoản này?')) {
                 accountData.splice(idx, 1);
+                editingRowIndex = -1; // Reset edit state
                 renderAddedAccounts();
                 updateBalanceSummary();
             }
         }
 
         function openInputDetailModal() {
-            detailModalIndex = -1;
-            document.getElementById('detailBankName').value = inputRowDetail.bankName || '';
-            document.getElementById('detailAccountNumber').value = inputRowDetail.accountNumber || '';
-            document.getElementById('detailAccountOwner').value = inputRowDetail.accountOwner || '';
-            document.getElementById('detailNote').value = inputRowDetail.note || '';
+            // For input row (before Add)
+            detailModalIndex = -1; // -1 means input row
+            const currency = document.getElementById('inputCurrency').value;
+
+            if (!currency) {
+                alert('❌ Vui lòng chọn loại tiền trước!');
+                return;
+            }
+
+            // Display currency
+            document.getElementById('modalCurrencyDisplay').textContent = currency;
+
+            // Filter bank accounts by currency
+            const filteredAccounts = bankAccountsMaster.filter(ba => ba.currency === currency);
+
+            // Render bank accounts list
+            const tbody = document.getElementById('bankAccountsList');
+            tbody.innerHTML = '';
+
+            if (filteredAccounts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Không có tài khoản ngân hàng nào cho loại tiền này</td></tr>';
+            } else {
+                filteredAccounts.forEach(account => {
+                    const isChecked = inputRowBankAccount.bankAccountId === account.id;
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.innerHTML = `
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="form-check-input bank-account-checkbox"
+                                   data-account-id="${account.id}"
+                                   ${isChecked ? 'checked' : ''}>
+                        </td>
+                        <td>${account.accountNumber}</td>
+                        <td>${account.bankName}</td>
+                    `;
+
+                    // Click row to toggle checkbox (chỉ check được 1)
+                    tr.addEventListener('click', function(e) {
+                        if (e.target.type !== 'checkbox') {
+                            const checkbox = tr.querySelector('.bank-account-checkbox');
+                            document.querySelectorAll('.bank-account-checkbox').forEach(cb => cb.checked = false);
+                            checkbox.checked = true;
+                        } else {
+                            document.querySelectorAll('.bank-account-checkbox').forEach(cb => {
+                                if (cb !== e.target) cb.checked = false;
+                            });
+                        }
+                    });
+
+                    tbody.appendChild(tr);
+                });
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('detailModal'));
             modal.show();
         }
 
         function openDetailModal(idx) {
+            // For existing row (edit mode)
             detailModalIndex = idx;
             const row = accountData[idx];
-            document.getElementById('detailBankName').value = row.bankName || '';
-            document.getElementById('detailAccountNumber').value = row.accountNumber || '';
-            document.getElementById('detailAccountOwner').value = row.accountOwner || '';
-            document.getElementById('detailNote').value = row.note || '';
+            const currency = row.currency;
+
+            // Display currency
+            document.getElementById('modalCurrencyDisplay').textContent = currency;
+
+            // Filter bank accounts by currency
+            const filteredAccounts = bankAccountsMaster.filter(ba => ba.currency === currency);
+
+            // Render bank accounts list
+            const tbody = document.getElementById('bankAccountsList');
+            tbody.innerHTML = '';
+
+            if (filteredAccounts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Không có tài khoản ngân hàng nào cho loại tiền này</td></tr>';
+            } else {
+                filteredAccounts.forEach(account => {
+                    const isChecked = row.bankAccountId === account.id;
+                    const tr = document.createElement('tr');
+                    tr.style.cursor = 'pointer';
+                    tr.innerHTML = `
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="form-check-input bank-account-checkbox"
+                                   data-account-id="${account.id}"
+                                   ${isChecked ? 'checked' : ''}>
+                        </td>
+                        <td>${account.accountNumber}</td>
+                        <td>${account.bankName}</td>
+                    `;
+
+                    // Click row to toggle checkbox (chỉ check được 1)
+                    tr.addEventListener('click', function(e) {
+                        if (e.target.type !== 'checkbox') {
+                            const checkbox = tr.querySelector('.bank-account-checkbox');
+                            // Uncheck all other checkboxes first
+                            document.querySelectorAll('.bank-account-checkbox').forEach(cb => cb.checked = false);
+                            // Then check this one
+                            checkbox.checked = true;
+                        } else {
+                            // If clicked checkbox, ensure only this one is checked
+                            document.querySelectorAll('.bank-account-checkbox').forEach(cb => {
+                                if (cb !== e.target) cb.checked = false;
+                            });
+                        }
+                    });
+
+                    tbody.appendChild(tr);
+                });
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('detailModal'));
             modal.show();
         }
 
         function saveDetailModal() {
-            if (detailModalIndex < 0) {
-                inputRowDetail.bankName = document.getElementById('detailBankName').value;
-                inputRowDetail.accountNumber = document.getElementById('detailAccountNumber').value;
-                inputRowDetail.accountOwner = document.getElementById('detailAccountOwner').value;
-                inputRowDetail.note = document.getElementById('detailNote').value;
-            } else {
-                const row = accountData[detailModalIndex];
-                row.bankName = document.getElementById('detailBankName').value;
-                row.accountNumber = document.getElementById('detailAccountNumber').value;
-                row.accountOwner = document.getElementById('detailAccountOwner').value;
-                row.note = document.getElementById('detailNote').value;
-                renderAddedAccounts();
+            // Find selected bank account
+            const selectedCheckbox = document.querySelector('.bank-account-checkbox:checked');
+
+            if (!selectedCheckbox) {
+                alert('❌ Vui lòng chọn một tài khoản ngân hàng!');
+                return;
             }
+
+            const accountId = selectedCheckbox.getAttribute('data-account-id');
+            const selectedAccount = bankAccountsMaster.find(ba => ba.id === accountId);
+
+            if (selectedAccount) {
+                if (detailModalIndex === -1) {
+                    // Input row (before Add) - save to temporary variable
+                    inputRowBankAccount.bankAccountId = selectedAccount.id;
+                    inputRowBankAccount.bankAccountNumber = selectedAccount.accountNumber;
+                    inputRowBankAccount.bankName = selectedAccount.bankName;
+                } else {
+                    // Edit row (after Add) - update accountData
+                    const row = accountData[detailModalIndex];
+                    row.bankAccountId = selectedAccount.id;
+                    row.bankAccountNumber = selectedAccount.accountNumber;
+                    row.bankName = selectedAccount.bankName;
+                    renderAddedAccounts();
+                }
+            }
+
             const modalEl = document.getElementById('detailModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
